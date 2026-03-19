@@ -1,0 +1,128 @@
+.search-bar {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.search-input-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  transition: all var(--transition-fast);
+  overflow: hidden;
+}
+
+.search-bar.focused .search-input-container {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 25px var(--color-accent-glow);
+  background: var(--bg-elevated);
+}
+
+.search-icon {
+  padding: 0 1rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.search-bar.focused .search-icon {
+  color: var(--color-primary);
+}
+
+.search-input {
+  flex: 1;
+  padding: 1rem 0;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.clear-btn {
+  padding: 0.5rem 1rem;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  margin-right: 0.5rem;
+}
+
+.clear-btn:hover {
+  color: var(--color-primary);
+  transform: scale(1.1);
+}
+
+.search-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.search-btn:hover {
+  background: var(--color-primary-light);
+  box-shadow: 0 4px 20px rgba(229, 57, 53, 0.4);
+  transform: translateY(-2px);
+}
+
+.search-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .search-input-container {
+    border-radius: 12px;
+  }
+
+  .search-btn {
+    padding: 1rem;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  .search-btn span {
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-icon {
+    padding: 0 0.75rem;
+  }
+
+  .search-input {
+    padding: 0.85rem 0;
+    font-size: 0.95rem;
+  }
+}

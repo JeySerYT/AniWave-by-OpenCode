@@ -1,0 +1,129 @@
+.search-page {
+  min-height: 100vh;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.search-header {
+  margin-bottom: 2rem;
+}
+
+.search-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.search-bar-container {
+  max-width: 700px;
+  margin: 0 auto 1.5rem;
+}
+
+.filters-container-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.search-results {
+  margin-top: 2rem;
+  min-height: 300px;
+}
+
+.results-count {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.anime-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  justify-content: center;
+  animation: fadeInGrid 0.3s ease-out;
+}
+
+@keyframes fadeInGrid {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.no-results {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-secondary);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.no-results svg {
+  margin-bottom: 1.5rem;
+  opacity: 0.4;
+  color: var(--color-primary);
+}
+
+.no-results h2 {
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.no-results p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loading-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+@media (max-width: 1200px) {
+  .anime-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .anime-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-page {
+    padding: 1rem;
+  }
+
+  .search-title {
+    font-size: 1.75rem;
+  }
+
+  .anime-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .search-bar-container {
+    max-width: 100%;
+  }
+}
