@@ -2,7 +2,7 @@
 
 Аниме каталог с красивым дизайном в тёмной теме.
 
-![AniWave](https://img.shields.io/badge/AniWave-Anime%20Catalog-red?style=for-the-badge)
+[![GitHub](https://img.shields.io/badge/GitHub-JeySerYT/AniWave--by--OpenCode-blue?style=for-the-badge)](https://github.com/JeySerYT/AniWave-by-OpenCode)
 
 ## ✨ Возможности
 
@@ -27,8 +27,8 @@
 
 ```bash
 # Клонирование репозитория
-git clone https://github.com/USER/anwave.git
-cd anwave
+git clone https://github.com/JeySerYT/AniWave-by-OpenCode.git
+cd AniWave-by-OpenCode
 
 # Установка зависимостей
 npm install
