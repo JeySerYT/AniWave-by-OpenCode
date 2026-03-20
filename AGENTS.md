@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-AniWave is an anime catalog web application built with React + Vite, using AniList GraphQL API.
+AniWave is an anime catalog web application built with React + Vite, using AniList GraphQL API. Features include anime search, favorites, trending/popular/seasonal lists, and user profiles.
 
 ## Build / Lint / Test Commands
 
@@ -16,9 +16,6 @@ npm run dev
 # Production build
 npm run build
 
-# Lint code
-npm run lint
-
 # Preview production build locally
 npm run preview
 ```
@@ -30,6 +27,7 @@ npm run preview
 - Prefer named exports for hooks and utilities
 - Use default exports for page components and UI components
 - Keep components focused and single-purpose
+- Avoid unnecessary comments in code
 
 ### File Structure
 ```
@@ -37,11 +35,11 @@ src/
 ├── api/           # Apollo Client setup and GraphQL queries
 ├── components/    # Reusable UI components (Header, AnimeCard, Hero, etc.)
 ├── context/       # React Context providers (LanguageContext)
-├── hooks/        # Custom hooks (useAnime, useSearch, useFavorites)
-├── locales/      # i18n translation files
-├── pages/        # Page components (Home, Search, Profile, AnimeDetails)
-├── styles/       # Global CSS (variables.css, globals.css, animations.css)
-└── assets/       # Static assets (logo.svg)
+├── hooks/         # Custom hooks (useAnime, useSearch, useFavorites)
+├── locales/       # i18n translation files
+├── pages/         # Page components (Home, Search, Profile, AnimeDetails)
+├── styles/        # Global CSS (variables.css, globals.css, animations.css)
+└── assets/        # Static assets (logo.svg, favicon.svg)
 ```
 
 ### Imports Order
@@ -50,17 +48,6 @@ src/
 3. Internal modules (api/, context/, hooks/)
 4. Components
 5. Styles (CSS files)
-
-```jsx
-// Correct import order
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import client from '../api/client';
-import { LanguageProvider } from '../context/LanguageContext';
-import AnimeCard from '../components/AnimeCard';
-import './Component.css';
-```
 
 ### Naming Conventions
 
@@ -82,24 +69,17 @@ import { motion } from 'framer-motion';
 import './Component.css';
 
 const ComponentName = ({ prop1, prop2 }) => {
-  // Hooks first
   const [state, setState] = useState(initialValue);
 
-  // Effects
   useEffect(() => {
-    // effect logic
   }, [dependency]);
 
-  // Handlers
   const handleClick = () => {
-    // handler logic
   };
 
-  // Early returns for loading/error states
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error.message} />;
 
-  // Render
   return (
     <motion.div
       className="component-name"
@@ -120,19 +100,33 @@ export default ComponentName;
 - Use `cubic-bezier(0.4, 0, 0.2, 1)` for smooth transitions
 - Use `clamp()` for responsive font sizes
 - Keep transitions between 0.3s-0.4s for smoothness
-- Use border-radius: 9999px for pill-shaped elements
+- Use `border-radius: 9999px` for pill-shaped elements
+- Use `border-radius: 16px` or `20px` for cards and modals
 
 ### CSS Variables Available
 ```css
 --bg-primary: #0a0a0a;
 --bg-secondary: #141414;
 --bg-card: #1a1a1a;
+--bg-elevated: #222222;
 --accent-red: #E53935;
 --accent-pink: #FF4081;
 --text-primary: #ffffff;
 --text-secondary: #aaa;
 --text-muted: #888;
 --border-subtle: rgba(255, 255, 255, 0.1);
+```
+
+### Profile Page
+
+Profile stores user data in localStorage under key `user_profile`:
+```js
+{
+  banner: '',      // base64 or URL
+  avatar: '',      // base64 or URL
+  username: 'Anime Fan',
+  bio: 'Love watching anime!'
+}
 ```
 
 ### AniList API
@@ -161,7 +155,8 @@ export default ComponentName;
 - Use Framer Motion for page transitions and component animations
 - Keep animation duration between 0.3s-0.6s
 - Use staggered delays (0.03s-0.05s per item) for lists
-- Use cubic-bezier(0.4, 0, 0.2, 1) for smooth easing
+- Use cubic-bezier(0.25, 0.46, 0.45, 0.94) for smooth easing
+- Use drop-shadow for glow effects on text
 
 ### Git Workflow
 
@@ -169,3 +164,11 @@ export default ComponentName;
 - Types: feat, fix, refactor, style, docs, test, chore
 - Example: `feat: add search filters`, `fix: card hover effect`
 - Always run `npm run build` before committing to verify no errors
+
+### Sub-agents Usage
+
+When using sub-agents for complex tasks:
+1. Use 2-3 agents: one for writing code, one for reviewing
+2. Always verify changes with `npm run build`
+3. Report errors found by reviewers
+4. Apply fixes manually if agents fail
