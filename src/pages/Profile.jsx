@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import AnimeCard from '../components/AnimeCard';
+import Footer from '../components/Footer';
 import { useFavorites } from '../hooks/useFavorites';
 import { useLanguage } from '../context/LanguageContext';
 import logoSvg from '../assets/logo.svg';
@@ -112,8 +113,7 @@ const ProfileContent = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-        >
-        </motion.div>
+        />
 
         <div className="profile-avatar-wrapper">
           <div className="profile-avatar">
@@ -169,87 +169,89 @@ const ProfileContent = () => {
             </div>
           )}
         </motion.section>
+      </div>
+      
+      <Footer />
+      
+      {isEditing && (
+        <div className="edit-modal-backdrop" onClick={handleCancel}>
+          <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Edit Profile</h2>
+            <div className="edit-field">
+              <label>Username</label>
+              <input type="text" name="username" value={editForm.username} onChange={handleChange} />
+            </div>
+            <div className="edit-field">
+              <label>Banner</label>
+              <div 
+                className={`drop-zone ${bannerDragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={(e) => { handleDragLeave(e); setBannerDragging(false); }}
+                onDrop={(e) => handleDrop(e, 'banner')}
+                onClick={() => bannerInputRef.current?.click()}
+              >
+                {editForm.banner ? (
+                  <img src={editForm.banner} alt="Banner preview" className="drop-preview" />
+                ) : (
+                  <div className="drop-placeholder">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <path d="M21 15l-5-5L5 21"/>
+                    </svg>
+                    <span>Drop image or click</span>
+                  </div>
+                )}
+              </div>
+              <input 
+                ref={bannerInputRef}
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => handleFileSelect(e, 'banner')} 
+                style={{ display: 'none' }} 
+              />
+            </div>
 
-        {isEditing && (
-          <div className="edit-modal-backdrop" onClick={handleCancel}>
-            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
-              <h2>Edit Profile</h2>
-              <div className="edit-field">
-                <label>Username</label>
-                <input type="text" name="username" value={editForm.username} onChange={handleChange} />
+            <div className="edit-field">
+              <label>Avatar</label>
+              <div 
+                className={`drop-zone drop-zone-small ${avatarDragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={(e) => { handleDragLeave(e); setAvatarDragging(false); }}
+                onDrop={(e) => handleDrop(e, 'avatar')}
+                onClick={() => avatarInputRef.current?.click()}
+              >
+                {editForm.avatar ? (
+                  <img src={editForm.avatar} alt="Avatar preview" className="drop-preview-avatar" />
+                ) : (
+                  <div className="drop-placeholder">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <path d="M21 15l-5-5L5 21"/>
+                    </svg>
+                  </div>
+                )}
               </div>
-              <div className="edit-field">
-                <label>Banner</label>
-                <div 
-                  className={`drop-zone ${bannerDragging ? 'dragging' : ''}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={(e) => { handleDragLeave(e); setBannerDragging(false); }}
-                  onDrop={(e) => handleDrop(e, 'banner')}
-                  onClick={() => bannerInputRef.current?.click()}
-                >
-                  {editForm.banner ? (
-                    <img src={editForm.banner} alt="Banner preview" className="drop-preview" />
-                  ) : (
-                    <div className="drop-placeholder">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <path d="M21 15l-5-5L5 21"/>
-                      </svg>
-                      <span>Drop image or click</span>
-                    </div>
-                  )}
-                </div>
-                <input 
-                  ref={bannerInputRef}
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => handleFileSelect(e, 'banner')} 
-                  style={{ display: 'none' }} 
-                />
-              </div>
-
-              <div className="edit-field">
-                <label>Avatar</label>
-                <div 
-                  className={`drop-zone drop-zone-small ${avatarDragging ? 'dragging' : ''}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={(e) => { handleDragLeave(e); setAvatarDragging(false); }}
-                  onDrop={(e) => handleDrop(e, 'avatar')}
-                  onClick={() => avatarInputRef.current?.click()}
-                >
-                  {editForm.avatar ? (
-                    <img src={editForm.avatar} alt="Avatar preview" className="drop-preview-avatar" />
-                  ) : (
-                    <div className="drop-placeholder">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <path d="M21 15l-5-5L5 21"/>
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <input 
-                  ref={avatarInputRef}
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => handleFileSelect(e, 'avatar')} 
-                  style={{ display: 'none' }} 
-                />
-              </div>
-              <div className="edit-field">
-                <label>Bio</label>
-                <textarea name="bio" value={editForm.bio} onChange={handleChange} rows={3} />
-              </div>
-              <div className="edit-actions">
-                <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
-                <button className="save-btn" onClick={handleSave}>Save</button>
-              </div>
+              <input 
+                ref={avatarInputRef}
+                type="file" 
+                accept="image/*" 
+                onChange={(e) => handleFileSelect(e, 'avatar')} 
+                style={{ display: 'none' }} 
+              />
+            </div>
+            <div className="edit-field">
+              <label>Bio</label>
+              <textarea name="bio" value={editForm.bio} onChange={handleChange} rows={3} />
+            </div>
+            <div className="edit-actions">
+              <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+              <button className="save-btn" onClick={handleSave}>Save</button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

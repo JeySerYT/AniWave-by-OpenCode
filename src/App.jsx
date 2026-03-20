@@ -10,6 +10,9 @@ import Home from './pages/Home';
 import Search from './pages/Search';
 import AnimeDetails from './pages/AnimeDetails';
 import Profile from './pages/Profile';
+import Faq from './pages/Faq';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import './styles/variables.css';
 import './styles/globals.css';
 import './App.css';
@@ -54,6 +57,9 @@ function App() {
               <Route path="/search" element={<Layout><Search /></Layout>} />
               <Route path="/anime/:id" element={<Layout><AnimeDetails /></Layout>} />
               <Route path="/profile" element={<Layout><Profile /></Layout>} />
+              <Route path="/faq" element={<Layout><Faq /></Layout>} />
+              <Route path="/terms" element={<Layout><Terms /></Layout>} />
+              <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
             </Routes>
           </div>
         </BrowserRouter>
