@@ -28,6 +28,8 @@ npm run preview
 - Use default exports for page components and UI components
 - Keep components focused and single-purpose
 - Avoid unnecessary comments in code
+- Avoid magic numbers - use constants or CSS variables
+- Always run `npm run build` before committing
 
 ### File Structure
 ```
@@ -38,8 +40,8 @@ src/
 ├── hooks/         # Custom hooks (useAnime, useSearch, useFavorites)
 ├── locales/       # i18n translation files
 ├── pages/         # Page components (Home, Search, Profile, AnimeDetails, FAQ, Terms, Privacy)
-├── styles/        # Global CSS (variables.css, globals.css, animations.css)
-└── assets/        # Static assets (logo.svg, favicon.svg)
+├── styles/         # Global CSS (variables.css, globals.css, animations.css)
+└── assets/         # Static assets (logo.svg, favicon.svg)
 ```
 
 ### Imports Order
@@ -129,6 +131,24 @@ Profile stores user data in localStorage under key `user_profile`:
 }
 ```
 
+### AnimeDetails Page
+
+The AnimeDetails page (src/pages/AnimeDetails.jsx) displays:
+- Anime cover image with rating badge and favorite button overlay
+- Title (English with Russian translation via Google Translate API)
+- Native title in original language
+- Trailer button with icon (expands on hover)
+- Meta info: episodes count, status
+- Description with Russian translation
+- Info panel: genres, season, studio, source, country, release dates, next airing episode, alternative titles
+- Related anime section with translated titles
+
+The page uses:
+- `translateToRussian()` - async function for Google Translate API
+- `genreTranslations` - static object for genre name translations
+- `translateGenre()` - function to translate genre names
+- `translatedTitles` state - cache for translated anime titles
+
 ### Pages
 
 | Page | Route | Description |
@@ -136,7 +156,7 @@ Profile stores user data in localStorage under key `user_profile`:
 | Home | `/` | Main page with trending/popular/seasonal anime |
 | Search | `/search` | Anime search with filters |
 | Profile | `/profile` | User profile with favorites |
-| AnimeDetails | `/anime/:id` | Anime details page |
+| AnimeDetails | `/anime/:id` | Anime details page with translation support |
 | FAQ | `/faq` | Frequently asked questions |
 | Terms | `/terms` | Terms of service |
 | Privacy | `/privacy` | Privacy policy |
