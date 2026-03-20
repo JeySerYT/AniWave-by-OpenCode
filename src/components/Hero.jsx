@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { HelpCircle } from 'lucide-react';
 import './Hero.css';
 
 const translateToRussian = async (text) => {
@@ -180,11 +181,7 @@ const Hero = ({ anime }) => {
 
             <div className="hero-actions">
               <button className="hero-btn-primary" onClick={handleDetails}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="16"/>
-                  <line x1="8" y1="12" x2="16" y2="12"/>
-                </svg>
+                <HelpCircle size={18} />
                 <span>Подробнее</span>
               </button>
               <button className="hero-btn-secondary" onClick={handleWatchTrailer}>
