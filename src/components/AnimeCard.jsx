@@ -13,7 +13,7 @@ const AnimeCard = ({ anime, index = 0 }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.03 }}
-      whileHover={{ y: -8, scale: 1.02 }}
+      whileHover={{ y: -6, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] } }}
     >
       <Link to={`/anime/${anime.id}`} className="anime-card-link">
         <div className="anime-card-image">

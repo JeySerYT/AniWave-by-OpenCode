@@ -41,7 +41,7 @@ const Home = () => {
       {!loading && !error && (
         <>
           <div className="anime-grid">
-            {animeList.slice(0, 24).map((anime, index) => (
+            {animeList.slice(0, 6).map((anime, index) => (
               <AnimeCard key={anime.id} anime={anime} index={index} />
             ))}
           </div>
