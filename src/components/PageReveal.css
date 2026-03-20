@@ -1,0 +1,68 @@
+.page-reveal-black {
+  position: fixed;
+  inset: 0;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.page-reveal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-reveal-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.reveal-circle {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border: 3px solid transparent;
+  border-top-color: #E53935;
+  border-radius: 50%;
+  animation: revealSpin 1s linear infinite;
+}
+
+.reveal-circle::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 2px solid transparent;
+  border-bottom-color: #FF4081;
+  border-radius: 50%;
+  animation: revealSpin 0.8s linear infinite reverse;
+}
+
+@keyframes revealSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.page-reveal-logo span {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #E53935, #FF4081);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 4px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.page-reveal-wrapper {
+  min-height: 100vh;
+}
