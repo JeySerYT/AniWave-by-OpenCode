@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-AniWave is an anime catalog web application built with React + Vite, using AniList GraphQL API. Features include anime search, favorites, trending/popular/seasonal lists, and user profiles.
+AniWave is an anime catalog web application built with React + Vite, using AniList GraphQL API. Features include anime search, favorites, trending/popular/seasonal lists, user profiles, FAQ, Terms, and Privacy pages.
 
 ## Build / Lint / Test Commands
 
@@ -33,11 +33,11 @@ npm run preview
 ```
 src/
 ├── api/           # Apollo Client setup and GraphQL queries
-├── components/    # Reusable UI components (Header, AnimeCard, Hero, etc.)
+├── components/    # Reusable UI components (Header, Footer, AnimeCard, Hero, etc.)
 ├── context/       # React Context providers (LanguageContext)
 ├── hooks/         # Custom hooks (useAnime, useSearch, useFavorites)
 ├── locales/       # i18n translation files
-├── pages/         # Page components (Home, Search, Profile, AnimeDetails)
+├── pages/         # Page components (Home, Search, Profile, AnimeDetails, FAQ, Terms, Privacy)
 ├── styles/        # Global CSS (variables.css, globals.css, animations.css)
 └── assets/        # Static assets (logo.svg, favicon.svg)
 ```
@@ -128,6 +128,18 @@ Profile stores user data in localStorage under key `user_profile`:
   bio: 'Love watching anime!'
 }
 ```
+
+### Pages
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Home | `/` | Main page with trending/popular/seasonal anime |
+| Search | `/search` | Anime search with filters |
+| Profile | `/profile` | User profile with favorites |
+| AnimeDetails | `/anime/:id` | Anime details page |
+| FAQ | `/faq` | Frequently asked questions |
+| Terms | `/terms` | Terms of service |
+| Privacy | `/privacy` | Privacy policy |
 
 ### AniList API
 

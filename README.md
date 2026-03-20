@@ -13,6 +13,9 @@
 - 📺 Hero-секция с трейлерами
 - ❤️ Избранное (сохраняется в localStorage)
 - 👤 Профиль с кастомизацией (баннер, аватар, описание)
+- ❓ FAQ — часто задаваемые вопросы
+- 📄 Условия использования
+- 🔒 Политика конфиденциальности
 - 📱 Адаптивный дизайн для всех устройств
 - 🎨 Современные карточки с liquid glass эффектами
 
@@ -47,13 +50,13 @@ npm run build
 ```
 src/
 ├── api/           # Apollo Client и GraphQL запросы
-├── components/    # UI компоненты (AnimeCard, Header, Hero, etc.)
+├── components/    # UI компоненты (AnimeCard, Header, Hero, Footer, etc.)
 ├── context/       # React Context (язык)
 ├── hooks/         # Кастомные хуки (useAnime, useFavorites, useSearch)
 ├── locales/       # Переводы
-├── pages/         # Страницы (Home, Search, Profile, AnimeDetails)
+├── pages/         # Страницы (Home, Search, Profile, AnimeDetails, FAQ, etc.)
 ├── styles/        # Глобальные стили и переменные
-└── assets/        # Статические файлы
+└── assets/       # Статические файлы (logo.svg, favicon.svg)
 ```
 
 ## 🎨 Дизайн
