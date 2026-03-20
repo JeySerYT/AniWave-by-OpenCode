@@ -83,6 +83,8 @@ export const GET_ANIME_BY_ID = gql`
         }
       }
       source
+      countryOfOrigin
+      synonyms
       startDate {
         year
         month
@@ -100,6 +102,10 @@ export const GET_ANIME_BY_ID = gql`
       trailer {
         id
         site
+      }
+      tags {
+        name
+        rank
       }
       relations {
         edges {
@@ -247,6 +253,27 @@ export const GET_ANIME_BY_YEAR = gql`
         episodes
         status
         seasonYear
+      }
+    }
+  }
+`;
+
+export const GET_ANIME_CHARACTERS = gql`
+  query GetAnimeCharacters($id: Int) {
+    Media(id: $id, type: ANIME) {
+      characters(sort: ROLE, perPage: 12) {
+        nodes {
+          id
+          name {
+            full
+            native
+          }
+          image {
+            large
+            medium
+          }
+          role
+        }
       }
     }
   }
