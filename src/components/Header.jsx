@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../assets/logo.svg';
+import { useLanguage } from '../context/LanguageContext';
 import './Header.css';
 
 const HomeIcon = () => (
@@ -25,15 +26,16 @@ const ProfileIcon = () => (
   </svg>
 );
 
-const navItems = [
-  { path: '/', label: 'Главная', Icon: HomeIcon },
-  { path: '/search', label: 'Поиск', Icon: SearchIcon },
-  { path: '/profile', label: 'Профиль', Icon: ProfileIcon },
-];
-
 function Header() {
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+
+  const navItems = [
+    { path: '/', label: t('home'), Icon: HomeIcon },
+    { path: '/search', label: t('search'), Icon: SearchIcon },
+    { path: '/profile', label: t('profile'), Icon: ProfileIcon },
+  ];
 
   const toggleMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   const isActive = (path) => location.pathname === path;
@@ -59,7 +61,7 @@ function Header() {
           ))}
         </nav>
 
-        <button className="hamburger" onClick={toggleMenu} aria-label="Toggle menu">
+        <button type="button" className="hamburger" onClick={toggleMenu} aria-label="Toggle menu" aria-expanded={mobileMenuOpen}>
           <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
           <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>
           <span className={`hamburger-line ${mobileMenuOpen ? 'open' : ''}`}></span>

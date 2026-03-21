@@ -1,40 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
-import { useQuery, gql } from '@apollo/client';
-import { SEARCH_ANIME, GET_ANIME_GENRES } from '../api/queries';
-
-const SEARCH_WITH_SORT = gql`
-  query SearchAnimeWithSort($search: String, $genre: String, $year: Int, $type: MediaType, $status: MediaStatus, $sort: MediaSort, $season: MediaSeason) {
-    Page(perPage: 20) {
-      media(
-        type: ANIME
-        search: $search
-        genre: $genre
-        seasonYear: $year
-        format: $type
-        status: $status
-        sort: $sort
-        season: $season
-      ) {
-        id
-        title {
-          romaji
-          english
-          native
-        }
-        coverImage {
-          large
-          medium
-        }
-        bannerImage
-        description(asHtml: false)
-        genres
-        averageScore
-        episodes
-        status
-      }
-    }
-  }
-`;
+import { useQuery } from '@apollo/client';
+import { SEARCH_ANIME, SEARCH_WITH_SORT, GET_ANIME_GENRES } from '../api/queries';
 
 export const useSearch = (initialFilters = {}) => {
   const [filters, setFilters] = useState({
@@ -76,17 +42,12 @@ export const useSearch = (initialFilters = {}) => {
     season: filters.season || null,
   }), [filters.search, filters.genre, filters.year, filters.type, filters.status, filters.sort, filters.season]);
 
-  const useQueryWithSort = () => {
-    const hasSortOrSeason = filters.sort || filters.season;
-    const query = hasSortOrSeason ? SEARCH_WITH_SORT : SEARCH_ANIME;
-    return useQuery(query, {
-      variables: queryVariables,
-      notifyOnNetworkStatusChange: true,
-      skip: false,
-    });
-  };
-
-  const { data, loading, error, refetch } = useQueryWithSort();
+  const hasSortOrSeason = filters.sort || filters.season;
+  const query = hasSortOrSeason ? SEARCH_WITH_SORT : SEARCH_ANIME;
+  const { data, loading, error, refetch } = useQuery(query, {
+    variables: queryVariables,
+    notifyOnNetworkStatusChange: true,
+  });
 
   return {
     anime: data?.Page?.media || [],

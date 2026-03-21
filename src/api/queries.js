@@ -278,3 +278,37 @@ export const GET_ANIME_CHARACTERS = gql`
     }
   }
 `;
+
+export const SEARCH_WITH_SORT = gql`
+  query SearchAnimeWithSort($search: String, $genre: String, $year: Int, $type: MediaType, $status: MediaStatus, $sort: MediaSort, $season: MediaSeason) {
+    Page(perPage: 20) {
+      media(
+        type: ANIME
+        search: $search
+        genre: $genre
+        seasonYear: $year
+        format: $type
+        status: $status
+        sort: $sort
+        season: $season
+      ) {
+        id
+        title {
+          romaji
+          english
+          native
+        }
+        coverImage {
+          large
+          medium
+        }
+        bannerImage
+        description(asHtml: false)
+        genres
+        averageScore
+        episodes
+        status
+      }
+    }
+  }
+`;

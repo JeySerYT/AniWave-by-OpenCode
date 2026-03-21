@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
+import { AlertTriangle } from 'lucide-react';
 import './ErrorMessage.css';
 
 const ErrorMessage = ({ 
   message = 'Something went wrong', 
   onRetry,
-  icon = '⚠️'
+  icon = AlertTriangle
 }) => {
   return (
     <motion.div 

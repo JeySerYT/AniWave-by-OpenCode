@@ -23,8 +23,11 @@ const STATUSES = [
   { value: 'NOT_YET_RELEASED', label: 'Not Yet Released' }
 ];
 
-const currentYear = new Date().getFullYear();
-const YEARS = Array.from({ length: 30 }, (_, i) => currentYear - i);
+const getYears = () => {
+  const currentYear = new Date().getFullYear();
+  return Array.from({ length: 30 }, (_, i) => currentYear - i);
+};
+const YEARS = getYears();
 
 const Filters = ({ filters, onChange, onApply, onReset }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,7 +53,7 @@ const Filters = ({ filters, onChange, onApply, onReset }) => {
   };
 
   const handleReset = () => {
-    const emptyFilters = { genre: '', year: '', format: '', status: '' };
+    const emptyFilters = { genre: null, year: null, format: null, status: null, sort: null, season: null };
     setLocalFilters(emptyFilters);
     if (onReset) {
       onReset();
@@ -96,8 +99,9 @@ const Filters = ({ filters, onChange, onApply, onReset }) => {
           >
             <div className="filters-grid">
               <div className="filter-group">
-                <label className="filter-label">Genre</label>
+                <label htmlFor="filter-genre" className="filter-label">Genre</label>
                 <select 
+                  id="filter-genre"
                   className="filter-select"
                   value={localFilters.genre}
                   onChange={(e) => handleFilterChange('genre', e.target.value)}
@@ -110,8 +114,9 @@ const Filters = ({ filters, onChange, onApply, onReset }) => {
               </div>
 
               <div className="filter-group">
-                <label className="filter-label">Year</label>
+                <label htmlFor="filter-year" className="filter-label">Year</label>
                 <select 
+                  id="filter-year"
                   className="filter-select"
                   value={localFilters.year}
                   onChange={(e) => handleFilterChange('year', e.target.value)}
@@ -124,8 +129,9 @@ const Filters = ({ filters, onChange, onApply, onReset }) => {
               </div>
 
               <div className="filter-group">
-                <label className="filter-label">Type</label>
+                <label htmlFor="filter-format" className="filter-label">Type</label>
                 <select 
+                  id="filter-format"
                   className="filter-select"
                   value={localFilters.format}
                   onChange={(e) => handleFilterChange('format', e.target.value)}
@@ -138,8 +144,9 @@ const Filters = ({ filters, onChange, onApply, onReset }) => {
               </div>
 
               <div className="filter-group">
-                <label className="filter-label">Status</label>
+                <label htmlFor="filter-status" className="filter-label">Status</label>
                 <select 
+                  id="filter-status"
                   className="filter-select"
                   value={localFilters.status}
                   onChange={(e) => handleFilterChange('status', e.target.value)}

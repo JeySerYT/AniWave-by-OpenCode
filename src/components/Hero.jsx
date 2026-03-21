@@ -2,81 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HelpCircle } from 'lucide-react';
+import { translateToRussian } from '../utils/translation';
+import { genreTranslations, statusTranslations, translateGenre, translateStatus } from '../constants/translations';
+import { useLanguage } from '../context/LanguageContext';
 import './Hero.css';
 
-const translateToRussian = async (text) => {
-  if (!text) return '';
-  try {
-    const response = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(text.substring(0, 300))}`
-    );
-    const data = await response.json();
-    if (data && data[0]) {
-      return data[0].map(item => item[0]).join('');
-    }
-    return text;
-  } catch (e) {
-    console.log('Translation error:', e);
-    return text;
-  }
-};
-
-const genreTranslations = {
-  'Action': 'Боевик',
-  'Adventure': 'Приключения',
-  'Comedy': 'Комедия',
-  'Drama': 'Драма',
-  'Fantasy': 'Фэнтези',
-  'Horror': 'Ужасы',
-  'Mystery': 'Детектив',
-  'Romance': 'Романтика',
-  'Sci-Fi': 'Научная фантастика',
-  'Slice of Life': 'Повседневность',
-  'Sports': 'Спорт',
-  'Supernatural': 'Сверхъестественное',
-  'Thriller': 'Триллер',
-  'Ecchi': 'Этти',
-  'Mecha': 'Меха',
-  'Music': 'Музыка',
-  'Psychological': 'Психология',
-  'Shounen': 'Сёнен',
-  'Shoujo': 'Сёдзё',
-  'Seinen': 'Сэйнен',
-  'Isekai': 'Исекай',
-  'Mahou Shoujo': 'Махо-сёдзё',
-  'Gore': 'Гор',
-  'Yaoi': 'Яой',
-  'Yuri': 'Юри',
-  'Harem': 'Гарем',
-  'School': 'Школа',
-  'Space': 'Космос',
-  'Military': 'Военное',
-  'Martial Arts': 'Боевые искусства',
-  'Samurai': 'Самураи',
-  'Cars': 'Гонки',
-  'Game': 'Игры',
-  'Demons': 'Демоны',
-  'Vampire': 'Вампиры',
-};
-
-const statusTranslations = {
-  'FINISHED': 'Завершено',
-  'RELEASING': 'Сейчас выходит',
-  'NOT_YET_RELEASED': 'Не выпущено',
-  'CANCELLED': 'Отменено',
-  'HIATUS': 'На паузе',
-  'Finished': 'Завершено',
-  'Airing': 'Сейчас выходит',
-  'Not Yet Released': 'Не выпущено',
-  'Cancelled': 'Отменено',
-  'On Hiatus': 'На паузе',
-};
-
-const translateGenre = (genre) => {
-  return genreTranslations[genre] || genre;
-};
-
 const Hero = ({ anime }) => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [translatedTitle, setTranslatedTitle] = useState('');
   const [translatedDesc, setTranslatedDesc] = useState('');
@@ -123,10 +55,6 @@ const Hero = ({ anime }) => {
     navigate(`/anime/${anime.id}`);
   };
 
-  const formatStatus = (status) => {
-    return statusTranslations[status] || status;
-  };
-
   return (
     <section className="hero">
       {trailerUrl ? (
@@ -164,7 +92,7 @@ const Hero = ({ anime }) => {
             <div className="hero-meta">
               {anime.status && (
                 <div className="meta-status">
-                  <span>{formatStatus(anime.status)}</span>
+                  <span>{translateStatus(anime.status)}</span>
                 </div>
               )}
             </div>
@@ -182,13 +110,13 @@ const Hero = ({ anime }) => {
             <div className="hero-actions">
               <button className="hero-btn-primary" onClick={handleDetails}>
                 <HelpCircle size={18} />
-                <span>Подробнее</span>
+                <span>{t('details')}</span>
               </button>
               <button className="hero-btn-secondary" onClick={handleWatchTrailer}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M8 5v14l11-7z"/>
                 </svg>
-                <span>Трейлер</span>
+                <span>{t('trailer')}</span>
               </button>
             </div>
           </motion.div>

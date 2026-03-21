@@ -1,9 +1,12 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../context/LanguageContext';
 import './AnimeCard.css';
 
-const AnimeCard = ({ anime, index = 0 }) => {
-  const title = anime.title?.english || anime.title?.romaji || 'Unknown';
+const AnimeCard = ({ anime, index = 0, translatedTitle }) => {
+  const { t } = useLanguage();
+  const title = translatedTitle || anime.title?.english || anime.title?.romaji || anime.title?.native || 'Unknown';
   const coverImage = anime.coverImage?.large || anime.coverImage?.medium;
   const rating = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
 
@@ -23,6 +26,10 @@ const AnimeCard = ({ anime, index = 0 }) => {
               src={coverImage} 
               alt={title}
               loading="lazy"
+              onError={(e) => {
+                e.target.src = '/placeholder.png';
+                e.target.onerror = null;
+              }}
             />
           )}
           <div className="anime-card-overlay" />
@@ -36,7 +43,7 @@ const AnimeCard = ({ anime, index = 0 }) => {
 
           {anime.episodes && (
             <div className="anime-card-episodes">
-              {anime.episodes} эп.
+              {anime.episodes} {t('episodeAbbrev')}
             </div>
           )}
         </div>
@@ -57,4 +64,4 @@ const AnimeCard = ({ anime, index = 0 }) => {
   );
 };
 
-export default AnimeCard;
+export default memo(AnimeCard);

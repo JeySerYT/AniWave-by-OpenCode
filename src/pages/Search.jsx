@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import Filters from '../components/Filters';
@@ -13,8 +13,13 @@ const Search = () => {
   const { anime, loading, error, filters, updateFilters, resetFilters, refetch } = useSearch();
   const [localFilters, setLocalFilters] = useState({});
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const lastAppliedParams = useRef(null);
 
   useEffect(() => {
+    const paramsString = searchParams.toString();
+    if (paramsString === lastAppliedParams.current) return;
+    lastAppliedParams.current = paramsString;
+
     const sort = searchParams.get('sort');
     const season = searchParams.get('season');
     const status = searchParams.get('status');
@@ -45,11 +50,10 @@ const Search = () => {
     if (year) {
       if (year === 'current') {
         urlFilters.year = new Date().getFullYear();
+      } else if (year && !isNaN(parseInt(year))) {
+        urlFilters.year = parseInt(year);
       } else {
-        const yearNum = parseInt(year);
-        if (!isNaN(yearNum) && yearNum > 1900 && yearNum <= new Date().getFullYear() + 1) {
-          urlFilters.year = yearNum;
-        }
+        urlFilters.year = null;
       }
     }
 

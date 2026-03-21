@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -7,69 +7,17 @@ import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import { useAnimeById } from '../hooks/useAnime';
 import { useFavorites } from '../hooks/useFavorites';
+import { useLanguage } from '../context/LanguageContext';
+import { translateToRussian } from '../utils/translation';
+import { translateGenre } from '../constants/translations';
 import './AnimeDetails.css';
-
-const translateToRussian = async (text) => {
-  if (!text) return '';
-  try {
-    const response = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(text)}`
-    );
-    const data = await response.json();
-    if (data && data[0]) {
-      return data[0].map(item => item[0]).join('');
-    }
-    return text;
-  } catch (e) {
-    return text;
-  }
-};
-
-const genreTranslations = {
-  'Action': 'Боевик',
-  'Adventure': 'Приключения',
-  'Comedy': 'Комедия',
-  'Drama': 'Драма',
-  'Fantasy': 'Фэнтези',
-  'Horror': 'Ужасы',
-  'Mystery': 'Детектив',
-  'Romance': 'Романтика',
-  'Sci-Fi': 'Научная фантастика',
-  'Slice of Life': 'Повседневность',
-  'Sports': 'Спорт',
-  'Supernatural': 'Сверхъестественное',
-  'Thriller': 'Триллер',
-  'Ecchi': 'Этти',
-  'Mecha': 'Меха',
-  'Music': 'Музыка',
-  'Psychological': 'Психология',
-  'Shounen': 'Сёнен',
-  'Shoujo': 'Сёдзё',
-  'Seinen': 'Сэйнен',
-  'Isekai': 'Исекай',
-  'Mahou Shoujo': 'Махо-сёдзё',
-  'Gore': 'Гор',
-  'Yaoi': 'Яой',
-  'Yuri': 'Юри',
-  'Harem': 'Гарем',
-  'School': 'Школа',
-  'Space': 'Космос',
-  'Military': 'Военное',
-  'Martial Arts': 'Боевые искусства',
-  'Samurai': 'Самураи',
-  'Cars': 'Гонки',
-  'Game': 'Игры',
-  'Demons': 'Демоны',
-  'Vampire': 'Вампиры',
-};
-
-const translateGenre = (genre) => {
-  return genreTranslations[genre] || genre;
-};
 
 const AnimeDetails = () => {
   const { id } = useParams();
-  const { data, loading, error, refetch } = useAnimeById(parseInt(id));
+  const { t } = useLanguage();
+  const numericId = id ? parseInt(id, 10) : null;
+  if (!numericId) return <ErrorMessage message="Invalid anime ID" />;
+  const { data, loading, error, refetch } = useAnimeById(numericId);
   const { isFavorite, toggleFavorite } = useFavorites();
   const [translatedTitles, setTranslatedTitles] = useState({});
   const [translatedDesc, setTranslatedDesc] = useState('');
@@ -81,44 +29,55 @@ const AnimeDetails = () => {
 
   useEffect(() => {
     if (!anime) return;
+    const currentId = anime.id;
+    let cancelled = false;
     
     const translateContent = async () => {
       const titleToTranslate = anime.title?.english || anime.title?.romaji;
       if (titleToTranslate) {
         const titleTranslated = await translateToRussian(titleToTranslate);
-        if (titleTranslated !== titleToTranslate) {
-          setTranslatedTitles(prev => ({ ...prev, 'main': titleTranslated }));
+        if (!cancelled && currentId === anime.id) {
+          if (titleTranslated !== titleToTranslate) {
+            setTranslatedTitles(prev => ({ ...prev, 'main': titleTranslated }));
+          }
         }
       }
       
       const descToTranslate = anime.description?.replace(/<[^>]*>/g, '') || '';
       if (descToTranslate) {
         const descTranslated = await translateToRussian(descToTranslate);
-        setTranslatedDesc(descTranslated);
+        if (!cancelled && currentId === anime.id) {
+          setTranslatedDesc(descTranslated);
+        }
       }
     };
     
     translateContent();
-  }, [anime]);
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [anime?.id]);
 
   useEffect(() => {
     if (!anime || !relatedAnime.length) return;
     
-    const translateRelatedTitles = async () => {
+    const translateTitles = async () => {
       const newTranslations = {};
-      for (const relation of relatedAnime) {
+      const promises = relatedAnime.map(async (relation) => {
+        const id = relation.node.id;
         const title = relation.node.title?.english || relation.node.title?.romaji;
-        if (title && !translatedTitles[relation.node.id]) {
-          const translated = await translateToRussian(title);
-          newTranslations[relation.node.id] = translated;
+        if (title && !translatedTitles[id]) {
+          newTranslations[id] = await translateToRussian(title);
         }
-      }
+      });
+      await Promise.all(promises);
       if (Object.keys(newTranslations).length > 0) {
         setTranslatedTitles(prev => ({ ...prev, ...newTranslations }));
       }
     };
     
-    translateRelatedTitles();
+    translateTitles();
   }, [anime, relatedAnime.length]);
 
   const getTranslatedAnime = (anime) => {
@@ -198,12 +157,9 @@ const AnimeDetails = () => {
 
   const formatAiringDate = (timestamp) => {
     const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString('ru-RU', { 
-      day: 'numeric', 
-      month: 'short', 
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const dateStr = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
+    const timeStr = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    return `${dateStr}, ${timeStr}`;
   };
 
   const handleWatchTrailer = () => {
@@ -218,8 +174,8 @@ const AnimeDetails = () => {
 
   const coverImage = anime.coverImage?.large || anime.coverImage?.medium;
   const bannerImage = anime.bannerImage || coverImage;
-  const displayTitle = translatedTitles['main'] || anime.title?.english || anime.title?.romaji || 'Неизвестно';
-  const displayDescription = translatedDesc || originalDescription || 'Описание отсутствует';
+  const displayTitle = translatedTitles['main'] || anime.title?.english || anime.title?.romaji || t('unknown');
+  const displayDescription = translatedDesc || originalDescription || t('noDescription');
 
   return (
     <div className="anime-details">
@@ -247,7 +203,7 @@ const AnimeDetails = () => {
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
-              {coverImage && <img src={coverImage} alt={displayTitle} />}
+              {coverImage && <img src={coverImage} alt={`${displayTitle} cover`} />}
               {anime.averageScore && (
                 <div className="poster-rating">
                   <span className="star">★</span>
@@ -289,7 +245,7 @@ const AnimeDetails = () => {
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M8 5v14l11-7z"/>
                   </svg>
-                  <span className="trailer-text">Трейлер</span>
+                  <span className="trailer-text">{t('trailer')}</span>
                 </motion.button>
               )}
             </div>
@@ -312,8 +268,8 @@ const AnimeDetails = () => {
             >
               {anime.episodes && (
                 <div className="meta-item">
-                  <span>{anime.episodes}</span>
-                  <span className="meta-label">Серий</span>
+                  <span>{anime.episodes ?? '?'}</span>
+                  <span className="meta-label">{t('episodes')}</span>
                 </div>
               )}
               {anime.status && (
@@ -384,7 +340,7 @@ const AnimeDetails = () => {
               )}
               {anime.nextAiringEpisode && (
                 <div className="info-row highlight">
-                  <span className="info-label">Следующая серия:</span>
+                  <span className="info-label">{t('nextEpisode')}:</span>
                   <span className="info-value">
                     Серия {anime.nextAiringEpisode.episode} — {formatAiringDate(anime.nextAiringEpisode.airingAt)}
                   </span>

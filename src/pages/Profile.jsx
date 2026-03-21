@@ -27,7 +27,6 @@ const getProfile = () => {
 
 const ProfileContent = () => {
   const [profile, setProfile] = useState(getProfile);
-  const [isOnline] = useState(true);
   const { favorites } = useFavorites();
   const { t } = useLanguage();
 
@@ -96,20 +95,15 @@ const ProfileContent = () => {
     }
   };
 
-  useEffect(() => {
-    setProfile(getProfile());
-  }, []);
-
-  const bannerStyle = profile.banner
-    ? { backgroundImage: `url(${profile.banner})` }
-    : { background: 'linear-gradient(135deg, #E53935 0%, #FF4081 50%, #7C4DFF 100%)' };
+  const headerClass = profile.banner ? 'profile-header' : 'profile-header default-banner';
+  const headerStyle = profile.banner ? { backgroundImage: `url(${profile.banner})` } : {};
 
   return (
     <div className="profile-page">
       <div className="profile-content">
         <motion.div 
-          className="profile-header"
-          style={bannerStyle}
+          className={headerClass}
+          style={headerStyle}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -119,10 +113,10 @@ const ProfileContent = () => {
           <div className="profile-avatar">
             <img src={profile.avatar || logoSvg} alt={profile.username} />
           </div>
-          <div className="online-status">
-            <span className="status-dot"></span>
-            <span className="status-text">{isOnline ? 'Online' : 'Offline'}</span>
-          </div>
+            <div className="online-status">
+              <span className="status-dot"></span>
+              <span className="status-text">Online</span>
+            </div>
         </div>
 
         <div className="profile-info">

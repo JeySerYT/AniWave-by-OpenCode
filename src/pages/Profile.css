@@ -20,6 +20,10 @@
   position: relative;
 }
 
+.profile-header.default-banner {
+  background: linear-gradient(135deg, #E53935 0%, #FF4081 50%, #7C4DFF 100%);
+}
+
 .profile-avatar-wrapper {
   display: flex;
   flex-direction: column;

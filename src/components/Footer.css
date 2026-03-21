@@ -30,11 +30,6 @@
   margin-bottom: 0.75rem;
 }
 
-.footer-tagline {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
 .footer-copyright {
   font-size: 0.85rem;
   color: var(--text-muted);

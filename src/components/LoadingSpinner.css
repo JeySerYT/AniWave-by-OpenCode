@@ -95,3 +95,10 @@
     font-size: 1.2rem;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner-circle,
+  .spinner-ring {
+    animation: none;
+  }
+}

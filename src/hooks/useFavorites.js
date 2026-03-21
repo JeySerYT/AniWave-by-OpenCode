@@ -23,16 +23,21 @@ export const useFavorites = () => {
   }, []);
 
   const addFavorite = useCallback((anime) => {
-    const newFavorites = [...favorites, anime];
-    setFavorites(newFavorites);
-    saveFavorites(newFavorites);
-  }, [favorites]);
+    setFavorites((prev) => {
+      if (prev.some((f) => f.id === anime.id)) return prev;
+      const newFavorites = [...prev, anime];
+      saveFavorites(newFavorites);
+      return newFavorites;
+    });
+  }, []);
 
   const removeFavorite = useCallback((animeId) => {
-    const newFavorites = favorites.filter((a) => a.id !== animeId);
-    setFavorites(newFavorites);
-    saveFavorites(newFavorites);
-  }, [favorites]);
+    setFavorites((prev) => {
+      const newFavorites = prev.filter((a) => a.id !== animeId);
+      saveFavorites(newFavorites);
+      return newFavorites;
+    });
+  }, []);
 
   const isFavorite = useCallback((animeId) => {
     return favorites.some((a) => a.id === animeId);

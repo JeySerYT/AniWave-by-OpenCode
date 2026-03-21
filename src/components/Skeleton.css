@@ -145,3 +145,10 @@
     flex-wrap: wrap;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+    background: #333;
+  }
+}

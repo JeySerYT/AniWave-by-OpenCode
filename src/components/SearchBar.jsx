@@ -22,7 +22,7 @@ const SearchBar = ({
       clearTimeout(debounceTimer.current);
     }
 
-    if (onChange && inputValue !== value) {
+    if (onChange) {
       debounceTimer.current = setTimeout(() => {
         onChange(inputValue);
       }, debounceDelay);
@@ -67,6 +67,7 @@ const SearchBar = ({
           type="text"
           className="search-input"
           placeholder={placeholder}
+          aria-label={placeholder}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -92,7 +93,7 @@ const SearchBar = ({
       </div>
 
       {onSearch && (
-        <button className="search-btn" onClick={() => onSearch(inputValue)}>
+        <button className="search-btn" onClick={() => onSearch(inputValue)} aria-label="Search" type="button">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8"/>
             <path d="M21 21l-4.35-4.35"/>

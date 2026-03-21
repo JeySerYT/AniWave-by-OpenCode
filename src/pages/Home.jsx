@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
@@ -5,6 +6,8 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import { useTrendingAnime, usePopularAnime, useSeasonalAnime } from '../hooks/useAnime';
+import { useLanguage } from '../context/LanguageContext';
+import { translateMultipleToRussian } from '../utils/translation';
 import './Home.css';
 
 function getCurrentSeason() {
@@ -17,8 +20,17 @@ function getCurrentSeason() {
 
 const Home = () => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const currentSeason = getCurrentSeason();
   const currentYear = new Date().getFullYear();
+
+  const [translatedTitles, setTranslatedTitles] = useState({});
+
+  const titles = {
+    popular: t('popular') || 'Популярное',
+    trending: t('trending') || 'Сейчас в тренде',
+    seasonal: t('seasonal') || 'Сезонное',
+  };
   
   const { data: trendingData, loading: trendingLoading, error: trendingError, refetch: refetchTrending } = useTrendingAnime();
   const { data: popularData, loading: popularLoading, error: popularError, refetch: refetchPopular } = usePopularAnime();
@@ -28,6 +40,27 @@ const Home = () => {
   const popularAnime = popularData?.Page?.media || [];
   const seasonalAnime = seasonalData?.Page?.media || [];
   const topAnime = trendingAnime[0];
+
+  useEffect(() => {
+    const allAnime = [...trendingAnime, ...popularAnime, ...seasonalAnime];
+    if (allAnime.length === 0 || language !== 'ru') return;
+
+    const titlesToTranslate = allAnime.map(anime => [
+      anime.id,
+      anime.title?.english || anime.title?.romaji || ''
+    ]).filter(([_, title]) => title);
+
+    if (titlesToTranslate.length === 0) return;
+
+    translateMultipleToRussian(titlesToTranslate).then(results => {
+      setTranslatedTitles(results);
+    });
+  }, [trendingData, popularData, seasonalData, language]);
+
+  const getTranslatedTitle = (anime) => {
+    if (language !== 'ru') return null;
+    return translatedTitles[anime.id] || null;
+  };
 
   const handleNavigate = (filter) => {
     navigate(`/search?${filter}`);
@@ -42,12 +75,12 @@ const Home = () => {
         <>
           <div className="anime-grid">
             {animeList.slice(0, 6).map((anime, index) => (
-              <AnimeCard key={anime.id} anime={anime} index={index} />
+              <AnimeCard key={anime.id} anime={anime} index={index} translatedTitle={getTranslatedTitle(anime)} />
             ))}
           </div>
           <div className="section-nav">
             <button className="nav-btn" onClick={() => handleNavigate(filter)}>
-              Показать Все
+              {t('showAll')}
             </button>
           </div>
         </>
@@ -66,9 +99,9 @@ const Home = () => {
       )}
       
       <div className="home-content">
-        {renderSection('Популярное', popularAnime, popularLoading, popularError, refetchPopular, 'sort=POPULARITY')}
-        {renderSection('Сейчас в тренде', trendingAnime, trendingLoading, trendingError, refetchTrending, 'sort=TRENDING')}
-        {renderSection('Сезонное', seasonalAnime, seasonalLoading, seasonalError, refetchSeasonal, `season=${currentSeason.toLowerCase()}`)}
+        {renderSection(titles.popular, popularAnime, popularLoading, popularError, refetchPopular, 'sort=POPULARITY')}
+        {renderSection(titles.trending, trendingAnime, trendingLoading, trendingError, refetchTrending, 'sort=TRENDING')}
+        {renderSection(titles.seasonal, seasonalAnime, seasonalLoading, seasonalError, refetchSeasonal, `season=${currentSeason}`)}
       </div>
       <Footer />
     </div>

@@ -15,7 +15,7 @@ function Footer() {
       <div className="footer-content">
         <div className="footer-brand">
           <img src={Logo} alt="AniWave" className="footer-logo" />
-          <p className="footer-copyright">© 2026 AniWave. Все права защищены, кроме Артёмки.</p>
+          <p className="footer-copyright">© {new Date().getFullYear()} AniWave. Все права защищены, кроме Артёмки.</p>
         </div>
         
         <div className="footer-links">
@@ -38,7 +38,7 @@ function Footer() {
         
         <div className="footer-contact">
           <h4>Контакты</h4>
-          <p>support@aniwave.com</p>
+          <p>support@aniwave.site</p>
           <div className="footer-social">
             <a href="https://t.me/aniwave" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Telegram">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">

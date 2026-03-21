@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { ApolloProvider } from '@apollo/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -17,30 +17,25 @@ import './styles/variables.css';
 import './styles/globals.css';
 import './App.css';
 
-function Layout({ children }) {
-  return (
-    <div className="layout">
-      <Header />
-      <motion.main 
-        className="main-content"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {children}
-      </motion.main>
-    </div>
-  );
-}
+const Layout = memo(({ children }) => (
+  <div className="layout">
+    <Header />
+    <motion.main 
+      className="main-content"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      {children}
+    </motion.main>
+  </div>
+));
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    setIsLoading(false);
   }, []);
 
   if (isLoading) {

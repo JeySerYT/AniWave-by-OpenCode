@@ -44,7 +44,7 @@ const Faq = () => {
         <div className="faq-list">
           {faqData.map((item, index) => (
             <motion.div 
-              key={index}
+              key={`faq-${index}`}
               className="faq-item"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
