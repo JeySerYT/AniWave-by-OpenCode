@@ -4,6 +4,7 @@ import AnimeCard from '../components/AnimeCard';
 import Footer from '../components/Footer';
 import { useFavorites } from '../hooks/useFavorites';
 import { useLanguage } from '../context/LanguageContext';
+import { translateMultipleToRussian } from '../utils/translation';
 import logoSvg from '../assets/logo.svg';
 import './Profile.css';
 
@@ -28,7 +29,8 @@ const getProfile = () => {
 const ProfileContent = () => {
   const [profile, setProfile] = useState(getProfile);
   const { favorites } = useFavorites();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [translatedTitles, setTranslatedTitles] = useState({});
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState(profile);
@@ -36,6 +38,26 @@ const ProfileContent = () => {
   const [avatarDragging, setAvatarDragging] = useState(false);
   const bannerInputRef = useRef(null);
   const avatarInputRef = useRef(null);
+
+  useEffect(() => {
+    if (favorites.length === 0 || language !== 'ru') return;
+
+    const titlesToTranslate = favorites.map(anime => [
+      anime.id,
+      anime.title?.english || anime.title?.romaji || ''
+    ]).filter(([_, title]) => title);
+
+    if (titlesToTranslate.length === 0) return;
+
+    translateMultipleToRussian(titlesToTranslate).then(results => {
+      setTranslatedTitles(results);
+    });
+  }, [favorites, language]);
+
+  const getTranslatedTitle = (anime) => {
+    if (language !== 'ru') return null;
+    return translatedTitles[anime.id] || null;
+  };
 
   const handleEdit = () => {
     setEditForm(profile);
@@ -158,7 +180,7 @@ const ProfileContent = () => {
           ) : (
             <div className="favorites-grid">
               {favorites.map((anime, index) => (
-                <AnimeCard key={anime.id} anime={anime} index={index} />
+                <AnimeCard key={anime.id} anime={anime} index={index} translatedTitle={getTranslatedTitle(anime)} />
               ))}
             </div>
           )}
