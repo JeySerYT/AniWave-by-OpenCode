@@ -6,6 +6,7 @@ import client from './api/client';
 import { LanguageProvider } from './context/LanguageContext';
 import Header from './components/Header';
 import LoadingSpinner from './components/LoadingSpinner';
+import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import AnimeDetails from './pages/AnimeDetails';
@@ -46,6 +47,7 @@ function App() {
     <ApolloProvider client={client}>
       <LanguageProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <div className="App">
             <Routes>
               <Route path="/" element={<Layout><Home /></Layout>} />

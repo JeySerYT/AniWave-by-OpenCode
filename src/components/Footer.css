@@ -89,13 +89,27 @@
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   color: var(--text-secondary);
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .social-link:hover {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(255, 64, 129, 0.3);
+}
+
+.social-link:hover svg {
+  filter: drop-shadow(0 0 8px rgba(255, 64, 129, 0.8));
+}
+
+.social-link:active {
+  transform: translateY(-1px);
+}
+
+.social-link:focus-visible {
+  outline: 2px solid var(--accent-pink);
+  outline-offset: 2px;
 }
 
 .footer-bottom {
