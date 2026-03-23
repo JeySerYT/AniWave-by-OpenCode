@@ -20,16 +20,32 @@ from app.utils.auth import (
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8081")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    token: Optional[str] = Depends(oauth2_scheme),
+    cookie_token: Optional[str] = Cookie(None, alias="access_token"),
     db: Session = Depends(get_db)
 ):
+    if not token and cookie_token:
+        token = cookie_token
+    
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     payload = decode_token(token)
     if not payload:
         raise HTTPException(
@@ -338,6 +354,37 @@ def logout(response: Response, current_user: UserResponse = Depends(get_current_
     return {"message": "Logged out successfully"}
 
 
-@router.get("/me", response_model=UserResponse)
-def get_me(current_user: UserResponse = Depends(get_current_user)):
-    return current_user
+@router.get("/me")
+def get_me(access_token: Optional[str] = Cookie(None)):
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+    
+    payload = decode_token(access_token)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+        )
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload",
+        )
+    
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        user = UserService.get_by_id(db, user_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+            )
+        return user
+    finally:
+        db.close()
