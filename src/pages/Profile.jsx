@@ -229,7 +229,13 @@ const ProfileContent = () => {
             Clear LocalStorage + Cache
           </button>
           <button 
-            onClick={() => {
+            onClick={async () => {
+              try {
+                await fetch('http://localhost:8081/api/auth/logout', {
+                  method: 'POST',
+                  credentials: 'include'
+                });
+              } catch (e) {}
               localStorage.removeItem('token');
               localStorage.removeItem('refreshToken');
               localStorage.removeItem('user');
@@ -245,13 +251,13 @@ const ProfileContent = () => {
               fontSize: '12px'
             }}
           >
-            Clear Auth
+            Clear Cookies
           </button>
           <button 
             onClick={() => {
               fetch('http://localhost:8081/api/auth/logout', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                credentials: 'include'
               }).finally(() => {
                 localStorage.clear();
                 window.location.href = '/';

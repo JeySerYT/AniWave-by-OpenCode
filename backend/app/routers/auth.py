@@ -140,17 +140,47 @@ def google_callback(
     
     try:
         google_client_id = os.getenv("GOOGLE_CLIENT_ID")
-        if not google_client_id:
+        google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+        
+        if not google_client_id or not google_client_secret:
             raise HTTPException(status_code=500, detail="Google OAuth not configured")
         
-        idinfo = id_token.verify_oauth2_token(
-            code,
-            google_requests.Request(),
-            google_client_id
-        )
+        token_url = "https://oauth2.googleapis.com/token"
+        redirect_uri = f"{BACKEND_URL}/api/auth/oauth/google/callback"
         
-        email = idinfo.get("email")
-        google_id = idinfo.get("sub")
+        token_data = {
+            "client_id": google_client_id,
+            "client_secret": google_client_secret,
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": redirect_uri
+        }
+        
+        token_response = httpx.post(token_url, data=token_data)
+        token_json = token_response.json()
+        
+        if token_response.status_code != 200:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Google token exchange failed: {token_json}"
+            )
+        
+        if "id_token" not in token_json:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Failed to get Google ID token. Response: {token_json}"
+            )
+        
+        access_token_google = token_json.get("access_token")
+        
+        userinfo_response = httpx.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {access_token_google}"}
+        )
+        userinfo = userinfo_response.json()
+        
+        email = userinfo.get("email")
+        google_id = userinfo.get("sub")
         
         if not email:
             raise HTTPException(status_code=400, detail="No email in Google response")
