@@ -1,15 +1,29 @@
 import os
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form, Response, Cookie, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from typing import Optional
+import httpx
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+
 from app.database import get_db
 from app.schemas.schemas import Token, UserCreate, UserResponse
 from app.services.user_service import UserService
-from app.utils.auth import create_access_token, create_refresh_token, decode_token
+from app.utils.auth import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    generate_oauth_state,
+    OAUTH_STATE_COOKIE_NAME,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8081")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 
 def get_current_user(
@@ -38,55 +52,85 @@ def get_current_user(
     return user
 
 
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
-GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+def verify_oauth_state(state: Optional[str], stored_state: Optional[str]) -> bool:
+    if not state or not stored_state:
+        return False
+    return state == stored_state
 
 
 @router.get("/oauth/google")
-def google_oauth():
-    redirect_uri = f"{FRONTEND_URL}/oauth/callback/google"
+def google_oauth(response: Response):
+    state = generate_oauth_state()
+    response.set_cookie(
+        key=OAUTH_STATE_COOKIE_NAME,
+        value=state,
+        httponly=True,
+        samesite="lax",
+        max_age=600,
+        domain=None
+    )
+    redirect_uri = f"{BACKEND_URL}/api/auth/oauth/google/callback"
     scope = "openid email profile"
     
     auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth?"
-        f"client_id={GOOGLE_CLIENT_ID}&"
+        f"client_id={os.getenv('GOOGLE_CLIENT_ID')}&"
         f"redirect_uri={redirect_uri}&"
         f"response_type=code&"
         f"scope={scope}&"
         f"access_type=offline&"
-        f"prompt=consent"
+        f"prompt=consent&"
+        f"state={state}"
     )
     return {"auth_url": auth_url}
 
 
 @router.get("/oauth/github")
-def github_oauth():
-    redirect_uri = f"{FRONTEND_URL}/oauth/callback/github"
+def github_oauth(response: Response):
+    state = generate_oauth_state()
+    response.set_cookie(
+        key=OAUTH_STATE_COOKIE_NAME,
+        value=state,
+        httponly=True,
+        samesite="lax",
+        max_age=600,
+        domain=None
+    )
+    redirect_uri = f"{BACKEND_URL}/api/auth/oauth/github/callback"
     scope = "read:user user:email"
     
     auth_url = (
         f"https://github.com/login/oauth/authorize?"
-        f"client_id={GITHUB_CLIENT_ID}&"
+        f"client_id={os.getenv('GITHUB_CLIENT_ID')}&"
         f"redirect_uri={redirect_uri}&"
-        f"scope={scope}"
+        f"scope={scope}&"
+        f"state={state}"
     )
     return {"auth_url": auth_url}
 
 
-@router.post("/oauth/google", response_model=Token)
-def google_callback(code: str = Form(...), db: Session = Depends(get_db)):
+@router.get("/oauth/google/callback")
+def google_callback(
+    response: Response,
+    code: str = Query(...),
+    state: str = Query(...),
+    oauth_state: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not verify_oauth_state(state, oauth_state):
+        raise HTTPException(status_code=400, detail="Invalid OAuth state")
+    
+    response.delete_cookie(key=OAUTH_STATE_COOKIE_NAME, domain=None)
+    
     try:
-        import httpx
-        from google.oauth2 import id_token
-        from google.auth.transport import requests as google_requests
+        google_client_id = os.getenv("GOOGLE_CLIENT_ID")
+        if not google_client_id:
+            raise HTTPException(status_code=500, detail="Google OAuth not configured")
         
         idinfo = id_token.verify_oauth2_token(
-            code, 
+            code,
             google_requests.Request(),
-            GOOGLE_CLIENT_ID
+            google_client_id
         )
         
         email = idinfo.get("email")
@@ -110,39 +154,73 @@ def google_callback(code: str = Form(...), db: Session = Depends(get_db)):
                 email=email,
                 username=username,
                 provider="google",
-                provider_id=google_id
+                provider_id=str(google_id)
             )
         
         access_token = create_access_token(data={"sub": user.id, "email": user.email})
         refresh_token = create_refresh_token(data={"sub": user.id})
         
-        return Token(access_token=access_token, refresh_token=refresh_token)
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            samesite="lax",
+            max_age=900,
+            domain=None
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            samesite="lax",
+            max_age=604800,
+            domain=None
+        )
+        
+        response.headers["Location"] = f"{FRONTEND_URL}/profile?logged_in=true"
+        response.status_code = status.HTTP_302_FOUND
+        return response
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Google OAuth failed: {str(e)}")
 
 
-@router.post("/oauth/github", response_model=Token)
-def github_callback(code: str = Form(...), db: Session = Depends(get_db)):
+@router.get("/oauth/github/callback")
+def github_callback(
+    response: Response,
+    code: str = Query(...),
+    state: str = Query(...),
+    oauth_state: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db)
+):
+    if not verify_oauth_state(state, oauth_state):
+        raise HTTPException(status_code=400, detail="Invalid OAuth state")
+    
+    response.delete_cookie(key=OAUTH_STATE_COOKIE_NAME, domain=None)
+    
     try:
-        import httpx
+        github_client_id = os.getenv("GITHUB_CLIENT_ID")
+        github_client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+        
+        if not github_client_id or not github_client_secret:
+            raise HTTPException(status_code=500, detail="GitHub OAuth not configured")
         
         token_url = "https://github.com/login/oauth/access_token"
         token_data = {
-            "client_id": GITHUB_CLIENT_ID,
-            "client_secret": GITHUB_CLIENT_SECRET,
+            "client_id": github_client_id,
+            "client_secret": github_client_secret,
             "code": code
         }
         headers = {"Accept": "application/json"}
         
-        response = httpx.post(token_url, data=token_data, headers=headers)
-        token_response = response.json()
+        token_response = httpx.post(token_url, data=token_data, headers=headers)
+        token_json = token_response.json()
         
-        access_token = token_response.get("access_token")
-        if not access_token:
+        access_token_github = token_json.get("access_token")
+        if not access_token_github:
             raise HTTPException(status_code=400, detail="Failed to get GitHub access token")
         
-        user_headers = {"Authorization": f"token {access_token}"}
+        user_headers = {"Authorization": f"token {access_token_github}"}
         user_response = httpx.get("https://api.github.com/user", headers=user_headers)
         github_user = user_response.json()
         
@@ -174,11 +252,32 @@ def github_callback(code: str = Form(...), db: Session = Depends(get_db)):
                 provider_id=github_id
             )
         
-        access_jwt = create_access_token(data={"sub": user.id, "email": user.email})
+        access_token_jwt = create_access_token(data={"sub": user.id, "email": user.email})
         refresh_token = create_refresh_token(data={"sub": user.id})
         
-        return Token(access_token=access_jwt, refresh_token=refresh_token)
+        response.set_cookie(
+            key="access_token",
+            value=access_token_jwt,
+            httponly=True,
+            samesite="lax",
+            max_age=900,
+            domain=None
+        )
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            samesite="lax",
+            max_age=604800,
+            domain=None
+        )
         
+        response.headers["Location"] = f"{FRONTEND_URL}/profile?logged_in=true"
+        response.status_code = status.HTTP_302_FOUND
+        return response
+        
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"GitHub OAuth failed: {str(e)}")
 
@@ -233,7 +332,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 
 @router.post("/logout")
-def logout(current_user: UserResponse = Depends(get_current_user)):
+def logout(response: Response, current_user: UserResponse = Depends(get_current_user)):
+    response.delete_cookie(key="access_token", domain=None)
+    response.delete_cookie(key="refresh_token", domain=None)
     return {"message": "Logged out successfully"}
 
 

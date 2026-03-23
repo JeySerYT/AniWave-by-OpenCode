@@ -249,7 +249,7 @@ const ProfileContent = () => {
           </button>
           <button 
             onClick={() => {
-              fetch('http://localhost:3000/api/auth/logout', {
+              fetch('http://localhost:8081/api/auth/logout', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
               }).finally(() => {

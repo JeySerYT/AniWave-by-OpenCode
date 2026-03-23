@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:8081/api';
 
 const AuthContext = createContext(null);
 
@@ -9,13 +9,37 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('logged_in') === 'true') {
+      fetchUserFromCookie().then(() => {
+        window.location.href = '/profile';
+      });
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (token) {
       fetchUser(token);
     } else {
-      setLoading(false);
+      fetchUserFromCookie();
     }
   }, []);
+
+  const fetchUserFromCookie = async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const userData = await res.json();
+        setUser(userData);
+      }
+    } catch (err) {
+      console.error('Failed to fetch user from cookie:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchUser = async (token) => {
     try {
@@ -25,13 +49,16 @@ export function AuthProvider({ children }) {
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
       } else {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
       }
     } catch (err) {
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
     } finally {
       setLoading(false);
     }
@@ -54,6 +81,7 @@ export function AuthProvider({ children }) {
     });
     const userData = await userRes.json();
     setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
     return result;
   };
 
@@ -78,19 +106,26 @@ export function AuthProvider({ children }) {
     });
     const userData = await userRes.json();
     setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
     return result;
   };
 
   const logout = async () => {
     const token = localStorage.getItem('token');
     if (token) {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      try {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          credentials: 'include'
+        });
+      } catch (err) {
+        console.error('Logout error:', err);
+      }
     }
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
     setUser(null);
     window.location.href = '/';
   };
@@ -103,11 +138,13 @@ export function AuthProvider({ children }) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
+      credentials: 'include',
       body: JSON.stringify(data)
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.detail || 'Update failed');
     setUser(result);
+    localStorage.setItem('user', JSON.stringify(result));
     return result;
   };
 

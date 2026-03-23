@@ -19,7 +19,7 @@ function OAuthCallback() {
 
     const fetchToken = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/auth/oauth/${provider}`, {
+        const response = await fetch(`http://localhost:8081/api/auth/oauth/${provider}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: `code=${encodeURIComponent(code)}`
@@ -35,7 +35,7 @@ function OAuthCallback() {
         localStorage.setItem('token', tokens.access_token);
         localStorage.setItem('refreshToken', tokens.refresh_token);
 
-        const userRes = await fetch('http://localhost:3000/api/auth/me', {
+        const userRes = await fetch('http://localhost:8081/api/auth/me', {
           headers: { 'Authorization': `Bearer ${tokens.access_token}` }
         });
         

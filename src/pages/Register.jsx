@@ -40,7 +40,9 @@ function Register() {
 
   const handleOAuthLogin = async (provider) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/auth/oauth/${provider}`);
+      const response = await fetch(`http://localhost:8081/api/auth/oauth/${provider}`, {
+        credentials: 'include'
+      });
       const data = await response.json();
       if (data.auth_url) {
         window.location.href = data.auth_url;

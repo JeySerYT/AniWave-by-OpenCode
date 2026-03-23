@@ -1,4 +1,5 @@
 import os
+import secrets
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import jwt, JWTError
@@ -10,6 +11,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+OAUTH_STATE_COOKIE_NAME = "oauth_state"
+OAUTH_STATE_EXPIRE_SECONDS = 600
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -43,3 +47,7 @@ def decode_token(token: str) -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+
+def generate_oauth_state() -> str:
+    return secrets.token_urlsafe(32)
