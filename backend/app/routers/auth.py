@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, Depends, HTTPException, status, Form, Response, Cookie, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Form, Response, Cookie, Query, Header
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -329,7 +329,7 @@ def github_callback(
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+def register(response: Response, user_data: UserCreate, db: Session = Depends(get_db)):
     if not user_data.terms_accepted or not user_data.privacy_accepted:
         raise HTTPException(
             status_code=400,
@@ -358,11 +358,28 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": user.id, "email": user.email})
     refresh_token = create_refresh_token(data={"sub": user.id})
     
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        samesite="lax",
+        max_age=900,
+        domain=None
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        samesite="lax",
+        max_age=604800,
+        domain=None
+    )
+    
     return Token(access_token=access_token, refresh_token=refresh_token)
 
 
 @router.post("/login", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = UserService.authenticate(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -373,6 +390,23 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     
     access_token = create_access_token(data={"sub": user.id, "email": user.email})
     refresh_token = create_refresh_token(data={"sub": user.id})
+    
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        samesite="lax",
+        max_age=900,
+        domain=None
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        samesite="lax",
+        max_age=604800,
+        domain=None
+    )
     
     return Token(access_token=access_token, refresh_token=refresh_token)
 
@@ -385,14 +419,22 @@ def logout(response: Response, current_user: UserResponse = Depends(get_current_
 
 
 @router.get("/me")
-def get_me(access_token: Optional[str] = Cookie(None)):
-    if not access_token:
+def get_me(
+    access_token: Optional[str] = Cookie(None),
+    authorization: Optional[str] = Header(None)
+):
+    token = access_token
+    
+    if not token and authorization and authorization.startswith("Bearer "):
+        token = authorization[7:]
+    
+    if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
         )
     
-    payload = decode_token(access_token)
+    payload = decode_token(token)
     if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
