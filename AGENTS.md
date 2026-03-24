@@ -2,10 +2,26 @@
 
 ## Project Overview
 
-AniWave is an anime catalog web application built with React + Vite, using AniList GraphQL API. Features include anime search, favorites, trending/popular/seasonal lists, user profiles, FAQ, Terms, and Privacy pages.
+AniWave is an anime catalog web application built with React + Vite, using AniList GraphQL API. Features include anime search, favorites, trending/popular/seasonal lists, user profiles with OAuth authentication (Google/GitHub), FAQ, Terms, and Privacy pages.
+
+## Tech Stack
+
+### Frontend
+- React 18 + Vite 5
+- AniList API (GraphQL)
+- Apollo Client
+- Framer Motion (анимации)
+- React Router
+
+### Backend
+- FastAPI (Python)
+- SQLAlchemy + PostgreSQL
+- JWT Authentication
+- OAuth (Google/GitHub)
 
 ## Build / Lint / Test Commands
 
+### Frontend
 ```bash
 # Install dependencies
 npm install
@@ -19,6 +35,63 @@ npm run build
 # Preview production build locally
 npm run preview
 ```
+
+### Backend
+```bash
+# Install dependencies
+cd backend
+pip install -r requirements.txt
+
+# Run backend
+py backend/main.py
+# or
+cd backend && uvicorn app.main:app --reload --port 8081
+
+# Run with custom port
+PORT=8082 py backend/main.py
+```
+
+## Environment Variables
+
+### Frontend (.env)
+```
+VITE_API_URL=http://localhost:8081/api
+```
+
+### Backend (backend/.env)
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_NAME=aniwave
+
+JWT_SECRET=your-secret-key-min-32-chars
+
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:8081
+PORT=8081
+```
+
+## OAuth Setup
+
+### Google OAuth
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create OAuth 2.0 Client ID
+3. Add authorized redirect URI: `http://localhost:8081/api/auth/oauth/google/callback`
+4. Copy credentials to `.env`
+
+### GitHub OAuth
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Create new OAuth App
+3. Add authorization callback URL: `http://localhost:8081/api/auth/oauth/github/callback`
+4. Copy credentials to `.env`
 
 ## Code Style Guidelines
 
@@ -36,12 +109,23 @@ npm run preview
 src/
 ├── api/           # Apollo Client setup and GraphQL queries
 ├── components/    # Reusable UI components (Header, Footer, AnimeCard, Hero, etc.)
-├── context/       # React Context providers (LanguageContext)
+├── context/       # React Context providers (LanguageContext, AuthContext)
 ├── hooks/         # Custom hooks (useAnime, useSearch, useFavorites)
 ├── locales/       # i18n translation files
 ├── pages/         # Page components (Home, Search, Profile, AnimeDetails, FAQ, Terms, Privacy)
 ├── styles/         # Global CSS (variables.css, globals.css, animations.css)
 └── assets/         # Static assets (logo.svg, favicon.svg)
+
+backend/
+├── app/
+│   ├── routers/      # API endpoints (auth.py, profile.py)
+│   ├── services/     # Business logic (user_service.py, favorite_service.py)
+│   ├── models/       # SQLAlchemy models (models.py)
+│   ├── schemas/      # Pydantic schemas (schemas.py)
+│   ├── utils/        # Utilities (auth.py)
+│   └── database.py   # Database connection
+├── main.py           # FastAPI app entry point
+└── requirements.txt  # Python dependencies
 ```
 
 ### Imports Order
@@ -119,35 +203,28 @@ export default ComponentName;
 --border-subtle: rgba(255, 255, 255, 0.1);
 ```
 
+### Authentication Flow
+
+#### OAuth (Google/GitHub)
+1. Frontend calls `/api/auth/oauth/{provider}` → gets auth_url
+2. User redirected to Google/GitHub
+3. OAuth provider redirects to `/api/auth/oauth/{provider}/callback`
+4. Backend exchanges code for tokens, creates user if not exists
+5. Backend sets tokens as httpOnly cookies
+6. Backend redirects to `/profile?logged_in=true`
+
+#### Token-based Auth (Email/Password)
+1. User registers/logins via `/api/auth/register` or `/api/auth/login`
+2. Backend returns access_token + refresh_token
+3. Frontend stores tokens in localStorage
+4. Requests include `Authorization: Bearer {token}`
+
 ### Profile Page
 
-Profile stores user data in localStorage under key `user_profile`:
-```js
-{
-  banner: '',      // base64 or URL
-  avatar: '',      // base64 or URL
-  username: 'Anime Fan',
-  bio: 'Love watching anime!'
-}
-```
-
-### AnimeDetails Page
-
-The AnimeDetails page (src/pages/AnimeDetails.jsx) displays:
-- Anime cover image with rating badge and favorite button overlay
-- Title (English with Russian translation via Google Translate API)
-- Native title in original language
-- Trailer button with icon (expands on hover)
-- Meta info: episodes count, status
-- Description with Russian translation
-- Info panel: genres, season, studio, source, country, release dates, next airing episode, alternative titles
-- Related anime section with translated titles
-
-The page uses:
-- `translateToRussian()` - async function for Google Translate API
-- `genreTranslations` - static object for genre name translations
-- `translateGenre()` - function to translate genre names
-- `translatedTitles` state - cache for translated anime titles
+Profile stores user data:
+- Uses AuthContext for authentication state
+- Stores token in localStorage + httpOnly cookies
+- Favorites stored in backend, fetched via API
 
 ### Pages
 
@@ -160,6 +237,8 @@ The page uses:
 | FAQ | `/faq` | Frequently asked questions |
 | Terms | `/terms` | Terms of service |
 | Privacy | `/privacy` | Privacy policy |
+| Login | `/login` | Login with email/password or OAuth |
+| Register | `/register` | Registration with email/password |
 
 ### AniList API
 
@@ -174,6 +253,7 @@ The page uses:
 - Use ErrorMessage component for error display
 - Wrap async operations in try/catch
 - Provide fallback values for API data
+- Backend returns proper HTTP status codes (400, 401, 409, 500)
 
 ### Performance Considerations
 
@@ -196,11 +276,12 @@ The page uses:
 - Types: feat, fix, refactor, style, docs, test, chore
 - Example: `feat: add search filters`, `fix: card hover effect`
 - Always run `npm run build` before committing to verify no errors
+- Frontend and backend changes should be on the same branch (backend-auth)
 
 ### Sub-agents Usage
 
 When using sub-agents for complex tasks:
 1. Use 2-3 agents: one for writing code, one for reviewing
-2. Always verify changes with `npm run build`
+2. Always verify changes with `npm run build` (frontend) or test import (backend)
 3. Report errors found by reviewers
 4. Apply fixes manually if agents fail

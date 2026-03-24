@@ -13,6 +13,12 @@ dist-ssr/
 
 # Backend
 backend/.env
+backend/.venv/
+backend/__pycache__/
+backend/app/__pycache__/
+backend/app/*/__pycache__/
+*.pyc
+*.pyo
 
 # IDE
 .vscode/
