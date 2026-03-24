@@ -2,6 +2,8 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -21,7 +23,10 @@ app = FastAPI(
     title="AniWave API",
     description="Backend API for AniWave anime tracking platform",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -41,6 +46,11 @@ app.include_router(profile.router, prefix="/api")
 @app.get("/")
 def root():
     return {"message": "AniWave API", "status": "running"}
+
+
+@app.get("/docs")
+def docs():
+    return RedirectResponse(url="/docs/")
 
 
 @app.get("/health")
