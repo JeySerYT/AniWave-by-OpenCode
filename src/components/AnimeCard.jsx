@@ -1,14 +1,20 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useLanguage } from '../context/LanguageContext';
 import './AnimeCard.css';
 
-const AnimeCard = ({ anime, index = 0, translatedTitle }) => {
-  const { t } = useLanguage();
-  const title = translatedTitle || anime.title?.english || anime.title?.romaji || anime.title?.native || 'Unknown';
-  const coverImage = anime.coverImage?.large || anime.coverImage?.medium;
-  const rating = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
+const BASE_URL = 'https://anilibria.top';
+
+const AnimeCard = ({ anime, index = 0 }) => {
+  if (!anime) return null;
+  
+  const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Unknown';
+  const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
+  const rating = null;
+  const episodes = anime.episodes_total;
+  const animeCode = anime.alias || anime.id;
+  const animeYear = anime.year;
+  const animeType = anime.type?.value;
 
   return (
     <motion.div
@@ -19,11 +25,11 @@ const AnimeCard = ({ anime, index = 0, translatedTitle }) => {
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
       whileHover={{ y: -6, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] } }}
     >
-      <Link to={`/anime/${anime.id}`} className="anime-card-link">
+      <Link to={'/anime/' + animeCode} className="anime-card-link">
         <div className="anime-card-image">
-          {coverImage && (
+          {poster && (
             <img 
-              src={coverImage} 
+              src={poster.startsWith('/') ? BASE_URL + poster : poster}
               alt={title}
               loading="lazy"
               onError={(e) => {
@@ -41,23 +47,19 @@ const AnimeCard = ({ anime, index = 0, translatedTitle }) => {
             </div>
           )}
 
-          {anime.episodes && (
+          {episodes && (
             <div className="anime-card-episodes">
-              {anime.episodes} {t('episodeAbbrev')}
+              {episodes + ' эп.'}
             </div>
           )}
         </div>
 
-        <div className="anime-card-content">
+        <div className="anime-card-info">
           <h3 className="anime-card-title">{title}</h3>
-          
-          {anime.genres && anime.genres.length > 0 && (
-            <div className="anime-card-genres">
-              {anime.genres.slice(0, 2).map((genre) => (
-                <span key={genre} className="genre-tag">{genre}</span>
-              ))}
-            </div>
-          )}
+          <div className="anime-card-meta">
+            {animeYear && <span>{animeYear}</span>}
+            {animeType && <span>{animeType}</span>}
+          </div>
         </div>
       </Link>
     </motion.div>

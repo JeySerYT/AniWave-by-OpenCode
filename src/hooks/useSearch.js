@@ -1,62 +1,108 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useQuery } from '@apollo/client';
-import { SEARCH_ANIME, SEARCH_WITH_SORT, GET_ANIME_GENRES } from '../api/queries';
+import { useState, useCallback } from 'react';
+import { anilibriaApi } from '../api/anilibria';
 
 export const useSearch = (initialFilters = {}) => {
+  const [anime, setAnime] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
   const [filters, setFilters] = useState({
     search: '',
     genre: '',
-    year: null,
-    type: null,
-    status: null,
-    sort: null,
-    season: null,
+    year: '',
+    kind: '',
+    status: '',
+    sort: 'rating',
     ...initialFilters,
   });
 
-  const { data: genresData } = useQuery(GET_ANIME_GENRES);
+  const search = useCallback(async (reset = true) => {
+    if (reset) {
+      setPage(1);
+      setAnime([]);
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params = {
+        limit: 20,
+        page: reset ? 1 : page,
+      };
+
+      if (filters.search) {
+        params.filter = 'name';
+        params.name = filters.search;
+      }
+
+      if (filters.sort) {
+        params.sorting = filters.sort;
+      }
+
+      if (filters.year) {
+        params.filter = (params.filter ? params.filter + ',' : '') + 'year';
+        params.year = String(filters.year);
+      }
+
+      if (filters.status) {
+        params.filter = (params.filter ? params.filter + ',' : '') + 'publish_status';
+        params.publish_status = filters.status;
+      }
+
+      const response = await anilibriaApi.getTitleList(params);
+      const list = response?.data || [];
+      
+      if (reset) {
+        setAnime(list);
+      } else {
+        setAnime(prev => [...prev, ...list]);
+      }
+      
+      setHasMore(list.length >= 20);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, page]);
 
   const updateFilters = useCallback((newFilters) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
+    setFilters(prev => ({ ...prev, ...newFilters }));
   }, []);
 
   const resetFilters = useCallback(() => {
     setFilters({
       search: '',
       genre: '',
-      year: null,
-      type: null,
-      status: null,
-      sort: null,
-      season: null,
+      year: '',
+      kind: '',
+      status: '',
+      sort: 'rating',
     });
   }, []);
 
-  const queryVariables = useMemo(() => ({
-    search: filters.search || null,
-    genre: filters.genre || null,
-    year: filters.year || null,
-    type: filters.type || null,
-    status: filters.status || null,
-    sort: filters.sort || null,
-    season: filters.season || null,
-  }), [filters.search, filters.genre, filters.year, filters.type, filters.status, filters.sort, filters.season]);
-
-  const hasSortOrSeason = filters.sort || filters.season;
-  const query = hasSortOrSeason ? SEARCH_WITH_SORT : SEARCH_ANIME;
-  const { data, loading, error, refetch } = useQuery(query, {
-    variables: queryVariables,
-    notifyOnNetworkStatusChange: true,
-  });
+  const loadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      setPage(prev => prev + 1);
+      search(false);
+    }
+  }, [loading, hasMore, search]);
 
   return {
-    anime: data?.Page?.media || [],
-    genres: genresData?.GenreCollection || [],
+    anime,
     loading,
     error,
     filters,
     updateFilters,
     resetFilters,
-    refetch,
+    search,
+    loadMore,
+    hasMore,
+    page,
   };
 };
+
+export default useSearch;

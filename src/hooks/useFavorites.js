@@ -23,9 +23,12 @@ export const useFavorites = () => {
   }, []);
 
   const addFavorite = useCallback((anime) => {
+    const animeId = anime?.alias || anime?.code || anime?.id || anime;
+    if (!animeId) return;
+    
     setFavorites((prev) => {
-      if (prev.some((f) => f.id === anime.id)) return prev;
-      const newFavorites = [...prev, anime];
+      if (prev.some((f) => (f.alias || f.code || f.id) === animeId)) return prev;
+      const newFavorites = [...prev, { alias: animeId }];
       saveFavorites(newFavorites);
       return newFavorites;
     });
@@ -33,21 +36,24 @@ export const useFavorites = () => {
 
   const removeFavorite = useCallback((animeId) => {
     setFavorites((prev) => {
-      const newFavorites = prev.filter((a) => a.id !== animeId);
+      const newFavorites = prev.filter((a) => (a.alias || a.code || a.id) !== animeId);
       saveFavorites(newFavorites);
       return newFavorites;
     });
   }, []);
 
   const isFavorite = useCallback((animeId) => {
-    return favorites.some((a) => a.id === animeId);
+    return favorites.some((a) => (a.alias || a.code || a.id) === animeId);
   }, [favorites]);
 
-  const toggleFavorite = useCallback((anime) => {
-    if (isFavorite(anime.id)) {
-      removeFavorite(anime.id);
+  const toggleFavorite = useCallback((animeIdOrAnime) => {
+    const animeId = typeof animeIdOrAnime === 'string' ? animeIdOrAnime : (animeIdOrAnime?.alias || animeIdOrAnime?.code || animeIdOrAnime?.id);
+    if (!animeId) return;
+    
+    if (isFavorite(animeId)) {
+      removeFavorite(animeId);
     } else {
-      addFavorite(anime);
+      addFavorite({ alias: animeId });
     }
   }, [isFavorite, addFavorite, removeFavorite]);
 

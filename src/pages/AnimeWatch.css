@@ -1,0 +1,147 @@
+.anime-watch {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  padding: 1rem;
+}
+
+.watch-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.back-btn {
+  padding: 0.5rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-pink);
+}
+
+.watch-title {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.watch-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.player-container {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 1.5rem;
+}
+
+.video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.no-video {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+.episode-select {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.episode-header {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.episodes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.episode-btn {
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+}
+
+.episode-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-pink);
+  color: var(--text-primary);
+}
+
+.episode-btn.active {
+  background: var(--accent-pink);
+  border-color: var(--accent-pink);
+  color: #fff;
+}
+
+.watch-info {
+  display: flex;
+  gap: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.watch-poster {
+  flex-shrink: 0;
+  width: 150px;
+}
+
+.watch-poster img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.watch-details h2 {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.watch-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .watch-info {
+    flex-direction: column;
+  }
+  
+  .watch-poster {
+    width: 120px;
+    margin: 0 auto;
+  }
+}

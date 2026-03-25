@@ -1,8 +1,6 @@
 import { useState, useEffect, memo } from 'react';
-import { ApolloProvider } from '@apollo/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import client from './api/client';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
@@ -11,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import AnimeDetails from './pages/AnimeDetails';
+import AnimeWatch from './pages/AnimeWatch';
 import Profile from './pages/Profile';
 import Faq from './pages/Faq';
 import Terms from './pages/Terms';
@@ -48,29 +47,28 @@ function App() {
   }
 
   return (
-    <ApolloProvider client={client}>
-      <LanguageProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <ScrollToTop />
-            <div className="App">
-              <Routes>
-                <Route path="/" element={<Layout><Home /></Layout>} />
-                <Route path="/search" element={<Layout><Search /></Layout>} />
-                <Route path="/anime/:id" element={<Layout><AnimeDetails /></Layout>} />
-                <Route path="/profile" element={<Layout><Profile /></Layout>} />
-                <Route path="/faq" element={<Layout><Faq /></Layout>} />
-                <Route path="/terms" element={<Layout><Terms /></Layout>} />
-                <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
-                <Route path="/login" element={<Layout hideHeader><Login /></Layout>} />
-                <Route path="/register" element={<Layout hideHeader><Register /></Layout>} />
-                <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
-              </Routes>
-            </div>
-          </BrowserRouter>
-        </AuthProvider>
-      </LanguageProvider>
-    </ApolloProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <div className="App">
+            <Routes>
+              <Route path="/" element={<Layout><Home /></Layout>} />
+              <Route path="/search" element={<Layout><Search /></Layout>} />
+              <Route path="/anime/:id" element={<Layout><AnimeDetails /></Layout>} />
+              <Route path="/anime/:id/watch" element={<Layout><AnimeWatch /></Layout>} />
+              <Route path="/profile" element={<Layout><Profile /></Layout>} />
+              <Route path="/faq" element={<Layout><Faq /></Layout>} />
+              <Route path="/terms" element={<Layout><Terms /></Layout>} />
+              <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
+              <Route path="/login" element={<Layout hideHeader><Login /></Layout>} />
+              <Route path="/register" element={<Layout hideHeader><Register /></Layout>} />
+              <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
+            </Routes>
+          </div>
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 
