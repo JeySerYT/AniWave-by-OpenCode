@@ -1,15 +1,15 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
 from typing import Optional
 from datetime import datetime
 
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: str
+    username: str = Field(..., min_length=3, max_length=50)
 
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(..., min_length=8, max_length=128)
     terms_accepted: bool
     privacy_accepted: bool
 
@@ -28,10 +28,10 @@ class UserResponse(UserBase):
 
 
 class ProfileUpdate(BaseModel):
-    username: Optional[str] = None
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
     avatar: Optional[str] = None
     banner: Optional[str] = None
-    bio: Optional[str] = None
+    bio: Optional[str] = Field(None, max_length=500)
 
 
 class Token(BaseModel):

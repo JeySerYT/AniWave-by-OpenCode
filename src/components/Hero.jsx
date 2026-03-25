@@ -1,16 +1,13 @@
+import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HelpCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
 import './Hero.css';
 
 const BASE_URL = 'https://anilibria.top';
 
-const Hero = ({ anime }) => {
+const Hero = memo(({ anime }) => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-  }, []);
 
   if (!anime) return null;
 
@@ -51,16 +48,6 @@ const Hero = ({ anime }) => {
             {anime.name?.english && anime.name?.main && (
               <p className="hero-title-native">{anime.name.english}</p>
             )}
-
-            <div className="hero-meta">
-              {anime.year && <span>{anime.year}</span>}
-              {anime.type?.value && <span>{anime.type.value}</span>}
-              {anime.season?.value && (
-                <div className="meta-status">
-                  <span>{anime.season.value}</span>
-                </div>
-              )}
-            </div>
 
             <div className="hero-genres">
               {anime.genres?.slice(0, 4).map((genre) => (
@@ -117,6 +104,6 @@ const Hero = ({ anime }) => {
       </div>
     </section>
   );
-};
+});
 
 export default Hero;

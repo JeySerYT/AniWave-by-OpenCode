@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const API_URL = 'http://localhost:8081/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 const AuthContext = createContext(null);
 
@@ -17,12 +17,7 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetchUser(token);
-    } else {
-      fetchUserFromCookie();
-    }
+    fetchUserFromCookie();
   }, []);
 
   const fetchUserFromCookie = async () => {
@@ -35,7 +30,10 @@ export function AuthProvider({ children }) {
         setUser(userData);
       }
     } catch (err) {
-      console.error('Failed to fetch user from cookie:', err);
+      const token = sessionStorage.getItem('auth_token');
+      if (token) {
+        fetchUser(token);
+      }
     } finally {
       setLoading(false);
     }
@@ -49,16 +47,15 @@ export function AuthProvider({ children }) {
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
+        sessionStorage.setItem('auth_token', token);
+        sessionStorage.setItem('user', JSON.stringify(userData));
       } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('user');
       }
     } catch (err) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('user');
     } finally {
       setLoading(false);
     }
@@ -68,20 +65,17 @@ export function AuthProvider({ children }) {
     const res = await fetch(`${API_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      credentials: 'include'
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.detail || 'Registration failed');
     
-    localStorage.setItem('token', result.access_token);
-    localStorage.setItem('refreshToken', result.refresh_token);
-    
     const userRes = await fetch(`${API_URL}/auth/me`, {
-      headers: { 'Authorization': `Bearer ${result.access_token}` }
+      credentials: 'include'
     });
     const userData = await userRes.json();
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
     return result;
   };
 
@@ -92,59 +86,46 @@ export function AuthProvider({ children }) {
     
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData
+      headers: { 'Content-Type': 'application/x-www-urlencoded' },
+      body: formData,
+      credentials: 'include'
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.detail || 'Login failed');
     
-    localStorage.setItem('token', result.access_token);
-    localStorage.setItem('refreshToken', result.refresh_token);
-    
     const userRes = await fetch(`${API_URL}/auth/me`, {
-      headers: { 'Authorization': `Bearer ${result.access_token}` }
+      credentials: 'include'
     });
     const userData = await userRes.json();
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
     return result;
   };
 
   const logout = async () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        await fetch(`${API_URL}/auth/logout`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          credentials: 'include'
-        });
-      } catch (err) {
-        console.error('Logout error:', err);
-      }
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
     }
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('auth_token');
+    sessionStorage.removeItem('user');
     setUser(null);
     window.location.href = '/';
   };
 
   const updateProfile = async (data) => {
-    const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/profile`, {
       method: 'PUT',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(data)
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.detail || 'Update failed');
     setUser(result);
-    localStorage.setItem('user', JSON.stringify(result));
     return result;
   };
 

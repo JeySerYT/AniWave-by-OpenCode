@@ -1,11 +1,18 @@
 import os
 import secrets
 import bcrypt
+import logging
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import jwt, JWTError
 
-SECRET_KEY = os.getenv("JWT_SECRET", "your-secret-key-change-in-production")
+logger = logging.getLogger(__name__)
+
+SECRET_KEY = os.getenv("JWT_SECRET")
+if not SECRET_KEY:
+    logger.warning("JWT_SECRET not set! Using insecure default key. Set JWT_SECRET in .env")
+    SECRET_KEY = "default-dev-key-change-in-production-min-32-chars"
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
 REFRESH_TOKEN_EXPIRE_DAYS = 7

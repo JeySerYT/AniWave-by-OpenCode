@@ -1,6 +1,7 @@
 import { useState, useEffect, memo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
@@ -21,6 +22,15 @@ import './styles/variables.css';
 import './styles/globals.css';
 import './App.css';
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 const Layout = memo(({ children, hideHeader }) => (
   <div className="layout">
     {!hideHeader && <Header />}
@@ -35,6 +45,14 @@ const Layout = memo(({ children, hideHeader }) => (
   </div>
 ));
 
+const NotFound = () => (
+  <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+    <h1 style={{ fontSize: '4rem', marginBottom: '1rem' }}>404</h1>
+    <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Страница не найдена</p>
+    <a href="/" style={{ color: 'var(--accent-pink)' }}>Вернуться на главную</a>
+  </div>
+);
+
 function App() {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -47,28 +65,31 @@ function App() {
   }
 
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <div className="App">
-            <Routes>
-              <Route path="/" element={<Layout><Home /></Layout>} />
-              <Route path="/search" element={<Layout><Search /></Layout>} />
-              <Route path="/anime/:id" element={<Layout><AnimeDetails /></Layout>} />
-              <Route path="/anime/:id/watch" element={<Layout><AnimeWatch /></Layout>} />
-              <Route path="/profile" element={<Layout><Profile /></Layout>} />
-              <Route path="/faq" element={<Layout><Faq /></Layout>} />
-              <Route path="/terms" element={<Layout><Terms /></Layout>} />
-              <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
-              <Route path="/login" element={<Layout hideHeader><Login /></Layout>} />
-              <Route path="/register" element={<Layout hideHeader><Register /></Layout>} />
-              <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
-            </Routes>
-          </div>
-        </BrowserRouter>
-      </AuthProvider>
-    </LanguageProvider>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <ScrollToTop />
+            <div className="App">
+              <Routes>
+                <Route path="/" element={<Layout><Home /></Layout>} />
+                <Route path="/search" element={<Layout><Search /></Layout>} />
+                <Route path="/anime/:id" element={<Layout><AnimeDetails /></Layout>} />
+                <Route path="/anime/:id/watch" element={<Layout><AnimeWatch /></Layout>} />
+                <Route path="/profile" element={<Layout><Profile /></Layout>} />
+                <Route path="/faq" element={<Layout><Faq /></Layout>} />
+                <Route path="/terms" element={<Layout><Terms /></Layout>} />
+                <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
+                <Route path="/login" element={<Layout hideHeader><Login /></Layout>} />
+                <Route path="/register" element={<Layout hideHeader><Register /></Layout>} />
+                <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
+                <Route path="*" element={<Layout><NotFound /></Layout>} />
+              </Routes>
+            </div>
+          </BrowserRouter>
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -1,86 +1,56 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
-import { useTrendingAnime, usePopularAnime, useSeasonalAnime } from '../hooks/useAnime';
-import { useLanguage } from '../context/LanguageContext';
-import { translateMultipleToRussian } from '../utils/translation';
+import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased } from '../hooks/useAnime';
+import { useState } from 'react';
 import './Home.css';
 
 function getCurrentSeason() {
   const month = new Date().getMonth();
-  if (month >= 0 && month <= 2) return 'WINTER';
-  if (month >= 3 && month <= 5) return 'SPRING';
-  if (month >= 6 && month <= 8) return 'SUMMER';
-  return 'FALL';
+  if (month >= 0 && month <= 2) return 'winter';
+  if (month >= 3 && month <= 5) return 'spring';
+  if (month >= 6 && month <= 8) return 'summer';
+  return 'autumn';
 }
 
 const Home = () => {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
-  const currentSeason = getCurrentSeason();
   const currentYear = new Date().getFullYear();
+  const currentSeason = getCurrentSeason();
 
-  const [translatedTitles, setTranslatedTitles] = useState({});
+  const { data: bestAnime, isLoading: bestLoading, error: bestError, refetch: refetchBest } = useTrendingAnime();
+  const { data: seasonalAnime, isLoading: seasonalLoading, error: seasonalError } = useSeasonalAnime(currentYear, currentSeason);
+  const { data: ongoingAnime, isLoading: ongoingLoading, error: ongoingError } = useOngoingAnime();
+  const { data: recentAnime, isLoading: recentLoading, error: recentError } = useRecentlyReleased();
 
-  const titles = {
-    popular: t('popular') || 'Популярное',
-    trending: t('trending') || 'Сейчас в тренде',
-    seasonal: t('seasonal') || 'Сезонное',
+  const handleRetry = () => {
+    refetchBest();
   };
-  
-  const { data: trendingData, loading: trendingLoading, error: trendingError, refetch: refetchTrending } = useTrendingAnime();
-  const { data: popularData, loading: popularLoading, error: popularError, refetch: refetchPopular } = usePopularAnime();
-  const { data: seasonalData, loading: seasonalLoading, error: seasonalError, refetch: refetchSeasonal } = useSeasonalAnime(currentSeason, currentYear);
 
-  const trendingAnime = trendingData?.Page?.media || [];
-  const popularAnime = popularData?.Page?.media || [];
-  const seasonalAnime = seasonalData?.Page?.media || [];
-  const topAnime = trendingAnime[0];
-
-  useEffect(() => {
-    const allAnime = [...trendingAnime, ...popularAnime, ...seasonalAnime];
-    if (allAnime.length === 0 || language !== 'ru') return;
-
-    const titlesToTranslate = allAnime.map(anime => [
-      anime.id,
-      anime.title?.english || anime.title?.romaji || ''
-    ]).filter(([_, title]) => title);
-
-    if (titlesToTranslate.length === 0) return;
-
-    translateMultipleToRussian(titlesToTranslate).then(results => {
-      setTranslatedTitles(results);
-    });
-  }, [trendingData, popularData, seasonalData, language]);
-
-  const getTranslatedTitle = (anime) => {
-    if (language !== 'ru') return null;
-    return translatedTitles[anime.id] || null;
-  };
+  const topAnime = bestAnime?.[0];
 
   const handleNavigate = (filter) => {
     navigate(`/search?${filter}`);
   };
 
-  const renderSection = (title, animeList, loading, error, onRetry, filter) => (
+  const renderSection = (title, animeList, loading, error, filter) => (
     <section className="home-section">
       <h2 className="section-title">{title}</h2>
       {loading && <LoadingSpinner />}
-      {error && <ErrorMessage message={error.message} onRetry={onRetry} />}
+      {error && <ErrorMessage message={error} onRetry={handleRetry} />}
       {!loading && !error && (
         <>
           <div className="anime-grid">
-            {animeList.slice(0, 6).map((anime, index) => (
-              <AnimeCard key={anime.id} anime={anime} index={index} translatedTitle={getTranslatedTitle(anime)} />
+            {animeList?.slice(0, 6).map((anime, index) => (
+              <AnimeCard key={anime.id} anime={anime} index={index} />
             ))}
           </div>
           <div className="section-nav">
             <button className="nav-btn" onClick={() => handleNavigate(filter)}>
-              {t('showAll')}
+              Показать все
             </button>
           </div>
         </>
@@ -90,18 +60,19 @@ const Home = () => {
 
   return (
     <div className="home">
-      {trendingLoading ? (
+      {bestLoading ? (
         <LoadingSpinner />
-      ) : trendingError ? (
-        <ErrorMessage message={trendingError.message} onRetry={() => refetchTrending()} />
+      ) : bestError ? (
+        <ErrorMessage message={bestError} onRetry={handleRetry} />
       ) : (
         <Hero anime={topAnime} />
       )}
       
       <div className="home-content">
-        {renderSection(titles.popular, popularAnime, popularLoading, popularError, refetchPopular, 'sort=POPULARITY')}
-        {renderSection(titles.trending, trendingAnime, trendingLoading, trendingError, refetchTrending, 'sort=TRENDING')}
-        {renderSection(titles.seasonal, seasonalAnime, seasonalLoading, seasonalError, refetchSeasonal, `season=${currentSeason}`)}
+        {renderSection('Лучшие аниме', bestAnime, bestLoading, bestError, 'order=ranked')}
+        {renderSection('Сезонное', seasonalAnime, seasonalLoading, seasonalError, `season=${currentYear}_${currentSeason}`)}
+        {renderSection('Онгоинги', ongoingAnime, ongoingLoading, ongoingError, 'status=ongoing')}
+        {renderSection('Недавно вышло', recentAnime, recentLoading, recentError, 'status=released')}
       </div>
       <Footer />
     </div>
