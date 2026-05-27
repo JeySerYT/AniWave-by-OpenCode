@@ -1,15 +1,31 @@
-import { memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HelpCircle } from 'lucide-react';
+import Hls from 'hls.js';
 import './Hero.css';
 
 const BASE_URL = 'https://anilibria.top';
 
-const Hero = memo(({ anime }) => {
+const Hero = memo(({ anime, hlsUrl }) => {
   const navigate = useNavigate();
+  const videoRef = useRef(null);
 
   if (!anime) return null;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !hlsUrl) return;
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(video);
+      return () => hls.destroy();
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = hlsUrl;
+    }
+  }, [hlsUrl]);
 
   const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Unknown';
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
@@ -29,22 +45,35 @@ const Hero = memo(({ anime }) => {
 
   return (
     <section className="hero">
-      <div 
-        className="hero-banner"
-        style={{ backgroundImage: poster ? 'url(' + (poster.startsWith('/') ? BASE_URL + poster : poster) + ')' : 'none' }}
-      />
+      {hlsUrl && (
+        <video
+          ref={videoRef}
+          className="hero-video"
+          muted
+          autoPlay
+          loop
+          playsInline
+          preload="metadata"
+        />
+      )}
+      {!hlsUrl && (
+        <div
+          className="hero-banner"
+          style={{ backgroundImage: poster ? 'url(' + (poster.startsWith('/') ? BASE_URL + poster : poster) + ')' : 'none' }}
+        />
+      )}
       <div className="hero-overlay" />
-      
+
       <div className="hero-content">
         <div className="hero-layout">
-          <motion.div 
+          <motion.div
             className="hero-info"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
           >
             <h1 className="hero-title">{title}</h1>
-            
+
             {anime.name?.english && anime.name?.main && (
               <p className="hero-title-native">{anime.name.english}</p>
             )}
@@ -73,7 +102,7 @@ const Hero = memo(({ anime }) => {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="hero-poster-wrap"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -81,7 +110,7 @@ const Hero = memo(({ anime }) => {
           >
             <div className="hero-poster">
               {poster && (
-                <img 
+                <img
                   src={poster.startsWith('/') ? BASE_URL + poster : poster}
                   alt={title}
                   onError={(e) => {
@@ -94,7 +123,7 @@ const Hero = memo(({ anime }) => {
           </motion.div>
         </div>
 
-        <motion.div 
+        <motion.div
           className="hero-decoration"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

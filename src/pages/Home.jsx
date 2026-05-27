@@ -4,7 +4,7 @@ import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
-import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased } from '../hooks/useAnime';
+import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased, useAnimeById } from '../hooks/useAnime';
 import { useState } from 'react';
 import './Home.css';
 
@@ -31,6 +31,8 @@ const Home = () => {
   };
 
   const topAnime = bestAnime?.[0];
+  const { data: topAnimeFull } = useAnimeById(topAnime?.alias, { enabled: !!topAnime?.alias });
+  const hlsUrl = topAnimeFull?.episodes?.[0]?.hls_720 || topAnimeFull?.episodes?.[0]?.hls_480 || null;
 
   const handleNavigate = (filter) => {
     navigate(`/search?${filter}`);
@@ -65,7 +67,7 @@ const Home = () => {
       ) : bestError ? (
         <ErrorMessage message={bestError} onRetry={handleRetry} />
       ) : (
-        <Hero anime={topAnime} />
+        <Hero anime={topAnime} hlsUrl={hlsUrl} />
       )}
       
       <div className="home-content">
