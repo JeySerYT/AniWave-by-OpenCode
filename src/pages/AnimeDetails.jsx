@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
-import { useAnimeById } from '../hooks/useAnime';
+import AnimeCard from '../components/AnimeCard';
+import { useAnimeById, usePopularAnime } from '../hooks/useAnime';
 import { useFavorites } from '../hooks/useFavorites';
 import './AnimeDetails.css';
 
@@ -14,6 +15,7 @@ const AnimeDetails = () => {
   const navigate = useNavigate();
   const { data: anime, isLoading: loading, error, refetch } = useAnimeById(id);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { data: popular } = usePopularAnime();
   const favorite = isFavorite(id);
 
   const handleWatch = () => {
@@ -35,6 +37,19 @@ const AnimeDetails = () => {
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
   const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Аниме';
   const description = anime.description || 'Описание недоступно';
+  const genreNames = anime.genres?.map(g => g.name) || [];
+
+  const related = popular
+    ? popular
+        .filter(a => a.id !== Number(id))
+        .map(a => ({
+          ...a,
+          matchCount: (a.genres || []).filter(g => genreNames.includes(g.name)).length
+        }))
+        .filter(a => a.matchCount > 0)
+        .sort((a, b) => b.matchCount - a.matchCount)
+        .slice(0, 6)
+    : [];
 
   return (
     <div className="anime-details">
@@ -204,6 +219,22 @@ const AnimeDetails = () => {
             </motion.div>
           </div>
         </motion.div>
+
+        {related.length > 0 && (
+          <motion.section
+            className="related-section"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            <h2 className="related-title">Похожие по жанрам</h2>
+            <div className="related-grid">
+              {related.map((a, i) => (
+                <AnimeCard key={a.id} anime={a} index={i} />
+              ))}
+            </div>
+          </motion.section>
+        )}
       </div>
       <Footer />
     </div>
