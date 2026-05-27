@@ -55,11 +55,15 @@ const AnimeCard = ({ anime, index = 0 }) => {
           )}
         </div>
 
-        <div className="anime-card-info">
+        <div className="anime-card-content">
           <h3 className="anime-card-title">{title}</h3>
-          <div className="anime-card-meta">
-            {genres && <span>{genres}</span>}
-          </div>
+          {genres && (
+            <div className="anime-card-genres">
+              {genres.split(', ').map(g => (
+                <span key={g} className="genre-tag">{g}</span>
+              ))}
+            </div>
+          )}
         </div>
       </Link>
     </motion.div>
