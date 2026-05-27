@@ -153,44 +153,46 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   flex-wrap: nowrap;
 }
 
 .trailer-icon-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
+  flex-direction: row-reverse;
+  padding: 10px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .trailer-icon-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
 }
 
 .trailer-text {
-  position: absolute;
-  left: calc(100% + 8px);
+  max-width: 0;
+  overflow: hidden;
   white-space: nowrap;
+  opacity: 0;
   font-size: 0.85rem;
   font-weight: 600;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-right: 0;
 }
 
 .trailer-icon-btn:hover .trailer-text {
+  max-width: 100px;
   opacity: 1;
+  padding-left: 8px;
 }
 
 .details-title-native {
@@ -368,7 +370,7 @@
 
   .related-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 1rem;
+  gap: 0.5rem;
   }
 
   .title-row {
