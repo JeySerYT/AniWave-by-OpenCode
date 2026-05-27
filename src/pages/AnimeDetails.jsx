@@ -1,7 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
@@ -16,7 +14,7 @@ const AnimeDetails = () => {
   const navigate = useNavigate();
   const { data: anime, isLoading: loading, error, refetch } = useAnimeById(id);
   const { isFavorite, toggleFavorite } = useFavorites();
-  
+
   const favorite = isFavorite(id);
 
   const handleWatch = () => {
@@ -33,68 +31,128 @@ const AnimeDetails = () => {
 
   return (
     <div className="anime-details">
-      {poster && (
-        <div className="anime-details-banner">
-          <img 
-            src={poster.startsWith('/') ? BASE_URL + poster : poster}
-            alt={title}
-            className="banner-image"
-          />
-          <div className="banner-overlay" />
-        </div>
-      )}
+      <div
+        className="details-banner"
+        style={{ backgroundImage: poster ? 'url(' + (poster.startsWith('/') ? BASE_URL + poster : poster) + ')' : 'none' }}
+      >
+        <div className="banner-overlay" />
+        <div className="banner-gradient" />
+      </div>
 
-      <div className="anime-details-content">
-        <div className="anime-details-main">
-          <div className="anime-details-header">
-            <div className="anime-details-poster">
+      <div className="details-content">
+        <div className="details-main">
+          <div className="details-left">
+            <div className="details-cover">
               {poster && (
-                <img 
+                <img
                   src={poster.startsWith('/') ? BASE_URL + poster : poster}
                   alt={title}
-                  onError={(e) => {
-                    e.target.src = '/placeholder.png';
-                  }}
+                  onError={(e) => { e.target.src = '/placeholder.png'; }}
                 />
               )}
+              <button
+                className={'cover-favorite-btn' + (favorite ? ' active' : '')}
+                onClick={() => toggleFavorite(id)}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={favorite ? '#ff4081' : 'none'} stroke="currentColor" strokeWidth="2">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
             </div>
-
-            <div className="anime-details-info">
-              <h1 className="anime-details-title">{title}</h1>
-              <div className="anime-details-meta">
-                {anime.year && <span>{anime.year}</span>}
-                {anime.type?.value && <span>{anime.type.value}</span>}
-                {anime.season?.value && <span>{anime.season.value}</span>}
-                {anime.episodes_total && (
-                  <span>{anime.episodes_total} эп.</span>
-                )}
-              </div>
-
-              <div className="anime-details-actions">
-                <button 
-                  className={'favorite-btn ' + (favorite ? 'active' : '')}
-                  onClick={() => toggleFavorite(id)}
-                >
-                  {favorite ? '★ В избранном' : '☆ В избранное'}
-                </button>
-                <button className="watch-btn" onClick={handleWatch}>
-                  ▶ Смотреть
-                </button>
-              </div>
-
-              <div className="anime-details-description">
-                <h3>Описание</h3>
-                <p>{description}</p>
-              </div>
-
-              {anime.genres && anime.genres.length > 0 && (
-                <div className="anime-details-genres">
-                  {anime.genres.map(genre => (
-                    <span key={genre.id} className="genre-tag">{genre.name}</span>
-                  ))}
+            <div className="glass-card info-panel">
+              {anime.year && (
+                <div className="info-row">
+                  <span className="info-label wide">Год</span>
+                  <span className="info-value">{anime.year}</span>
+                </div>
+              )}
+              {anime.type?.value && (
+                <div className="info-row">
+                  <span className="info-label wide">Тип</span>
+                  <span className="info-value">{anime.type.description || anime.type.value}</span>
+                </div>
+              )}
+              {anime.episodes_total && (
+                <div className="info-row">
+                  <span className="info-label wide">Эпизоды</span>
+                  <span className="info-value">{anime.episodes_total}</span>
+                </div>
+              )}
+              {anime.season?.value && (
+                <div className="info-row">
+                  <span className="info-label wide">Сезон</span>
+                  <span className="info-value">{anime.season.description || anime.season.value}</span>
+                </div>
+              )}
+              {anime.average_duration_of_episode && (
+                <div className="info-row">
+                  <span className="info-label wide">Длительность</span>
+                  <span className="info-value">{anime.average_duration_of_episode} мин.</span>
+                </div>
+              )}
+              {anime.age_rating?.label && (
+                <div className="info-row">
+                  <span className="info-label wide">Возраст</span>
+                  <span className="info-value">{anime.age_rating.label}</span>
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="details-right">
+            <div className="title-row">
+              <h1 className="details-title">{title}</h1>
+            </div>
+
+            {anime.name?.english && anime.name?.main && (
+              <p className="details-title-native">{anime.name.english}</p>
+            )}
+
+            <div className="details-meta">
+              {anime.year && <span className="meta-item"><span>{anime.year}</span></span>}
+              {anime.type?.value && <span className="meta-item"><span>{anime.type.description || anime.type.value}</span></span>}
+              {anime.episodes_total && <span className="meta-item"><span>{anime.episodes_total} эп.</span></span>}
+              {anime.season?.value && <span className="meta-item"><span>{anime.season.description || anime.season.value}</span></span>}
+            </div>
+
+            <div className="details-meta" style={{ marginTop: '1rem' }}>
+              <button
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #E53935, #FF4081)',
+                  border: 'none', color: 'white', fontSize: '0.85rem', fontWeight: 600,
+                  borderRadius: '9999px', cursor: 'pointer'
+                }}
+                onClick={handleWatch}
+              >
+                ▶ Смотреть
+              </button>
+              <button
+                className={'meta-item' + (favorite ? '' : '')}
+                onClick={() => toggleFavorite(id)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  padding: '0.4rem 0.9rem', background: favorite ? 'rgba(255,64,129,0.15)' : 'rgba(255,255,255,0.06)',
+                  border: '1px solid ' + (favorite ? 'rgba(255,64,129,0.3)' : 'rgba(255,255,255,0.08)'),
+                  borderRadius: '9999px', cursor: favorite ? 'pointer' : 'pointer',
+                  fontSize: '0.85rem', color: favorite ? '#FF4081' : 'var(--text-secondary)'
+                }}
+              >
+                {favorite ? '★ В избранном' : '☆ В избранное'}
+              </button>
+            </div>
+
+            <div className="glass-card details-description">
+              <p>{description}</p>
+            </div>
+
+            {anime.genres && anime.genres.length > 0 && (
+              <div className="details-genres">
+                {anime.genres.map(genre => (
+                  <span key={genre.id} className="genre-tag">{genre.name}</span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
