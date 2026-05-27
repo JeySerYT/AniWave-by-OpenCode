@@ -133,17 +133,12 @@
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 0;
-  line-height: 1.3;
+  line-height: 1.2;
   background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  flex: 0 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0.15em 0;
+  word-break: break-word;
 }
 
 .title-row {
@@ -283,6 +278,8 @@
   color: var(--text-secondary);
   line-height: 1.8;
   font-size: 1rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .details-description p {
@@ -345,12 +342,12 @@
   gap: 1.25rem;
 }
 
-.related-grid .anime-card-genres,
+.related-grid .card-genre-tag,
 .related-grid .anime-card-episodes {
   display: none;
 }
 
-.related-grid .anime-card-content {
+.related-grid .anime-card-body {
   padding: 0.5rem 0.5rem 0.6rem;
 }
 
@@ -361,11 +358,15 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  margin-bottom: 0;
 }
 
-.related-grid .anime-card-overlay {
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.related-grid .anime-card-brief {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: flex-end;
   padding: 0.75rem;
@@ -375,18 +376,19 @@
     rgba(10, 10, 15, 0.6) 50%,
     transparent 80%
   );
-  pointer-events: none;
-}
-
-.related-grid .anime-card:hover .anime-card-overlay {
-  opacity: 1;
-}
-
-.anime-card-brief {
+  border-radius: 0;
   font-size: 0.75rem;
   color: #e0e0e0;
   font-weight: 500;
   line-height: 1.4;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.related-grid .anime-card:hover .anime-card-brief {
+  opacity: 1;
 }
 
 @media (max-width: 1024px) {

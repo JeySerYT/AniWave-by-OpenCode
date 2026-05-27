@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
@@ -7,7 +8,6 @@ import Footer from '../components/Footer';
 import { useQuery } from '@tanstack/react-query';
 import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased } from '../hooks/useAnime';
 import { anilibriaApi } from '../api/anilibria';
-import { useState } from 'react';
 import './Home.css';
 
 function getCurrentSeason() {
@@ -23,16 +23,22 @@ const Home = () => {
   const currentYear = new Date().getFullYear();
   const currentSeason = getCurrentSeason();
 
+  const [visibleCounts, setVisibleCounts] = useState({ best: 6, seasonal: 6, ongoing: 6, recent: 6 });
+  const [continueWatching, setContinueWatching] = useState([]);
+
   const { data: bestAnime, isLoading: bestLoading, error: bestError, refetch: refetchBest } = useTrendingAnime();
   const { data: seasonalAnime, isLoading: seasonalLoading, error: seasonalError } = useSeasonalAnime(currentYear, currentSeason);
   const { data: ongoingAnime, isLoading: ongoingLoading, error: ongoingError } = useOngoingAnime();
   const { data: recentAnime, isLoading: recentLoading, error: recentError } = useRecentlyReleased();
 
-  const handleRetry = () => {
-    refetchBest();
-  };
+  const handleRetry = () => refetchBest();
 
-  const topAnime = bestAnime?.[0];
+  const topAnime = useMemo(() => {
+    if (!bestAnime) return null;
+    return [...bestAnime].sort((a, b) =>
+      (b.added_in_watching_collection || 0) - (a.added_in_watching_collection || 0)
+    )[0];
+  }, [bestAnime]);
   const { data: topAnimeFull } = useQuery({
     queryKey: ['release', topAnime?.id],
     queryFn: () => anilibriaApi.getReleaseById(topAnime?.id),
@@ -40,47 +46,95 @@ const Home = () => {
   });
   const hlsUrl = topAnimeFull?.episodes?.[0]?.hls_720 || topAnimeFull?.episodes?.[0]?.hls_480 || null;
 
-  const handleNavigate = (filter) => {
-    navigate(`/search?${filter}`);
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('continue_watching') || '[]');
+      setContinueWatching(saved);
+    } catch {}
+  }, []);
+
+  const handleLoadMore = (section) => {
+    setVisibleCounts(prev => ({ ...prev, [section]: (prev[section] || 6) + 6 }));
   };
 
-  const renderSection = (title, animeList, loading, error, filter) => (
-    <section className="home-section">
-      <h2 className="section-title">{title}</h2>
-      {loading && <LoadingSpinner />}
-      {error && <ErrorMessage message={error} onRetry={handleRetry} />}
-      {!loading && !error && (
-        <>
-          <div className="anime-grid">
-            {animeList?.slice(0, 6).map((anime, index) => (
-              <AnimeCard key={anime.id} anime={anime} index={index} />
-            ))}
+  const totalWatching = useMemo(() => {
+    if (!bestAnime) return 0;
+    return bestAnime.slice(0, 6).reduce((sum, a) => sum + (a.added_in_watching_collection || 0), 0);
+  }, [bestAnime]);
+
+  const renderSection = (key, title, subtitle, data, loading, error) => {
+    const count = visibleCounts[key] || 6;
+
+    return (
+      <section className="home-section" key={key}>
+        <div className="section-header">
+          <div className="section-title-group">
+            <h2 className="section-title">
+              {title}
+              {key === 'best' && totalWatching > 0 && (
+                <span className="section-watching">
+                  <span className="watching-dot" />
+                  {totalWatching.toLocaleString()} смотрят
+                </span>
+              )}
+            </h2>
+            {subtitle && <p className="section-subtitle">{subtitle}</p>}
           </div>
-          <div className="section-nav">
-            <button className="nav-btn" onClick={() => handleNavigate(filter)}>
-              Показать все
-            </button>
-          </div>
-        </>
-      )}
-    </section>
-  );
+        </div>
+
+        {loading && <LoadingSpinner />}
+        {error && <ErrorMessage message={error} onRetry={handleRetry} />}
+        {!loading && !error && (
+          <>
+            <div className="anime-grid">
+              {data?.slice(0, count).map((anime, i) => (
+                <AnimeCard key={anime.id} anime={anime} index={i} />
+              ))}
+            </div>
+            {data?.length > count && (
+              <div className="section-nav">
+                <button className="nav-btn" onClick={() => handleLoadMore(key)}>
+                  Показать ещё
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+    );
+  };
 
   return (
     <div className="home">
       {bestLoading ? (
-        <LoadingSpinner />
+        <div className="home-hero-skeleton" />
       ) : bestError ? (
         <ErrorMessage message={bestError} onRetry={handleRetry} />
       ) : (
         <Hero anime={topAnime} hlsUrl={hlsUrl} />
       )}
-      
+
       <div className="home-content">
-        {renderSection('Лучшие аниме', bestAnime, bestLoading, bestError, 'order=ranked')}
-        {renderSection('Сезонное', seasonalAnime, seasonalLoading, seasonalError, `season=${currentYear}_${currentSeason}`)}
-        {renderSection('Онгоинги', ongoingAnime, ongoingLoading, ongoingError, 'status=ongoing')}
-        {renderSection('Недавно вышло', recentAnime, recentLoading, recentError, 'status=released')}
+        {continueWatching.length > 0 && (
+          <section className="home-section">
+            <div className="section-header">
+              <div className="section-title-group">
+                <h2 className="section-title">Продолжить просмотр</h2>
+                <p className="section-subtitle">Вернись к тому, на чём остановился</p>
+              </div>
+            </div>
+            <div className="anime-grid">
+              {continueWatching.slice(0, 6).map((item, i) => (
+                <AnimeCard key={item.id} anime={item} index={i} brief={`${item.progress || 1} эп.`} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {renderSection('best', 'Лучшие аниме', 'Популярное сейчас', bestAnime, bestLoading, bestError)}
+        {renderSection('ongoing', 'Онгоинги', 'Сейчас выходят', ongoingAnime, ongoingLoading, ongoingError)}
+        {renderSection('seasonal', 'Сезонное', 'Текущий сезон', seasonalAnime, seasonalLoading, seasonalError)}
+        {renderSection('recent', 'Недавно вышло', 'Последние релизы', recentAnime, recentLoading, recentError)}
       </div>
       <Footer />
     </div>

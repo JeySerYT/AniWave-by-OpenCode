@@ -7,42 +7,41 @@ const BASE_URL = 'https://anilibria.top';
 
 const AnimeCard = ({ anime, index = 0, brief }) => {
   if (!anime) return null;
-  
+
   const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Unknown';
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
   const rating = anime?.averageScore ? (anime.averageScore / 10).toFixed(1) : anime?.rating || anime?.score || null;
   const episodes = anime.episodes_total;
   const animeCode = anime.id;
-  const genres = anime.genres?.slice(0, 2).map(g => g.name).join(', ');
+  const genres = anime.genres?.slice(0, 2).map(g => g.name) || [];
+  const watching = anime.added_in_watching_collection;
 
   return (
     <motion.div
       className="anime-card"
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
-      whileHover={{ y: -6, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] } }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.4, delay: index * 0.04, ease: [0.25, 0.46, 0.45, 0.94] }}
+      whileHover={{ y: -6, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } }}
     >
       <Link to={'/anime/' + animeCode} className="anime-card-link">
-        <div className="anime-card-image">
+        <div className="anime-card-poster">
           {poster && (
-            <img 
+            <img
               src={poster.startsWith('/') ? BASE_URL + poster : poster}
               alt={title}
               loading="lazy"
               onError={(e) => {
                 e.target.src = 'data:image/svg+xml,' + encodeURIComponent(
-                  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260"><rect width="100%" height="100%" fill="#222"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#666" font-size="14">No Image</text></svg>'
+                  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="100%" height="100%" fill="#1a1a1a"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#555" font-size="12">Нет постера</text></svg>'
                 );
                 e.target.onerror = null;
               }}
             />
           )}
-          <div className="anime-card-overlay">
-            {brief && <span className="anime-card-brief">{brief}</span>}
-          </div>
-          
+          <div className="anime-card-overlay" />
+
           {rating && (
             <div className="anime-card-rating">
               <span className="rating-star">★</span>
@@ -52,17 +51,23 @@ const AnimeCard = ({ anime, index = 0, brief }) => {
 
           {episodes && (
             <div className="anime-card-episodes">
-              {episodes + ' эп.'}
+              {episodes} эп.
+            </div>
+          )}
+
+          {brief && (
+            <div className="anime-card-brief">
+              {brief}
             </div>
           )}
         </div>
 
-        <div className="anime-card-content">
+        <div className="anime-card-body">
           <h3 className="anime-card-title">{title}</h3>
-          {genres && (
+          {genres.length > 0 && (
             <div className="anime-card-genres">
-              {genres.split(', ').map(g => (
-                <span key={g} className="genre-tag">{g}</span>
+              {genres.map(g => (
+                <span key={g} className="card-genre-tag">{g}</span>
               ))}
             </div>
           )}
