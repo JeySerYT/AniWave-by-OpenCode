@@ -13,7 +13,7 @@ export const useTrendingAnime = (options = {}) => {
     gcTime,
     ...options
   });
-  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
+  return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const usePopularAnime = (options = {}) => {
@@ -25,7 +25,7 @@ export const usePopularAnime = (options = {}) => {
     gcTime,
     ...options
   });
-  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
+  return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useSeasonalAnime = (year = null, season = null, options = {}) => {
@@ -49,7 +49,7 @@ export const useSeasonalAnime = (year = null, season = null, options = {}) => {
     enabled: !!year || !!season,
     ...options
   });
-  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
+  return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useOngoingAnime = (options = {}) => {
@@ -84,7 +84,7 @@ export const useAnimeById = (code, options = {}) => {
     enabled: !!code,
     ...options
   });
-  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
+  return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useAnimeCharacters = (code, options = {}) => {
@@ -96,7 +96,7 @@ export const useAnimeCharacters = (code, options = {}) => {
     enabled: !!code,
     ...options
   });
-  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
+  return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useSimilarAnime = (code, options = {}) => {
@@ -108,7 +108,7 @@ export const useSimilarAnime = (code, options = {}) => {
     enabled: !!code,
     ...options
   });
-  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
+  return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useRelatedAnime = (code, options = {}) => {
@@ -120,7 +120,7 @@ export const useRelatedAnime = (code, options = {}) => {
     enabled: !!code,
     ...options
   });
-  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
+  return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export default {

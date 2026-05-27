@@ -8,7 +8,7 @@ const BASE_URL = 'https://anilibria.top';
 const AnimeCard = ({ anime, index = 0 }) => {
   if (!anime) return null;
   
-  const title = translatedTitle || (typeof anime.title === 'string' ? anime.title : anime.title?.english || anime.title?.romaji || anime.title?.native || 'Unknown');
+  const title = typeof anime.title === 'string' ? anime.title : 'Unknown';
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
   const rating = anime?.averageScore ? (anime.averageScore / 10).toFixed(1) : anime?.rating || anime?.score || null;
   const episodes = anime.episodes_total;

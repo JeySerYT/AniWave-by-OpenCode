@@ -14,7 +14,7 @@ const BASE_URL = 'https://anilibria.top';
 const AnimeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { anime, loading, error, refetch } = useAnimeById(id);
+  const { data: anime, isLoading: loading, error, refetch } = useAnimeById(id);
   const { isFavorite, toggleFavorite } = useFavorites();
   
   const favorite = isFavorite(id);
