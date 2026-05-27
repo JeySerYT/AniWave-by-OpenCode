@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, X, ChevronDown, RotateCcw } from 'lucide-react';
 import AnimeCard from '../components/AnimeCard';
@@ -12,12 +11,6 @@ const SORTS = [
   { value: 'popularity', label: 'По популярности' },
   { value: 'updated_at', label: 'По обновлению' },
   { value: 'created_at', label: 'По дате добавления' },
-];
-
-const GENRES_LIST = [
-  'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',
-  'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance',
-  'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller',
 ];
 
 const SearchPage = () => {
