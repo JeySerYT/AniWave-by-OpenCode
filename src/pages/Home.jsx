@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -19,7 +18,6 @@ function getCurrentSeason() {
 }
 
 const Home = () => {
-  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const currentSeason = getCurrentSeason();
 
@@ -50,7 +48,7 @@ const Home = () => {
     try {
       const saved = JSON.parse(localStorage.getItem('continue_watching') || '[]');
       setContinueWatching(saved);
-    } catch {}
+    } catch (e) { /* ignore */ }
   }, []);
 
   const handleLoadMore = (section) => {
@@ -125,7 +123,13 @@ const Home = () => {
             </div>
             <div className="anime-grid">
               {continueWatching.slice(0, 6).map((item, i) => (
-                <AnimeCard key={item.id} anime={item} index={i} brief={`${item.progress || 1} эп.`} />
+                <AnimeCard key={item.id} anime={{
+                  id: item.id,
+                  name: { main: item.title },
+                  poster: { optimized: { src: item.poster }, preview: item.poster, src: item.poster },
+                  episodes_total: item.episodes_total,
+                  genres: item.genres || []
+                }} index={i} brief={`${item.progress || 1} эп.`} />
               ))}
             </div>
           </section>

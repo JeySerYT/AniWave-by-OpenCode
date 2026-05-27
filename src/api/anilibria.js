@@ -45,19 +45,27 @@ export const anilibriaApi = {
   async getTitleList(params = {}) {
     try {
       const queryParams = new URLSearchParams();
-      if (params.search) queryParams.set('filter', 'name');
       if (params.limit) queryParams.set('limit', String(params.limit));
       if (params.page) queryParams.set('page', String(params.page));
-      if (params.sort) queryParams.set('sorting', params.sort);
+      if (params.sorting) queryParams.set('sorting', params.sorting);
       if (params.order) queryParams.set('order', params.order);
-      if (params.status) queryParams.set('filter', 'publish_status');
-      if (params.status) queryParams.set('publish_status', params.status);
-      if (params.kind) queryParams.set('filter', 'type');
-      if (params.kind) queryParams.set('type', params.kind);
-      if (params.genre) queryParams.set('filter', 'genres');
-      if (params.genre) queryParams.set('genres', params.genre);
-      if (params.year) queryParams.set('filter', 'year');
-      if (params.year) queryParams.set('year', String(params.year));
+
+      if (params.search) {
+        queryParams.set('filter', 'name');
+        queryParams.set('name', params.search);
+      } else if (params.status) {
+        queryParams.set('filter', 'publish_status');
+        queryParams.set('publish_status', params.status);
+      } else if (params.kind) {
+        queryParams.set('filter', 'type');
+        queryParams.set('type', params.kind);
+      } else if (params.genre) {
+        queryParams.set('filter', 'genres');
+        queryParams.set('genres', params.genre);
+      } else if (params.year) {
+        queryParams.set('filter', 'year');
+        queryParams.set('year', String(params.year));
+      }
 
       const response = await fetchWithTimeout(
         ANILIBRIA_API_BASE + '/anime/catalog/releases?' + queryParams,
@@ -232,7 +240,8 @@ export const anilibriaApi = {
       search: query,
       limit: filters?.limit || 20,
       page: filters?.page || 1,
-      sort: filters?.sort || 'ranked',
+      sorting: filters?.sorting || 'rating',
+      order: 'desc',
       ...filters
     });
   },

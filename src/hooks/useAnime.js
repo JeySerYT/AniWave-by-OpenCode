@@ -7,7 +7,7 @@ const gcTime = 10 * 60 * 1000;
 export const useTrendingAnime = (options = {}) => {
   const query = useQuery({
     queryKey: ['trending'],
-    queryFn: () => anilibriaApi.getTitleList({ sorting: 'rating', limit: 20 }),
+    queryFn: () => anilibriaApi.getTitleList({ sorting: 'rating', limit: 20, order: 'desc' }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
@@ -19,7 +19,7 @@ export const useTrendingAnime = (options = {}) => {
 export const usePopularAnime = (options = {}) => {
   const query = useQuery({
     queryKey: ['popular'],
-    queryFn: () => anilibriaApi.getTitleList({ sorting: 'popularity', limit: 20 }),
+    queryFn: () => anilibriaApi.getTitleList({ sorting: 'popularity', limit: 20, order: 'desc' }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
@@ -31,11 +31,10 @@ export const usePopularAnime = (options = {}) => {
 export const useSeasonalAnime = (year = null, season = null, options = {}) => {
   const query = useQuery({
     queryKey: ['seasonal', year, season],
-    queryFn: () => anilibriaApi.getTitleList({ limit: 20, page: 2 }),
+    queryFn: () => anilibriaApi.getTitleList({ sorting: 'popularity', limit: 20, order: 'desc' }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
-    enabled: !!year || !!season,
     ...options
   });
   return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
@@ -44,7 +43,12 @@ export const useSeasonalAnime = (year = null, season = null, options = {}) => {
 export const useOngoingAnime = (options = {}) => {
   return useQuery({
     queryKey: ['ongoing'],
-    queryFn: () => anilibriaApi.getTitleList({ limit: 20, page: 3 }),
+    queryFn: () => anilibriaApi.getTitleList({
+      sorting: 'updated_at',
+      order: 'desc',
+      limit: 20,
+      status: 'ongoing'
+    }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
@@ -55,7 +59,11 @@ export const useOngoingAnime = (options = {}) => {
 export const useRecentlyReleased = (options = {}) => {
   return useQuery({
     queryKey: ['recent'],
-    queryFn: () => anilibriaApi.getTitleList({ limit: 20, page: 4 }),
+    queryFn: () => anilibriaApi.getTitleList({
+      sorting: 'updated_at',
+      order: 'desc',
+      limit: 20
+    }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
@@ -109,16 +117,4 @@ export const useRelatedAnime = (code, options = {}) => {
     ...options
   });
   return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
-};
-
-export default {
-  useTrendingAnime,
-  usePopularAnime,
-  useSeasonalAnime,
-  useOngoingAnime,
-  useRecentlyReleased,
-  useAnimeById,
-  useAnimeCharacters,
-  useSimilarAnime,
-  useRelatedAnime,
 };
