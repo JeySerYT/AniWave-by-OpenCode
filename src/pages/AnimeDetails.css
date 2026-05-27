@@ -166,7 +166,8 @@
   top: 0;
   display: flex;
   align-items: center;
-  width: 42px;
+  justify-content: center;
+  max-width: 42px;
   height: 42px;
   box-sizing: border-box;
   padding: 10px;
@@ -175,7 +176,7 @@
   border-radius: 50%;
   color: white;
   cursor: pointer;
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
               border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1),
               background 0.3s ease,
               border-color 0.3s ease;
@@ -183,23 +184,28 @@
 }
 
 .trailer-icon-btn:hover {
-  width: 150px;
+  max-width: 200px;
+  justify-content: flex-start;
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.25);
   border-radius: 9999px;
 }
 
 .trailer-text {
+  max-width: 0;
+  overflow: hidden;
   white-space: nowrap;
   font-size: 0.85rem;
   font-weight: 600;
   opacity: 0;
-  transition: opacity 0.3s ease 0.1s;
-  padding-left: 8px;
+  transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease 0.1s;
 }
 
 .trailer-icon-btn:hover .trailer-text {
+  max-width: 100px;
   opacity: 1;
+  padding-left: 8px;
 }
 
 .details-title-native {
