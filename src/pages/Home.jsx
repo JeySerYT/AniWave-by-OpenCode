@@ -4,7 +4,9 @@ import AnimeCard from '../components/AnimeCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
-import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased, useAnimeById } from '../hooks/useAnime';
+import { useQuery } from '@tanstack/react-query';
+import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased } from '../hooks/useAnime';
+import { anilibriaApi } from '../api/anilibria';
 import { useState } from 'react';
 import './Home.css';
 
@@ -31,7 +33,11 @@ const Home = () => {
   };
 
   const topAnime = bestAnime?.[0];
-  const { data: topAnimeFull } = useAnimeById(topAnime?.alias, { enabled: !!topAnime?.alias });
+  const { data: topAnimeFull } = useQuery({
+    queryKey: ['release', topAnime?.id],
+    queryFn: () => anilibriaApi.getReleaseById(topAnime?.id),
+    enabled: !!topAnime?.id,
+  });
   const hlsUrl = topAnimeFull?.episodes?.[0]?.hls_720 || topAnimeFull?.episodes?.[0]?.hls_480 || null;
 
   const handleNavigate = (filter) => {

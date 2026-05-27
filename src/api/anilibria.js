@@ -189,6 +189,25 @@ export const anilibriaApi = {
     }
   },
 
+  async getReleaseById(id) {
+    try {
+      const response = await fetchWithTimeout(
+        ANILIBRIA_API_BASE + '/anime/releases/' + id,
+        { headers: apiHeaders },
+        30000
+      );
+
+      if (!response.ok) {
+        throw new Error('API error: ' + response.status);
+      }
+
+      return response.json();
+    } catch (err) {
+      console.error('GetReleaseById API Error:', err);
+      throw err;
+    }
+  },
+
   async getTitleVideo(codeOrId) {
     try {
       const response = await fetchWithTimeout(

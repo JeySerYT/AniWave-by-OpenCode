@@ -11,8 +11,6 @@ const Hero = memo(({ anime, hlsUrl }) => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
 
-  if (!anime) return null;
-
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !hlsUrl) return;
@@ -26,6 +24,8 @@ const Hero = memo(({ anime, hlsUrl }) => {
       video.src = hlsUrl;
     }
   }, [hlsUrl]);
+
+  if (!anime) return null;
 
   const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Unknown';
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
