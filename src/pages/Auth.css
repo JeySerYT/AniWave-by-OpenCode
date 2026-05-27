@@ -90,9 +90,9 @@
 
 .input-wrap input {
   width: 100%;
-  padding: 1.2rem 1rem 0.45rem 2.5rem;
+  padding: 1.3rem 1rem 0.35rem 2.5rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1.5px solid rgba(255, 255, 255, 0.07);
+  border: 2px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -103,8 +103,8 @@
 }
 
 .input-wrap input:focus {
-  border-color: rgba(255, 64, 129, 0.35);
-  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 64, 129, 0.4);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .input-wrap label {
@@ -115,21 +115,19 @@
   font-size: 0.9rem;
   color: var(--text-muted);
   pointer-events: none;
-  transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
-  opacity: 0.45;
-  padding: 0 5px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.5;
   z-index: 1;
-  border-radius: 4px;
-  background: transparent;
+  line-height: 1;
 }
 
 .input-wrap input:focus ~ label,
 .input-wrap input:not(:placeholder-shown) ~ label {
-  top: -0.5rem;
-  font-size: 0.68rem;
+  top: 0.55rem;
+  font-size: 0.65rem;
   opacity: 1;
   color: var(--text-secondary);
-  background: #141414;
+  transform: none;
 }
 
 .input-wrap input:focus ~ label {
