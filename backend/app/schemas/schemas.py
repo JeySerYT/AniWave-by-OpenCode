@@ -44,6 +44,23 @@ class TokenData(BaseModel):
     user_id: Optional[str] = None
 
 
+class WatchProgressBase(BaseModel):
+    anime_id: str
+    title: Optional[str] = None
+    poster: Optional[str] = None
+    episode: Optional[str] = "1"
+    episodes_total: Optional[str] = ""
+    genres: Optional[str] = "[]"
+
+
+class WatchProgressResponse(WatchProgressBase):
+    id: str
+    user_id: str
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class FavoriteBase(BaseModel):
     anime_id: str
     title: Optional[str] = None

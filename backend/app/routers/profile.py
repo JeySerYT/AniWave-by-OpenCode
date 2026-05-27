@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.schemas import ProfileUpdate, UserResponse, FavoriteBase, FavoriteResponse
+from app.schemas.schemas import ProfileUpdate, UserResponse, FavoriteBase, FavoriteResponse, WatchProgressBase, WatchProgressResponse
 from app.services.user_service import UserService
 from app.services.favorite_service import FavoriteService
+from app.services.watch_progress_service import WatchProgressService
 from app.routers.auth import get_current_user
 from app.models.models import User
 
@@ -87,3 +88,44 @@ def remove_favorite(
             detail="Favorite not found"
         )
     return {"message": "Removed from favorites"}
+
+
+@router.get("/watch-progress", response_model=list[WatchProgressResponse])
+def get_watch_progress(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return WatchProgressService.get_by_user(db, current_user.id)
+
+
+@router.post("/watch-progress", response_model=WatchProgressResponse)
+def save_watch_progress(
+    progress_data: WatchProgressBase,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return WatchProgressService.upsert(
+        db,
+        user_id=current_user.id,
+        anime_id=progress_data.anime_id,
+        title=progress_data.title,
+        poster=progress_data.poster,
+        episode=progress_data.episode,
+        episodes_total=progress_data.episodes_total,
+        genres=progress_data.genres
+    )
+
+
+@router.delete("/watch-progress/{anime_id}")
+def remove_watch_progress(
+    anime_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    deleted = WatchProgressService.delete(db, current_user.id, anime_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Watch progress not found"
+        )
+    return {"message": "Removed from watch progress"}

@@ -6,8 +6,11 @@ import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import { useQuery } from '@tanstack/react-query';
 import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased } from '../hooks/useAnime';
+import { useAuth } from '../context/AuthContext';
 import { anilibriaApi } from '../api/anilibria';
 import './Home.css';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 function getCurrentSeason() {
   const month = new Date().getMonth();
@@ -18,6 +21,7 @@ function getCurrentSeason() {
 }
 
 const Home = () => {
+  const { user } = useAuth();
   const currentYear = new Date().getFullYear();
   const currentSeason = getCurrentSeason();
 
@@ -45,11 +49,29 @@ const Home = () => {
   const hlsUrl = topAnimeFull?.episodes?.[0]?.hls_720 || topAnimeFull?.episodes?.[0]?.hls_480 || null;
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('continue_watching') || '[]');
-      setContinueWatching(saved);
-    } catch (e) { /* ignore */ }
-  }, []);
+    if (user) {
+      fetch(`${API_URL}/profile/watch-progress`, { credentials: 'include' })
+        .then(r => r.ok ? r.json() : [])
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setContinueWatching(data.map(w => ({
+              id: w.anime_id,
+              title: w.title,
+              poster: w.poster,
+              progress: parseInt(w.episode) || 1,
+              episodes_total: parseInt(w.episodes_total) || 0,
+              genres: (() => { try { return JSON.parse(w.genres || '[]'); } catch { return []; } })()
+            })));
+          }
+        })
+        .catch(() => {});
+    } else {
+      try {
+        const saved = JSON.parse(localStorage.getItem('continue_watching') || '[]');
+        setContinueWatching(saved);
+      } catch (e) { /* ignore */ }
+    }
+  }, [user]);
 
   const handleLoadMore = (section) => {
     setVisibleCounts(prev => ({ ...prev, [section]: (prev[section] || 6) + 6 }));
