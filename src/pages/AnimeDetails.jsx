@@ -229,7 +229,7 @@ const AnimeDetails = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            <h2 className="related-title">Похожие по жанрам</h2>
+            <h2 className="related-title">Похожее</h2>
             <div className="related-grid">
               {related.map((a, i) => (
                 <AnimeCard key={a.id} anime={a} index={i} />
