@@ -345,19 +345,26 @@
   gap: 1.25rem;
 }
 
-.related-grid .anime-card-genres {
-  display: none;
-}
-
 .related-grid .anime-card-content {
   padding: 0.5rem 0.5rem 0.6rem;
 }
 
 .related-grid .anime-card-title {
   font-size: 0.85rem;
-  white-space: nowrap;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.related-grid .anime-card-genres {
+  margin-top: 0.2rem;
+}
+
+.related-grid .genre-tag {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.65rem;
 }
 
 @media (max-width: 1024px) {
