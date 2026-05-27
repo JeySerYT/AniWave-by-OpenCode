@@ -80,6 +80,10 @@
   width: 100%;
 }
 
+.nav-link.active .nav-text {
+  color: var(--text-primary);
+}
+
 .hamburger {
   display: none;
   flex-direction: column;
