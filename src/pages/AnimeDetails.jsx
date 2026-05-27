@@ -107,19 +107,21 @@ const AnimeDetails = () => {
               >
                 {title}
               </motion.h1>
-              <motion.button
-                className="trailer-icon-btn"
-                onClick={handleWatch}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                <span className="trailer-text">Смотреть</span>
-              </motion.button>
+              <div className="trailer-wrap">
+                <motion.button
+                  className="trailer-icon-btn"
+                  onClick={handleWatch}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                  <span className="trailer-text">Смотреть</span>
+                </motion.button>
+              </div>
             </div>
             {anime.name?.main && anime.name?.english && anime.name?.english !== anime.name?.main && (
               <motion.p
