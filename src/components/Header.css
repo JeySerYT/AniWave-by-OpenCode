@@ -75,24 +75,9 @@
   box-shadow: 0 0 10px var(--accent-pink);
 }
 
-.nav-link:hover .nav-text {
-  color: var(--text-primary);
-}
-
-.nav-link:hover .nav-text::after {
-  width: 100%;
-}
-
-.nav-link.active .nav-text {
-  color: var(--text-primary);
-}
-
+.nav-link:hover .nav-text::after,
 .nav-link.active .nav-text::after {
   width: 100%;
-}
-
-.nav-link.active {
-  background: rgba(255, 64, 129, 0.08);
 }
 
 .hamburger {
