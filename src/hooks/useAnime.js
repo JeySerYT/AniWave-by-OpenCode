@@ -31,18 +31,7 @@ export const usePopularAnime = (options = {}) => {
 export const useSeasonalAnime = (year = null, season = null, options = {}) => {
   const query = useQuery({
     queryKey: ['seasonal', year, season],
-    queryFn: () => {
-      const params = { limit: 20 };
-      if (year) {
-        params.filter = 'year';
-        params.year = String(year);
-      }
-      if (season) {
-        params.filter = (params.filter ? params.filter + ',' : '') + 'season';
-        params.season = season;
-      }
-      return anilibriaApi.getTitleList(params);
-    },
+    queryFn: () => anilibriaApi.getTitleList({ limit: 20, page: 2 }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
@@ -55,7 +44,7 @@ export const useSeasonalAnime = (year = null, season = null, options = {}) => {
 export const useOngoingAnime = (options = {}) => {
   return useQuery({
     queryKey: ['ongoing'],
-    queryFn: () => anilibriaApi.getTitleOngoing(),
+    queryFn: () => anilibriaApi.getTitleList({ limit: 20, page: 3 }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
@@ -66,7 +55,7 @@ export const useOngoingAnime = (options = {}) => {
 export const useRecentlyReleased = (options = {}) => {
   return useQuery({
     queryKey: ['recent'],
-    queryFn: () => anilibriaApi.getTitleUpdates(20),
+    queryFn: () => anilibriaApi.getTitleList({ limit: 20, page: 4 }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
