@@ -20,23 +20,21 @@ const AnimeDetails = () => {
     navigate('/anime/' + id + '/watch');
   };
 
+  const formatSeason = (season) => {
+    const map = { winter: 'Зима', spring: 'Весна', summer: 'Лето', autumn: 'Осень' };
+    return map[season?.value] || season?.description || season?.value || '';
+  };
+
+  const formatStatus = (isOngoing) => isOngoing ? 'Сейчас выходит' : 'Завершено';
+  const formatType = (type) => type?.description || type?.value || '';
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} onRetry={() => refetch()} />;
   if (!anime) return <ErrorMessage message="Аниме не найдено" />;
 
-  const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Аниме';
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
+  const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Аниме';
   const description = anime.description || 'Описание недоступно';
-
-  const formatType = (type) => {
-    const types = { TV: 'ТВ', TV_SHORT: 'ТВ (короткий)', MOVIE: 'Фильм', OVA: 'ОВА', ONA: 'ОНА', SPECIAL: 'Спешл' };
-    return types[type?.value] || type?.description || type?.value || '';
-  };
-
-  const formatSeason = (season) => {
-    const seasons = { winter: 'Зима', spring: 'Весна', summer: 'Лето', autumn: 'Осень' };
-    return seasons[season?.value] || season?.description || season?.value || '';
-  };
 
   return (
     <div className="anime-details">
@@ -65,6 +63,12 @@ const AnimeDetails = () => {
               transition={{ duration: 0.3 }}
             >
               {poster && <img src={poster.startsWith('/') ? BASE_URL + poster : poster} alt={title} />}
+              {anime.averageScore && (
+                <div className="poster-rating">
+                  <span className="star">★</span>
+                  <span className="score">{(anime.averageScore / 10).toFixed(1)}</span>
+                </div>
+              )}
               <motion.button
                 className={'cover-favorite-btn' + (favorite ? ' active' : '')}
                 onClick={() => toggleFavorite(id)}
@@ -88,8 +92,24 @@ const AnimeDetails = () => {
               >
                 {title}
               </motion.h1>
+              <motion.button
+                onClick={handleWatch}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                  padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #E53935, #FF4081)',
+                  color: 'white', fontSize: '0.85rem', fontWeight: 600,
+                  borderRadius: '9999px', border: 'none', cursor: 'pointer',
+                  boxShadow: '0 4px 20px rgba(230,57,70,0.3)'
+                }}
+              >
+                ▶ Смотреть
+              </motion.button>
             </div>
-            {anime.name?.english && anime.name?.english !== anime.name?.main && (
+            {anime.name?.main && anime.name?.english && anime.name?.english !== anime.name?.main && (
               <motion.p
                 className="details-title-native"
                 initial={{ opacity: 0 }}
@@ -112,24 +132,12 @@ const AnimeDetails = () => {
                   <span className="meta-label">эп.</span>
                 </div>
               )}
+              <div className="meta-item">
+                <span>{formatStatus(anime.is_ongoing)}</span>
+              </div>
               {anime.type?.value && (
                 <div className="meta-item">
                   <span>{formatType(anime.type)}</span>
-                </div>
-              )}
-              {anime.year && (
-                <div className="meta-item">
-                  <span>{anime.year}</span>
-                </div>
-              )}
-              {anime.season?.value && (
-                <div className="meta-item">
-                  <span>{formatSeason(anime.season)}</span>
-                </div>
-              )}
-              {anime.is_ongoing !== undefined && (
-                <div className="meta-item">
-                  <span>{anime.is_ongoing ? 'Сейчас выходит' : 'Завершено'}</span>
                 </div>
               )}
             </motion.div>
@@ -154,10 +162,10 @@ const AnimeDetails = () => {
                   <span className="info-value">{anime.genres.map(g => g.name).join(', ')}</span>
                 </div>
               )}
-              {anime.year && (
+              {anime.season?.value && (
                 <div className="info-row">
-                  <span className="info-label">Год:</span>
-                  <span className="info-value">{anime.year}</span>
+                  <span className="info-label">Сезон:</span>
+                  <span className="info-value">{formatSeason(anime.season)} {anime.year}</span>
                 </div>
               )}
               {anime.type?.value && (
@@ -166,16 +174,16 @@ const AnimeDetails = () => {
                   <span className="info-value">{formatType(anime.type)}</span>
                 </div>
               )}
+              {anime.year && (
+                <div className="info-row">
+                  <span className="info-label">Год:</span>
+                  <span className="info-value">{anime.year}</span>
+                </div>
+              )}
               {anime.episodes_total && (
                 <div className="info-row">
                   <span className="info-label">Эпизоды:</span>
                   <span className="info-value">{anime.episodes_total}</span>
-                </div>
-              )}
-              {anime.season?.value && (
-                <div className="info-row">
-                  <span className="info-label">Сезон:</span>
-                  <span className="info-value">{formatSeason(anime.season)} {anime.year}</span>
                 </div>
               )}
               {anime.average_duration_of_episode && (
@@ -190,41 +198,12 @@ const AnimeDetails = () => {
                   <span className="info-value">{anime.age_rating.label}</span>
                 </div>
               )}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1.5rem' }}
-            >
-              <motion.button
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #E53935, #FF4081)',
-                  border: 'none', color: 'white', fontSize: '0.85rem', fontWeight: 600,
-                  borderRadius: '9999px', cursor: 'pointer'
-                }}
-                onClick={handleWatch}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                ▶ Смотреть
-              </motion.button>
-              <motion.button
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.75rem 1.5rem', background: favorite ? 'rgba(255,64,129,0.15)' : 'rgba(255,255,255,0.08)',
-                  border: '1px solid ' + (favorite ? 'rgba(255,64,129,0.3)' : 'rgba(255,255,255,0.15)'),
-                  color: favorite ? '#FF4081' : 'white', fontSize: '0.85rem', fontWeight: 600,
-                  borderRadius: '9999px', cursor: 'pointer', backdropFilter: 'blur(10px)'
-                }}
-                onClick={() => toggleFavorite(id)}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                {favorite ? '★ В избранном' : '☆ В избранное'}
-              </motion.button>
+              {anime.name?.alternative && anime.name?.alternative !== anime.name?.main && (
+                <div className="info-row">
+                  <span className="info-label wide">Альт. названия:</span>
+                  <span className="info-value">{anime.name.alternative}</span>
+                </div>
+              )}
             </motion.div>
           </div>
         </motion.div>
