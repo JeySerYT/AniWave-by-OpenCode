@@ -12,7 +12,7 @@ const AnimeCard = ({ anime, index = 0 }) => {
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
   const rating = anime?.averageScore ? (anime.averageScore / 10).toFixed(1) : anime?.rating || anime?.score || null;
   const episodes = anime.episodes_total;
-  const animeCode = anime.alias || anime.id;
+  const animeCode = anime.id;
   const genres = anime.genres?.slice(0, 2).map(g => g.name).join(', ');
 
   return (

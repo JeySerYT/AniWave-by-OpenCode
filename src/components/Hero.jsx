@@ -32,14 +32,14 @@ const Hero = memo(({ anime, hlsUrl }) => {
   const description = anime.description || '';
 
   const handleWatch = () => {
-    if (anime.alias) {
-      navigate('/anime/' + anime.alias + '/watch');
+    if (anime.id) {
+      navigate('/anime/' + anime.id + '/watch');
     }
   };
 
   const handleDetails = () => {
-    if (anime.alias) {
-      navigate('/anime/' + anime.alias);
+    if (anime.id) {
+      navigate('/anime/' + anime.id);
     }
   };
 

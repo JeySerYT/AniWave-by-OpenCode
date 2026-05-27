@@ -66,8 +66,7 @@ export const useRecentlyReleased = (options = {}) => {
 export const useAnimeById = (code, options = {}) => {
   const query = useQuery({
     queryKey: ['anime', code],
-    queryFn: () => code ? anilibriaApi.getTitle(code) : null,
-    select: (data) => data,
+    queryFn: () => code ? anilibriaApi.getReleaseById(code) : null,
     staleTime,
     gcTime,
     enabled: !!code,
