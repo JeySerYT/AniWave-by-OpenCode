@@ -357,11 +357,18 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
 
           <div className="controls-center">
             <button
-              className="ctrl-btn nav-btn"
+              className="ctrl-btn ep-nav-btn"
               onClick={() => onEpisodeChange(episodeNum - 2)}
               disabled={episodeNum <= 1}
             >
               <ChevronLeft size={22} />
+            </button>
+            <button
+              className="ctrl-btn ep-nav-btn"
+              onClick={() => onEpisodeChange(episodeNum)}
+              disabled={episodeNum >= totalEpisodes}
+            >
+              <ChevronRight size={22} />
             </button>
             <button className="play-btn-large" onClick={togglePlay}>
               <div className="play-icon-wrap">
