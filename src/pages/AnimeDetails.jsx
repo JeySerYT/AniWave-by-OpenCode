@@ -93,20 +93,17 @@ const AnimeDetails = () => {
                 {title}
               </motion.h1>
               <motion.button
+                className="trailer-icon-btn"
                 onClick={handleWatch}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 }}
                 whileTap={{ scale: 0.95 }}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #E53935, #FF4081)',
-                  color: 'white', fontSize: '0.85rem', fontWeight: 600,
-                  borderRadius: '9999px', border: 'none', cursor: 'pointer',
-                  boxShadow: '0 4px 20px rgba(230,57,70,0.3)'
-                }}
               >
-                ▶ Смотреть
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                <span className="trailer-text">Смотреть</span>
               </motion.button>
             </div>
             {anime.name?.main && anime.name?.english && anime.name?.english !== anime.name?.main && (
