@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import Logo from '../assets/logo.svg';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
 import './Auth.css';
 
 function Login() {
@@ -31,7 +32,7 @@ function Login() {
 
   const handleOAuthLogin = async (provider) => {
     try {
-      const response = await fetch(`http://localhost:8081/api/auth/oauth/${provider}`, {
+      const response = await fetch(`${API_URL}/api/auth/oauth/${provider}`, {
         credentials: 'include'
       });
       const data = await response.json();

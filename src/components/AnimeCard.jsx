@@ -8,9 +8,9 @@ const BASE_URL = 'https://anilibria.top';
 const AnimeCard = ({ anime, index = 0 }) => {
   if (!anime) return null;
   
-  const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Unknown';
+  const title = translatedTitle || (typeof anime.title === 'string' ? anime.title : anime.title?.english || anime.title?.romaji || anime.title?.native || 'Unknown');
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
-  const rating = null;
+  const rating = anime?.averageScore ? (anime.averageScore / 10).toFixed(1) : anime?.rating || anime?.score || null;
   const episodes = anime.episodes_total;
   const animeCode = anime.alias || anime.id;
   const animeYear = anime.year;
@@ -33,7 +33,9 @@ const AnimeCard = ({ anime, index = 0 }) => {
               alt={title}
               loading="lazy"
               onError={(e) => {
-                e.target.src = '/placeholder.png';
+                e.target.src = 'data:image/svg+xml,' + encodeURIComponent(
+                  '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="260"><rect width="100%" height="100%" fill="#222"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#666" font-size="14">No Image</text></svg>'
+                );
                 e.target.onerror = null;
               }}
             />

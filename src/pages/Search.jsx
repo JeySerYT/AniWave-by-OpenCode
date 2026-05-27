@@ -10,7 +10,7 @@ import './Search.css';
 
 const Search = () => {
   const [searchParams] = useSearchParams();
-  const { anime, loading, error, filters, updateFilters, resetFilters, refetch } = useSearch();
+  const { anime, loading, error, search, filters, updateFilters, resetFilters } = useSearch();
   const [localFilters, setLocalFilters] = useState({});
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const lastAppliedParams = useRef(null);
@@ -69,6 +69,8 @@ const Search = () => {
     return () => clearTimeout(timer);
   }, [debouncedSearch, updateFilters]);
 
+  useEffect(() => { search(filters); }, [filters]);
+
   const handleSearchChange = useCallback((value) => {
     setDebouncedSearch(value);
   }, []);
@@ -100,7 +102,7 @@ const Search = () => {
       return (
         <ErrorMessage 
           message={error.message} 
-          onRetry={() => refetch()} 
+          onRetry={() => search(filters)} 
         />
       );
     }

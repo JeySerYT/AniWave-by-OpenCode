@@ -86,7 +86,7 @@ export function AuthProvider({ children }) {
     
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-urlencoded' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData,
       credentials: 'include'
     });

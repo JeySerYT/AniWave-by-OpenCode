@@ -9,18 +9,18 @@ const GENRES = [
 ];
 
 const FORMATS = [
-  { value: 'TV', label: 'TV' },
-  { value: 'TV_SHORT', label: 'TV Short' },
-  { value: 'MOVIE', label: 'Movie' },
-  { value: 'OVA', label: 'OVA' },
-  { value: 'ONA', label: 'ONA' },
-  { value: 'SPECIAL', label: 'Special' }
+  { value: 'tv', label: 'TV' },
+  { value: 'tv_short', label: 'TV Short' },
+  { value: 'movie', label: 'Movie' },
+  { value: 'ova', label: 'OVA' },
+  { value: 'ona', label: 'ONA' },
+  { value: 'special', label: 'Special' }
 ];
 
 const STATUSES = [
-  { value: 'FINISHED', label: 'Finished' },
-  { value: 'RELEASING', label: 'Airing' },
-  { value: 'NOT_YET_RELEASED', label: 'Not Yet Released' }
+  { value: 'released', label: 'Finished' },
+  { value: 'ongoing', label: 'Airing' },
+  { value: 'announced', label: 'Not Yet Released' }
 ];
 
 const getYears = () => {

@@ -18,7 +18,7 @@ export const useSearch = (initialFilters = {}) => {
     ...initialFilters,
   });
 
-  const search = useCallback(async (reset = true) => {
+  const search = useCallback(async (reset = true, pageOverride) => {
     if (reset) {
       setPage(1);
       setAnime([]);
@@ -28,18 +28,19 @@ export const useSearch = (initialFilters = {}) => {
     setError(null);
 
     try {
+      const currentPage = reset ? 1 : (pageOverride ?? page);
       const params = {
         limit: 20,
-        page: reset ? 1 : page,
+        page: currentPage,
       };
 
       if (filters.search) {
         params.filter = 'name';
-        params.name = filters.search;
+        params.search = filters.search;
       }
 
       if (filters.sort) {
-        params.sorting = filters.sort;
+        params.sort = filters.sort;
       }
 
       if (filters.year) {
@@ -85,11 +86,12 @@ export const useSearch = (initialFilters = {}) => {
   }, []);
 
   const loadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      setPage(prev => prev + 1);
-      search(false);
-    }
-  }, [loading, hasMore, search]);
+    setPage(prev => {
+      const nextPage = prev + 1;
+      search(false, nextPage);
+      return nextPage;
+    });
+  }, [search]);
 
   return {
     anime,

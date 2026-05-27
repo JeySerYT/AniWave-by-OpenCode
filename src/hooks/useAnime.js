@@ -2,32 +2,34 @@ import { useQuery } from '@tanstack/react-query';
 import { anilibriaApi } from '../api/anilibria';
 
 const staleTime = 5 * 60 * 1000;
-const cacheTime = 10 * 60 * 1000;
+const gcTime = 10 * 60 * 1000;
 
 export const useTrendingAnime = (options = {}) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['trending'],
     queryFn: () => anilibriaApi.getTitleList({ sorting: 'rating', limit: 20 }),
     select: (data) => data?.data || [],
     staleTime,
-    cacheTime,
+    gcTime,
     ...options
   });
+  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const usePopularAnime = (options = {}) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['popular'],
     queryFn: () => anilibriaApi.getTitleList({ sorting: 'popularity', limit: 20 }),
     select: (data) => data?.data || [],
     staleTime,
-    cacheTime,
+    gcTime,
     ...options
   });
+  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useSeasonalAnime = (year = null, season = null, options = {}) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['seasonal', year, season],
     queryFn: () => {
       const params = { limit: 20 };
@@ -43,10 +45,11 @@ export const useSeasonalAnime = (year = null, season = null, options = {}) => {
     },
     select: (data) => data?.data || [],
     staleTime,
-    cacheTime,
+    gcTime,
     enabled: !!year || !!season,
     ...options
   });
+  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useOngoingAnime = (options = {}) => {
@@ -55,7 +58,7 @@ export const useOngoingAnime = (options = {}) => {
     queryFn: () => anilibriaApi.getTitleOngoing(),
     select: (data) => data?.data || [],
     staleTime,
-    cacheTime,
+    gcTime,
     ...options
   });
 };
@@ -66,57 +69,58 @@ export const useRecentlyReleased = (options = {}) => {
     queryFn: () => anilibriaApi.getTitleUpdates(20),
     select: (data) => data?.data || [],
     staleTime,
-    cacheTime,
+    gcTime,
     ...options
   });
 };
 
 export const useAnimeById = (code, options = {}) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['anime', code],
     queryFn: () => code ? anilibriaApi.getTitle(code) : null,
     select: (data) => data,
     staleTime,
-    cacheTime,
+    gcTime,
     enabled: !!code,
     ...options
   });
+  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useAnimeCharacters = (code, options = {}) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['characters', code],
     queryFn: () => code ? anilibriaApi.getTitle(code) : null,
-    select: () => [],
     staleTime,
-    cacheTime,
+    gcTime,
     enabled: !!code,
     ...options
   });
+  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useSimilarAnime = (code, options = {}) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['similar', code],
     queryFn: () => code ? anilibriaApi.getTitle(code) : null,
-    select: () => [],
     staleTime,
-    cacheTime,
+    gcTime,
     enabled: !!code,
     ...options
   });
+  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export const useRelatedAnime = (code, options = {}) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['related', code],
     queryFn: () => code ? anilibriaApi.getTitle(code) : null,
-    select: () => [],
     staleTime,
-    cacheTime,
+    gcTime,
     enabled: !!code,
     ...options
   });
+  return { anime: query.data, loading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
 export default {

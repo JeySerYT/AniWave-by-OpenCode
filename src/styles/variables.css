@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
+  --bg-dark: #0a0a0f;
   --bg-primary: #0a0a0a;
   --bg-secondary: #141414;
   --bg-card: #1a1a1a;
@@ -10,6 +11,7 @@
   --accent-pink: #FF4081;
   --color-primary: #E53935;
   --color-primary-light: #FF4081;
+  --color-accent: #FF4081;
   --color-accent-glow: rgba(255, 64, 129, 0.3);
   
   --border-color: #333333;

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+
 function OAuthCallback() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -19,8 +21,8 @@ function OAuthCallback() {
 
     const fetchToken = async () => {
       try {
-        const response = await fetch(`http://localhost:8081/api/auth/oauth/${provider}`, {
-          method: 'POST',
+        const response = await fetch(`${API_URL}/api/auth/oauth/${provider}`, {
+          method: 'GET',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: `code=${encodeURIComponent(code)}`
         });
@@ -35,7 +37,7 @@ function OAuthCallback() {
         localStorage.setItem('token', tokens.access_token);
         localStorage.setItem('refreshToken', tokens.refresh_token);
 
-        const userRes = await fetch('http://localhost:8081/api/auth/me', {
+        const userRes = await fetch(`${API_URL}/api/auth/me`, {
           headers: { 'Authorization': `Bearer ${tokens.access_token}` }
         });
         

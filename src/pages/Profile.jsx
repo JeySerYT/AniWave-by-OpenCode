@@ -8,6 +8,7 @@ import Footer from '../components/Footer';
 import { useFavorites } from '../hooks/useFavorites';
 import { translateMultipleToRussian } from '../utils/translation';
 import logoSvg from '../assets/logo.svg';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
 import './Profile.css';
 
 const ProfileContent = () => {
@@ -209,73 +210,75 @@ const ProfileContent = () => {
           {t('editProfile')}
         </motion.button>
         
-        <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
-          <button 
-            onClick={() => {
-              localStorage.clear();
-              sessionStorage.clear();
-              window.location.reload();
-            }}
-            style={{
-              padding: '8px 16px',
-              background: '#ff6b6b',
-              border: 'none',
-              borderRadius: '6px',
-              color: '#fff',
-              cursor: 'pointer',
-              fontSize: '12px'
-            }}
-          >
-            Clear LocalStorage + Cache
-          </button>
-          <button 
-            onClick={async () => {
-              try {
-                await fetch('http://localhost:8081/api/auth/logout', {
+        {import.meta.env.DEV && (
+          <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.reload();
+              }}
+              style={{
+                padding: '8px 16px',
+                background: '#ff6b6b',
+                border: 'none',
+                borderRadius: '6px',
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: '12px'
+              }}
+            >
+              Clear LocalStorage + Cache
+            </button>
+            <button 
+              onClick={async () => {
+                try {
+                  await fetch('http://localhost:8081/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                  });
+                } catch (e) {}
+                localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+                window.location.reload();
+              }}
+              style={{
+                padding: '8px 16px',
+                background: '#feca57',
+                border: 'none',
+                borderRadius: '6px',
+                color: '#333',
+                cursor: 'pointer',
+                fontSize: '12px'
+              }}
+            >
+              Clear Cookies
+            </button>
+            <button 
+              onClick={() => {
+                fetch('http://localhost:8081/api/auth/logout', {
                   method: 'POST',
                   credentials: 'include'
+                }).finally(() => {
+                  localStorage.clear();
+                  window.location.href = '/';
                 });
-              } catch (e) {}
-              localStorage.removeItem('token');
-              localStorage.removeItem('refreshToken');
-              localStorage.removeItem('user');
-              window.location.reload();
-            }}
-            style={{
-              padding: '8px 16px',
-              background: '#feca57',
-              border: 'none',
-              borderRadius: '6px',
-              color: '#333',
-              cursor: 'pointer',
-              fontSize: '12px'
-            }}
-          >
-            Clear Cookies
-          </button>
-          <button 
-            onClick={() => {
-              fetch('http://localhost:8081/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-              }).finally(() => {
-                localStorage.clear();
-                window.location.href = '/';
-              });
-            }}
-            style={{
-              padding: '8px 16px',
-              background: '#48dbfb',
-              border: 'none',
-              borderRadius: '6px',
-              color: '#333',
-              cursor: 'pointer',
-              fontSize: '12px'
-            }}
-          >
-            Logout
-          </button>
-        </div>
+              }}
+              style={{
+                padding: '8px 16px',
+                background: '#48dbfb',
+                border: 'none',
+                borderRadius: '6px',
+                color: '#333',
+                cursor: 'pointer',
+                fontSize: '12px'
+              }}
+            >
+              Logout
+            </button>
+          </div>
+        )}
         
         <motion.section 
           className="favorites-section"

@@ -9,10 +9,27 @@
   animation: shimmer 1.8s infinite linear;
 }
 
-.skeleton-card,
+.skeleton-card {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
+}
+
 .skeleton-line,
 .skeleton-circle {
-  composes: skeleton-shimmer;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
 }
 
 .skeleton-circle {
@@ -26,7 +43,14 @@
 
 .skeleton-hero-banner {
   height: 400px;
-  composes: skeleton-shimmer;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
   border-radius: 0;
 }
 
@@ -59,7 +83,14 @@
   width: 140px;
   height: 44px;
   border-radius: 9999px;
-  composes: skeleton-shimmer;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
 }
 
 .skeleton-grid {
@@ -77,7 +108,14 @@
 
 .skeleton-details-banner {
   height: 400px;
-  composes: skeleton-shimmer;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
 }
 
 .skeleton-details-content {

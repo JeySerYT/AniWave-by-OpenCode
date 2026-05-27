@@ -86,6 +86,7 @@ const Hero = memo(({ anime }) => {
                   alt={title}
                   onError={(e) => {
                     e.target.src = '/placeholder.png';
+                    e.target.onerror = null;
                   }}
                 />
               )}
