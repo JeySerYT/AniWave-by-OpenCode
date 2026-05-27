@@ -92,7 +92,7 @@
   width: 100%;
   padding: 1.2rem 1rem 0.45rem 2.5rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
   color: var(--text-primary);
   font-size: 0.9rem;
@@ -117,7 +117,7 @@
   pointer-events: none;
   transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
   opacity: 0.45;
-  padding: 0 4px;
+  padding: 0 5px;
   z-index: 1;
   border-radius: 4px;
   background: transparent;
@@ -125,12 +125,11 @@
 
 .input-wrap input:focus ~ label,
 .input-wrap input:not(:placeholder-shown) ~ label {
-  top: -0.55rem;
+  top: -0.5rem;
   font-size: 0.68rem;
   opacity: 1;
   color: var(--text-secondary);
-  background: rgba(20, 20, 20, 0.85);
-  backdrop-filter: blur(4px);
+  background: #141414;
 }
 
 .input-wrap input:focus ~ label {
@@ -272,10 +271,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.5rem;
+  gap: 0.45rem;
+  padding: 0.65rem 0.5rem;
   border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.25s ease;
