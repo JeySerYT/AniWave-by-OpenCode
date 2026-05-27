@@ -14,7 +14,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 from app.database import engine
 from app.models.models import Base
-from app.routers import auth, profile, shikimori
+from app.routers import auth, profile
 
 
 @limiter.limit("30/minute")
@@ -57,17 +57,12 @@ app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(profile.router, prefix="/api")
-app.include_router(shikimori.router, prefix="/api")
 
 
 @app.get("/")
 def root():
     return {"message": "AniWave API", "status": "running"}
 
-
-@app.get("/docs")
-def docs():
-    return RedirectResponse(url="/docs/")
 
 
 @app.get("/health")

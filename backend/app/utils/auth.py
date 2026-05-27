@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 
 SECRET_KEY = os.getenv("JWT_SECRET")
 if not SECRET_KEY:
-    logger.warning("JWT_SECRET not set! Using insecure default key. Set JWT_SECRET in .env")
-    SECRET_KEY = "default-dev-key-change-in-production-min-32-chars"
+    raise RuntimeError("JWT_SECRET environment variable is required! Set JWT_SECRET before starting the server.")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 15
