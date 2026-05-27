@@ -1,165 +1,227 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import SearchBar from '../components/SearchBar';
-import Filters from '../components/Filters';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, SlidersHorizontal, X, ChevronDown, RotateCcw } from 'lucide-react';
 import AnimeCard from '../components/AnimeCard';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorMessage from '../components/ErrorMessage';
 import { useSearch } from '../hooks/useSearch';
+import { anilibriaApi } from '../api/anilibria';
 import './Search.css';
 
-const Search = () => {
-  const [searchParams] = useSearchParams();
-  const { anime, loading, error, search, filters, updateFilters, resetFilters } = useSearch();
-  const [localFilters, setLocalFilters] = useState({});
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const lastAppliedParams = useRef(null);
+const SORTS = [
+  { value: 'rating', label: 'По рейтингу' },
+  { value: 'popularity', label: 'По популярности' },
+  { value: 'updated_at', label: 'По обновлению' },
+  { value: 'created_at', label: 'По дате добавления' },
+];
+
+const GENRES_LIST = [
+  'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror',
+  'Mecha', 'Music', 'Mystery', 'Psychological', 'Romance',
+  'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural', 'Thriller',
+];
+
+const SearchPage = () => {
+  const { anime, loading, error, filters, updateFilters, resetFilters, doSearch, loadMore, hasMore } = useSearch();
+  const [input, setInput] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [genres, setGenres] = useState([]);
+  const [localGenre, setLocalGenre] = useState('');
+  const [localYear, setLocalYear] = useState('');
+  const [localStatus, setLocalStatus] = useState('');
+  const debounceRef = useRef(null);
 
   useEffect(() => {
-    const paramsString = searchParams.toString();
-    if (paramsString === lastAppliedParams.current) return;
-    lastAppliedParams.current = paramsString;
-
-    const sort = searchParams.get('sort');
-    const season = searchParams.get('season');
-    const status = searchParams.get('status');
-    const year = searchParams.get('year');
-
-    const urlFilters = {};
-    
-    if (sort) {
-      if (sort === 'POPULARITY') urlFilters.sort = 'POPULARITY';
-      else if (sort === 'TRENDING') urlFilters.sort = 'TRENDING';
-      else if (sort === 'SCORE') urlFilters.sort = 'SCORE';
-    }
-
-    if (season) {
-      const seasons = ['SPRING', 'SUMMER', 'FALL', 'WINTER'];
-      if (seasons.includes(season.toUpperCase())) {
-        urlFilters.season = season.toUpperCase();
-      }
-    }
-
-    if (status) {
-      const statuses = ['RELEASING', 'FINISHED', 'NOT_YET_RELEASED'];
-      if (statuses.includes(status)) {
-        urlFilters.status = status;
-      }
-    }
-
-    if (year) {
-      if (year === 'current') {
-        urlFilters.year = new Date().getFullYear();
-      } else if (year && !isNaN(parseInt(year))) {
-        urlFilters.year = parseInt(year);
-      } else {
-        urlFilters.year = null;
-      }
-    }
-
-    if (Object.keys(urlFilters).length > 0) {
-      updateFilters(urlFilters);
-    }
-  }, [searchParams, updateFilters]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      updateFilters({ search: debouncedSearch });
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [debouncedSearch, updateFilters]);
-
-  useEffect(() => { search(filters); }, [filters]);
-
-  const handleSearchChange = useCallback((value) => {
-    setDebouncedSearch(value);
+    anilibriaApi.getGenres().then(r => {
+      if (r?.data) setGenres(r.data.map(g => g.name || g));
+    }).catch(() => {});
   }, []);
 
-  const handleFiltersChange = (newFilters) => {
-    setLocalFilters(newFilters);
+  const triggerSearch = useCallback((text) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      updateFilters({ search: text });
+    }, 400);
+  }, [updateFilters]);
+
+  useEffect(() => {
+    doSearch(true);
+  }, [filters]);
+
+  const handleInputChange = (val) => {
+    setInput(val);
+    triggerSearch(val);
   };
 
-  const handleFiltersApply = (appliedFilters) => {
+  const applyLocalFilters = () => {
     updateFilters({
-      genre: appliedFilters.genre || '',
-      year: appliedFilters.year ? parseInt(appliedFilters.year) : null,
-      type: appliedFilters.format || null,
-      status: appliedFilters.status || null,
+      genre: localGenre,
+      year: localYear || '',
+      status: localStatus,
     });
+    setShowFilters(false);
   };
 
-  const handleFiltersReset = () => {
-    setLocalFilters({});
+  const handleReset = () => {
+    setInput('');
+    setLocalGenre('');
+    setLocalYear('');
+    setLocalStatus('');
     resetFilters();
   };
 
-  const renderContent = () => {
-    if (loading) {
-      return <LoadingSpinner />;
-    }
-
-    if (error) {
-      return (
-        <ErrorMessage 
-          message={error.message} 
-          onRetry={() => search(filters)} 
-        />
-      );
-    }
-
-    if (!loading && !error && anime.length === 0) {
-      return (
-        <div className="no-results">
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="M21 21l-4.35-4.35"/>
-            <line x1="8" y1="8" x2="14" y2="14"/>
-            <line x1="14" y1="8" x2="8" y2="14"/>
-          </svg>
-          <h2>Ничего не найдено</h2>
-          <p>Попробуйте изменить поисковый запрос или фильтры</p>
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <p className="results-count">{anime.length} результатов найдено</p>
-        <div className="anime-grid">
-          {anime.map((item, index) => (
-            <AnimeCard key={item.id} anime={item} index={index} />
-          ))}
-        </div>
-      </>
-    );
-  };
+  const activeFilters = [filters.genre, filters.year, filters.status].filter(Boolean).length;
+  const currentSort = SORTS.find(s => s.value === filters.sort) || SORTS[0];
 
   return (
     <div className="search-page">
-      <div className="search-header">
-        <h1 className="search-title">Поиск аниме</h1>
-        <div className="search-bar-container">
-          <SearchBar
-            value={debouncedSearch}
-            onChange={handleSearchChange}
-            placeholder="Поиск аниме..."
+      <div className="search-hero">
+        <motion.h1 className="search-title" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          Поиск аниме
+        </motion.h1>
+
+        <motion.div className="search-bar-wrap" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Search size={18} className="search-bar-icon" />
+          <input
+            className="search-input"
+            type="text"
+            value={input}
+            onChange={e => handleInputChange(e.target.value)}
+            placeholder="Название аниме..."
           />
-        </div>
-        <div className="filters-container-wrapper">
-          <Filters
-            filters={localFilters}
-            onChange={handleFiltersChange}
-            onApply={handleFiltersApply}
-            onReset={handleFiltersReset}
-          />
-        </div>
+          {input && (
+            <button className="search-clear" onClick={() => handleInputChange('')}>
+              <X size={16} />
+            </button>
+          )}
+        </motion.div>
+
+        <motion.div className="search-controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+          <div className="sort-tabs">
+            {SORTS.map(s => (
+              <button
+                key={s.value}
+                className={`sort-tab ${filters.sort === s.value ? 'active' : ''}`}
+                onClick={() => updateFilters({ sort: s.value })}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            className={`filter-toggle ${showFilters ? 'active' : ''}`}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <SlidersHorizontal size={15} />
+            <span>Фильтры</span>
+            {activeFilters > 0 && <span className="filter-badge">{activeFilters}</span>}
+            <ChevronDown size={14} className={`chevron ${showFilters ? 'open' : ''}`} />
+          </button>
+        </motion.div>
+
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              className="filter-panel"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              <div className="filter-grid">
+                <div className="filter-col">
+                  <label>Жанр</label>
+                  <select value={localGenre} onChange={e => setLocalGenre(e.target.value)}>
+                    <option value="">Любой</option>
+                    {genres.map(g => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="filter-col">
+                  <label>Год</label>
+                  <select value={localYear} onChange={e => setLocalYear(e.target.value)}>
+                    <option value="">Любой</option>
+                    {Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="filter-col">
+                  <label>Статус</label>
+                  <select value={localStatus} onChange={e => setLocalStatus(e.target.value)}>
+                    <option value="">Любой</option>
+                    <option value="ongoing">Онгоинг</option>
+                    <option value="released">Вышел</option>
+                    <option value="announced">Анонс</option>
+                  </select>
+                </div>
+              </div>
+              <div className="filter-actions">
+                <button className="filter-apply" onClick={applyLocalFilters}>Применить</button>
+                <button className="filter-reset" onClick={() => { setLocalGenre(''); setLocalYear(''); setLocalStatus(''); }}>
+                  <RotateCcw size={13} /> Сбросить
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="search-results">
-        {renderContent()}
+        {loading && anime.length === 0 && (
+          <div className="search-skeleton">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-poster" />
+                <div className="skeleton-line wide" />
+                <div className="skeleton-line" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {error && !loading && (
+          <div className="search-error">
+            <p>Ошибка при загрузке: {error}</p>
+            <button onClick={() => doSearch(true)}>Повторить</button>
+          </div>
+        )}
+
+        {!loading && !error && anime.length === 0 && (
+          <motion.div className="search-empty" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <Search size={48} className="empty-icon" />
+            <h2>Ничего не найдено</h2>
+            <p>Попробуйте изменить запрос или фильтры</p>
+          </motion.div>
+        )}
+
+        {anime.length > 0 && (
+          <>
+            <motion.p className="results-count" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              Найдено {anime.length}+ результатов
+            </motion.p>
+            <div className="anime-grid">
+              {anime.map((item, index) => (
+                <AnimeCard key={item.id} anime={item} index={index} />
+              ))}
+            </div>
+            {hasMore && (
+              <motion.div className="load-more-wrap" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <button
+                  className="load-more-btn"
+                  onClick={loadMore}
+                  disabled={loading}
+                >
+                  {loading ? 'Загрузка...' : 'Показать ещё'}
+                </button>
+              </motion.div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
 };
 
-export default Search;
+export default SearchPage;

@@ -50,21 +50,14 @@ export const anilibriaApi = {
       if (params.sorting) queryParams.set('sorting', params.sorting);
       if (params.order) queryParams.set('order', params.order);
 
-      if (params.search) {
-        queryParams.set('filter', 'name');
-        queryParams.set('name', params.search);
-      } else if (params.status) {
-        queryParams.set('filter', 'publish_status');
-        queryParams.set('publish_status', params.status);
-      } else if (params.kind) {
-        queryParams.set('filter', 'type');
-        queryParams.set('type', params.kind);
-      } else if (params.genre) {
-        queryParams.set('filter', 'genres');
-        queryParams.set('genres', params.genre);
-      } else if (params.year) {
-        queryParams.set('filter', 'year');
-        queryParams.set('year', String(params.year));
+      if (params.filter) {
+        const parts = params.filter.split(',').map(s => s.trim());
+        parts.forEach(f => queryParams.append('filter', f));
+        if (params.name) queryParams.set('name', params.name);
+        if (params.year) queryParams.set('year', String(params.year));
+        if (params.publish_status) queryParams.set('publish_status', params.publish_status);
+        if (params.genres) queryParams.set('genres', params.genres);
+        if (params.type) queryParams.set('type', params.type);
       }
 
       const response = await fetchWithTimeout(
