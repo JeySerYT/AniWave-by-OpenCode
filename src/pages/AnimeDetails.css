@@ -141,7 +141,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -152,7 +152,7 @@
 .title-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
   flex-wrap: nowrap;
 }
@@ -160,36 +160,37 @@
 .trailer-icon-btn {
   display: flex;
   align-items: center;
-  padding: 10px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   color: white;
   cursor: pointer;
-  transition: all 0.5s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .trailer-icon-btn:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.25);
-  border-radius: 9999px;
 }
 
 .trailer-text {
-  max-width: 0;
-  overflow: hidden;
+  position: absolute;
+  left: calc(100% + 8px);
   white-space: nowrap;
-  opacity: 0;
   font-size: 0.85rem;
   font-weight: 600;
-  transition: all 0.5s ease;
-  padding-right: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .trailer-icon-btn:hover .trailer-text {
-  max-width: 100px;
   opacity: 1;
-  padding-left: 8px;
 }
 
 .details-title-native {
