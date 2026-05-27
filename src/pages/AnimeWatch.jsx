@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAnimeById } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
+import AuthModal from '../components/AuthModal';
 import ErrorMessage from '../components/ErrorMessage';
 import './AnimeWatch.css';
 
@@ -514,13 +515,14 @@ const AnimeWatch = () => {
   const { data: anime, isLoading, error, refetch } = useAnimeById(id);
   const [currentEpisodeIdx, setCurrentEpisodeIdx] = useState(0);
   const [showEpisodes, setShowEpisodes] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const episodesListRef = useRef(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/login', { replace: true });
+      setShowAuthModal(true);
     }
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user]);
 
   const episodes = anime?.episodes || [];
   const sortedEpisodes = [...episodes].sort((a, b) => a.ordinal - b.ordinal);
@@ -664,6 +666,8 @@ const AnimeWatch = () => {
           </div>
         </motion.aside>
       </div>
+
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </motion.div>
   );
 };

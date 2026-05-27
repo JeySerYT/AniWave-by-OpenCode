@@ -150,7 +150,7 @@ const Home = () => {
                   name: { main: item.title },
                   poster: { optimized: { src: item.poster }, preview: item.poster, src: item.poster },
                   episodes_total: item.episodes_total,
-                  genres: item.genres || []
+                  genres: (item.genres || []).map(g => typeof g === 'string' ? { name: g } : g)
                 }} index={i} brief={`${item.progress || 1} эп.`} />
               ))}
             </div>

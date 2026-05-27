@@ -1,11 +1,14 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
+import AuthModal from '../components/AuthModal';
 import { useAnimeById, usePopularAnime } from '../hooks/useAnime';
 import { useFavorites } from '../hooks/useFavorites';
+import { useAuth } from '../context/AuthContext';
 import './AnimeDetails.css';
 
 const BASE_URL = 'https://anilibria.top';
@@ -13,13 +16,19 @@ const BASE_URL = 'https://anilibria.top';
 const AnimeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { data: anime, isLoading: loading, error, refetch } = useAnimeById(id);
   const { isFavorite, toggleFavorite } = useFavorites();
   const { data: popular } = usePopularAnime();
   const favorite = isFavorite(id);
 
   const handleWatch = () => {
-    navigate('/anime/' + id + '/watch');
+    if (!user) {
+      setShowAuthModal(true);
+    } else {
+      navigate('/anime/' + id + '/watch');
+    }
   };
 
   const formatSeason = (season) => {
@@ -222,7 +231,9 @@ const AnimeDetails = () => {
           </div>
         </motion.div>
 
-        {related.length > 0 && (
+        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+
+      {related.length > 0 && (
           <motion.section
             className="related-section"
             initial={{ opacity: 0 }}
