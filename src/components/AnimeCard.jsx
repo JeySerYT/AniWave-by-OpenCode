@@ -8,13 +8,12 @@ const BASE_URL = 'https://anilibria.top';
 const AnimeCard = ({ anime, index = 0 }) => {
   if (!anime) return null;
   
-  const title = typeof anime.title === 'string' ? anime.title : 'Unknown';
+  const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Unknown';
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
   const rating = anime?.averageScore ? (anime.averageScore / 10).toFixed(1) : anime?.rating || anime?.score || null;
   const episodes = anime.episodes_total;
   const animeCode = anime.alias || anime.id;
-  const animeYear = anime.year;
-  const animeType = anime.type?.value;
+  const genres = anime.genres?.slice(0, 2).map(g => g.name).join(', ');
 
   return (
     <motion.div
@@ -59,8 +58,7 @@ const AnimeCard = ({ anime, index = 0 }) => {
         <div className="anime-card-info">
           <h3 className="anime-card-title">{title}</h3>
           <div className="anime-card-meta">
-            {animeYear && <span>{animeYear}</span>}
-            {animeType && <span>{animeType}</span>}
+            {genres && <span>{genres}</span>}
           </div>
         </div>
       </Link>
