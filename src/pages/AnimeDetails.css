@@ -345,7 +345,8 @@
   gap: 1.25rem;
 }
 
-.related-grid .anime-card-genres {
+.related-grid .anime-card-genres,
+.related-grid .anime-card-episodes {
   display: none;
 }
 
@@ -382,8 +383,9 @@
 }
 
 .anime-card-brief {
-  font-size: 0.7rem;
-  color: #ccc;
+  font-size: 0.75rem;
+  color: #e0e0e0;
+  font-weight: 500;
   line-height: 1.4;
 }
 
