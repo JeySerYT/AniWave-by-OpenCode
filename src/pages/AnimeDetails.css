@@ -46,6 +46,10 @@
 
 .details-left {
   height: fit-content;
+  position: sticky;
+  top: 5.5rem;
+  align-self: start;
+  z-index: 2;
 }
 
 .details-cover {
@@ -132,11 +136,17 @@
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
-  line-height: 1.1;
+  line-height: 1.3;
   background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.15em 0;
 }
 
 .title-row {
@@ -144,7 +154,7 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .trailer-icon-btn {
