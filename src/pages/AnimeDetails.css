@@ -345,6 +345,10 @@
   gap: 1.25rem;
 }
 
+.related-grid .anime-card-genres {
+  display: none;
+}
+
 .related-grid .anime-card-content {
   padding: 0.5rem 0.5rem 0.6rem;
 }
@@ -358,13 +362,29 @@
   overflow: hidden;
 }
 
-.related-grid .anime-card-genres {
-  margin-top: 0.2rem;
+.related-grid .anime-card-overlay {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.75rem;
+  background: linear-gradient(
+    to top,
+    rgba(10, 10, 15, 0.95) 0%,
+    rgba(10, 10, 15, 0.6) 50%,
+    transparent 80%
+  );
+  pointer-events: none;
 }
 
-.related-grid .genre-tag {
-  padding: 0.15rem 0.4rem;
-  font-size: 0.65rem;
+.related-grid .anime-card:hover .anime-card-overlay {
+  opacity: 1;
+}
+
+.anime-card-brief {
+  font-size: 0.7rem;
+  color: #ccc;
+  line-height: 1.4;
 }
 
 @media (max-width: 1024px) {

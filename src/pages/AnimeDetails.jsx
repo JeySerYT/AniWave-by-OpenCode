@@ -232,7 +232,7 @@ const AnimeDetails = () => {
             <h2 className="related-title">Похожее</h2>
             <div className="related-grid">
               {related.map((a, i) => (
-                <AnimeCard key={a.id} anime={a} index={i} />
+                <AnimeCard key={a.id} anime={a} index={i} brief={a.genres?.slice(0, 3).map(g => g.name).join(', ')} />
               ))}
             </div>
           </motion.section>

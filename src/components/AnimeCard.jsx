@@ -5,7 +5,7 @@ import './AnimeCard.css';
 
 const BASE_URL = 'https://anilibria.top';
 
-const AnimeCard = ({ anime, index = 0 }) => {
+const AnimeCard = ({ anime, index = 0, brief }) => {
   if (!anime) return null;
   
   const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Unknown';
@@ -39,7 +39,9 @@ const AnimeCard = ({ anime, index = 0 }) => {
               }}
             />
           )}
-          <div className="anime-card-overlay" />
+          <div className="anime-card-overlay">
+            {brief && <span className="anime-card-brief">{brief}</span>}
+          </div>
           
           {rating && (
             <div className="anime-card-rating">
