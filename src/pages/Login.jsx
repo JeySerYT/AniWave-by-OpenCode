@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import Logo from '../assets/logo.svg';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
 import './Auth.css';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -56,7 +55,7 @@ function Login() {
         >
           <div className="auth-header">
             <Link to="/" className="auth-logo">
-              <span>AW</span>
+              <img src={Logo} alt="AniWave" />
             </Link>
             <h1>{t('welcomeBack')}</h1>
             <p>{t('loginSubtitle')}</p>
@@ -78,28 +77,13 @@ function Login() {
 
             <div className="form-group">
               <label>{t('password')}</label>
-              <div style={{ position: 'relative' }}>
-                <input 
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  style={{ paddingRight: '2.5rem' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute', right: '0.6rem', top: '50%',
-                    transform: 'translateY(-50%)', background: 'none', border: 'none',
-                    color: 'var(--text-muted)', cursor: 'pointer', padding: '0.3rem',
-                    display: 'flex', alignItems: 'center', lineHeight: 1
-                  }}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
             </div>
 
             <motion.button 
