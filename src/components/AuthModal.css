@@ -44,18 +44,6 @@
   color: var(--text-primary);
 }
 
-.authmodal-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(229, 57, 53, 0.15), rgba(255, 64, 129, 0.15));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.2rem;
-  color: var(--accent-pink);
-}
-
 .authmodal-title {
   font-size: 1.3rem;
   font-weight: 700;

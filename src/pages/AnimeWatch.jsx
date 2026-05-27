@@ -378,7 +378,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
               </div>
             </button>
             <button
-              className="ctrl-btn nav-btn"
+              className="ctrl-btn ep-nav-btn"
               onClick={() => onEpisodeChange(episodeNum)}
               disabled={episodeNum >= totalEpisodes}
             >
@@ -667,7 +667,7 @@ const AnimeWatch = () => {
         </motion.aside>
       </div>
 
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <AuthModal isOpen={showAuthModal} onClose={() => navigate('/anime/' + id)} />
     </motion.div>
   );
 };
