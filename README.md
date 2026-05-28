@@ -9,32 +9,32 @@
 
 ## Возможности
 
-- Поиск аниме с фильтрами (жанр, год, тип, статус)
-- Главная страница с трендовыми, популярными и сезонными аниме
-- Hero-секция с трейлерами
-- Избранное (локальное хранение)
-- Страница просмотра аниме с плеером
-- Профиль с кастомизацией (баннер, аватар, описание)
+- Поиск аниме с фильтрами (жанр, год, статус, сортировка)
+- Главная страница с популярными, трендовыми и онгоингами
+- Hero-секция с опенингами
+- Коллекции на сервере: "Смотрю", "Просмотрено", "Запланировано"
+- Синхронизация прогресса просмотра между устройствами
+- Страница просмотра аниме с HLS-плеером и выбором качества
+- Профиль с кастомизацией (аватар, баннер, описание) — поддержка GIF
 - Авторизация через email/password или OAuth (Google, GitHub)
-- FAQ — часто задаваемые вопросы
-- Условия использования
-- Политика конфиденциальности
+- FAQ, Terms of Service, Privacy Policy, DMCA
+- Двуязычный интерфейс (RU/EN)
 - Адаптивный дизайн для всех устройств
-- Карточки с liquid glass эффектами
 
 ## Технологии
 
 ### Frontend
 - **React** 18 + **Vite** 5
-- **AniList API** (GraphQL)
+- **AniLibria API** (REST, v1)
+- **@tanstack/react-query** (кэширование)
 - **Framer Motion** (анимации)
 - **React Router** (навигация)
-- **CSS** (кастомные стили)
+- **HLS.js** (видео плеер)
 
 ### Backend
 - **FastAPI** (Python)
 - **SQLAlchemy** + **PostgreSQL**
-- **JWT** Authentication
+- **JWT** Authentication (httpOnly cookies)
 - **OAuth 2.0** (Google/GitHub)
 
 ## Быстрый старт
@@ -101,17 +101,19 @@ py main.py
 
 ```
 src/                    # Frontend
+├── api/                # AniLibria API client + backend config
 ├── components/         # UI компоненты
 ├── context/            # React Context (Auth, Language)
-├── hooks/              # Кастомные хуки
-├── locales/            # Переводы
+├── hooks/              # Кастомные хуки (useAnime, useSearch, useCollections)
+├── locales/            # Переводы (RU/EN)
 ├── pages/              # Страницы
 ├── styles/             # Глобальные стили
+├── utils/              # Утилиты
 └── assets/             # Статические файлы
 
 backend/                # Backend
 ├── app/
-│   ├── routers/        # API эндпоинты
+│   ├── routers/        # API эндпоинты (auth, profile, favorites, watch_progress)
 │   ├── services/       # Бизнес-логика
 │   ├── models/         # SQLAlchemy модели
 │   ├── schemas/        # Pydantic схемы
@@ -125,15 +127,14 @@ backend/                # Backend
 
 - Тёмная тема с красно-розовыми акцентами
 - Градиенты с glow эффектами
-- Liquid glass эффекты для карточек
 - Плавные анимации Framer Motion
 - Полностью адаптивная вёрстка
 
 ## API
 
-- **AniList GraphQL API** (https://anilist.co/graphql) — бесплатный, без ключа API
+- **AniLibria REST API** (https://anilibria.top/api/v1) — бесплатный, без ключа API
 - Собственный Backend API на `/api/*`
 
 ## Лицензия
 
-MIT
+All Rights Reserved. Смотрите LICENSE для подробностей.

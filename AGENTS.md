@@ -2,21 +2,22 @@
 
 ## Project Overview
 
-AniWave is an anime catalog web application built with React + Vite, using AniList GraphQL API. Features include anime search, favorites, trending/popular/seasonal lists, user profiles with OAuth authentication (Google/GitHub), FAQ, Terms, and Privacy pages.
+AniWave is an anime catalog web application built with React + Vite, using AniLibria API for anime data. Features include anime search with filters, collections system (watching/completed/planned), user profiles with OAuth authentication (Google/GitHub), video player with HLS, and informational pages (FAQ, Terms, Privacy, DMCA).
 
 ## Tech Stack
 
 ### Frontend
 - React 18 + Vite 5
-- AniList API (GraphQL)
-- Apollo Client
+- AniLibria API (REST, `anilibria.top/api/v1`)
+- @tanstack/react-query
 - Framer Motion (анимации)
 - React Router
+- HLS.js (видео плеер)
 
 ### Backend
 - FastAPI (Python)
 - SQLAlchemy + PostgreSQL
-- JWT Authentication
+- JWT Authentication (httpOnly cookies)
 - OAuth (Google/GitHub)
 
 ## Build / Lint / Test Commands
@@ -107,18 +108,19 @@ PORT=8081
 ### File Structure
 ```
 src/
-├── api/           # Apollo Client setup and GraphQL queries
+├── api/           # AniLibria API client (anilibria.js) and backend config (config.js)
 ├── components/    # Reusable UI components (Header, Footer, AnimeCard, Hero, etc.)
 ├── context/       # React Context providers (LanguageContext, AuthContext)
-├── hooks/         # Custom hooks (useAnime, useSearch, useFavorites)
+├── hooks/         # Custom hooks (useAnime, useSearch, useCollections, etc.)
 ├── locales/       # i18n translation files
-├── pages/         # Page components (Home, Search, Profile, AnimeDetails, FAQ, Terms, Privacy)
-├── styles/         # Global CSS (variables.css, globals.css, animations.css)
-└── assets/         # Static assets (logo.svg, favicon.svg)
+├── pages/         # Page components (Home, Search, Profile, AnimeDetails, AnimeWatch, etc.)
+├── styles/        # Global CSS (variables.css, globals.css)
+├── utils/         # Utilities (translation.js)
+└── assets/        # Static assets (logo.svg, favicon.svg)
 
 backend/
 ├── app/
-│   ├── routers/      # API endpoints (auth.py, profile.py)
+│   ├── routers/      # API endpoints (auth.py, profile.py, favorites.py, watch_progress.py)
 │   ├── services/     # Business logic (user_service.py, favorite_service.py)
 │   ├── models/       # SQLAlchemy models (models.py)
 │   ├── schemas/      # Pydantic schemas (schemas.py)
@@ -130,7 +132,7 @@ backend/
 
 ### Imports Order
 1. React and hooks
-2. Third-party libraries (@apollo/client, framer-motion, react-router-dom)
+2. Third-party libraries (@tanstack/react-query, framer-motion, react-router-dom)
 3. Internal modules (api/, context/, hooks/)
 4. Components
 5. Styles (CSS files)
@@ -207,45 +209,61 @@ export default ComponentName;
 
 #### OAuth (Google/GitHub)
 1. Frontend calls `/api/auth/oauth/{provider}` → gets auth_url
-2. User redirected to Google/GitHub
+2. User is redirected to Google/GitHub
 3. OAuth provider redirects to `/api/auth/oauth/{provider}/callback`
 4. Backend exchanges code for tokens, creates user if not exists
-5. Backend sets tokens as httpOnly cookies
+5. Backend sets tokens as httpOnly cookies (access_token — 15min, refresh_token — 7 days)
 6. Backend redirects to `/profile?logged_in=true`
 
-#### Token-based Auth (Email/Password)
-1. User registers/logins via `/api/auth/register` or `/api/auth/login`
-2. Backend returns access_token + refresh_token
-3. Frontend stores tokens in localStorage
-4. Requests include `Authorization: Bearer {token}`
+#### Email/Password Auth
+1. User registers/logs in via `/api/auth/register` or `/api/auth/login`
+2. Backend sets httpOnly cookies on success
+3. AuthContext calls `/api/auth/me` with `credentials: 'include'` to get user data
 
-### Profile Page
+### Profile & Collections
 
-Profile stores user data:
-- Uses AuthContext for authentication state
-- Stores token in localStorage + httpOnly cookies
-- Favorites stored in backend, fetched via API
+- Collections (watching/completed/planned) stored on backend
+- Profile fields (avatar, banner, bio, username) stored on backend
+- Avatar/banner upload via FileReader → base64 → PUT /api/profile
+- Collections: GET/POST /api/favorites, PATCH/DELETE /api/favorites/{id}
 
 ### Pages
 
 | Page | Route | Description |
 |------|-------|-------------|
-| Home | `/` | Main page with trending/popular/seasonal anime |
-| Search | `/search` | Anime search with filters |
-| Profile | `/profile` | User profile with favorites |
-| AnimeDetails | `/anime/:id` | Anime details page with translation support |
+| Home | `/` | Main page with trending/popular/ongoing anime |
+| Search | `/search` | Anime search with filters (genre, year, status, sort) |
+| Profile | `/profile` | User profile with collections (watching/completed/planned) |
+| AnimeDetails | `/anime/:code` | Anime details page with related/similar |
+| AnimeWatch | `/anime/:code/watch` | Video player with HLS, quality selector, episode list |
 | FAQ | `/faq` | Frequently asked questions |
 | Terms | `/terms` | Terms of service |
 | Privacy | `/privacy` | Privacy policy |
+| DMCA | `/dmca` | DMCA notice |
 | Login | `/login` | Login with email/password or OAuth |
 | Register | `/register` | Registration with email/password |
+| OAuthCallback | `/oauth/callback/:provider` | OAuth redirect handler |
 
-### AniList API
+### AniLibria API
 
-- Uses AniList GraphQL API (https://graphql.anilist.co)
-- Apollo Client for state management
-- Queries are in `src/api/queries.js`
-- Custom hooks in `src/hooks/` wrap useQuery
+- Uses AniLibria REST API (https://anilibria.top/api/v1)
+- All fetches via `fetchWithTimeout()` in `src/api/anilibria.js`
+- @tanstack/react-query for caching (staleTime: 5min, gcTime: 10min)
+- Endpoints: getTitle, getTitleList, getTitleUpdates, getTitleOngoing, getSchedule, getGenres, getYears, searchTitles, getTopAnime
+
+### API Endpoints (Backend)
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/auth/register` | POST | Email/password registration |
+| `/auth/login` | POST | Email/password login |
+| `/auth/logout` | POST | Logout |
+| `/auth/me` | GET | Get current user |
+| `/auth/oauth/{provider}` | GET | Get OAuth auth_url |
+| `/profile` | PUT | Update profile |
+| `/favorites` | GET/POST | List/add collections |
+| `/favorites/{anime_id}` | PATCH/DELETE | Update/remove collection item |
+| `/watch-progress` | GET/POST | List/save watch progress |
 
 ### Error Handling
 
@@ -276,7 +294,7 @@ Profile stores user data:
 - Types: feat, fix, refactor, style, docs, test, chore
 - Example: `feat: add search filters`, `fix: card hover effect`
 - Always run `npm run build` before committing to verify no errors
-- Frontend and backend changes should be on the same branch (backend-auth)
+- Frontend and backend changes should be on the same branch
 
 ### Sub-agents Usage
 

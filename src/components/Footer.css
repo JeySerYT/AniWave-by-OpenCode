@@ -33,7 +33,11 @@
 .footer-copyright {
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin-top: 0.5rem;
+  margin: 0;
+}
+
+.footer-copyright + .footer-copyright {
+  margin-top: 0.15rem;
 }
 
 .footer-links h4,

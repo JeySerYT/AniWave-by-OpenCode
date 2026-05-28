@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Hls from 'hls.js';
 import {
   ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX,
-  Maximize, Minimize, SkipForward, SkipBack, List, Film, Settings
+  Maximize, Minimize, SkipForward, SkipBack, List, Grid3X3, Film
 } from 'lucide-react';
 import { useAnimeById } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
@@ -64,7 +64,7 @@ const LoadingOverlay = () => (
   </div>
 );
 
-const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
+const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const progressRef = useRef(null);
@@ -81,16 +81,16 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [quality, setQuality] = useState('1080');
-  const [showSettings, setShowSettings] = useState(false);
-  const [showEpisodesOverlay, setShowEpisodesOverlay] = useState(false);
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [buffered, setBuffered] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showVolumeHover, setShowVolumeHover] = useState(false);
   const [hoverTime, setHoverTime] = useState(null);
   const [hoverX, setHoverX] = useState(0);
+  const [skipTimer, setSkipTimer] = useState(null);
   const [showSkip, setShowSkip] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [showPoster, setShowPoster] = useState(false);
   const skipIntervalRef = useRef(null);
 
   const qualityKey = `hls_${quality}`;
@@ -121,32 +121,29 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLoading(false);
-        videoRef.current?.play().catch(() => {});
+        const v = videoRef.current;
+        if (v && !v.paused) v.play().catch(() => {});
       });
       hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal) { setError('Ошибка загрузки видео'); setIsLoading(false); setShowPoster(true); }
+        if (data.fatal) { setError('Ошибка загрузки видео'); setIsLoading(false); }
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
       video.addEventListener('loadedmetadata', () => {
         setIsLoading(false);
-        videoRef.current?.play().catch(() => {});
+        const v = videoRef.current;
+        if (v && !v.paused) v.play().catch(() => {});
       }, { once: true });
     } else {
       setError('Ваш браузер не поддерживает HLS');
       setIsLoading(false);
-      setShowPoster(true);
     }
   }, []);
 
   useEffect(() => {
     if (!hlsUrl) { setIsLoading(false); return; }
     initHls(hlsUrl);
-    const timer = setTimeout(() => setIsLoading(false), 15000);
-    return () => {
-      clearTimeout(timer);
-      if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
-    };
+    return () => { if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; } };
   }, [hlsUrl, initHls]);
 
   useEffect(() => {
@@ -159,20 +156,24 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
         setShowSkip(true);
         if (!skipIntervalRef.current) {
           let count = 5;
+          setSkipTimer(count);
           skipIntervalRef.current = setInterval(() => {
             count--;
+            setSkipTimer(count);
             if (count <= 0) {
               clearInterval(skipIntervalRef.current);
               skipIntervalRef.current = null;
               if (video.currentTime >= opening.start && video.currentTime < opening.stop - 1) {
                 video.currentTime = opening.stop;
                 setShowSkip(false);
+                setSkipTimer(null);
               }
             }
           }, 1000);
         }
       } else {
         setShowSkip(false);
+        setSkipTimer(null);
         if (skipIntervalRef.current) {
           clearInterval(skipIntervalRef.current);
           skipIntervalRef.current = null;
@@ -214,35 +215,14 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
   }, [currentEpisode, hasOpening, opening, episodes, onEpisodeChange]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      const video = videoRef.current;
-      if (!video) return;
-      switch (e.code) {
-        case 'Space': e.preventDefault(); togglePlay(); break;
-        case 'ArrowLeft': e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); break;
-        case 'ArrowRight': e.preventDefault(); video.currentTime = Math.min(duration, video.currentTime + 10); break;
-        case 'ArrowUp':
-          e.preventDefault();
-          video.volume = Math.min(1, video.volume + 0.1);
-          setVolume(video.volume);
-          setIsMuted(video.volume === 0);
-          localStorage.setItem('player_volume', String(video.volume));
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          video.volume = Math.max(0, video.volume - 0.1);
-          setVolume(video.volume);
-          setIsMuted(video.volume === 0);
-          localStorage.setItem('player_volume', String(video.volume));
-          break;
-        case 'KeyF': e.preventDefault(); toggleFullscreen(); break;
-        case 'KeyM': e.preventDefault(); toggleMute(); break;
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [togglePlay, toggleFullscreen, toggleMute, duration]);
+    const h = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', h);
+    return () => document.removeEventListener('fullscreenchange', h);
+  }, []);
+
+  useEffect(() => {
+    return () => { if (skipIntervalRef.current) clearInterval(skipIntervalRef.current); };
+  }, []);
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current;
@@ -267,27 +247,34 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
     localStorage.setItem('player_volume', String(val));
   };
 
-  const seekTo = useCallback((clientX, updateHover) => {
+  const seekTo = useCallback((clientX) => {
     const video = videoRef.current;
     const progress = progressRef.current;
     if (!video || !progress || duration <= 0) return;
     const rect = progress.getBoundingClientRect();
-    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
-    const pos = x / rect.width;
+    const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     video.currentTime = pos * duration;
-    if (updateHover) {
-      setHoverTime(pos * duration);
-      setHoverX(x);
-    }
+    setHoverTime(pos * duration);
+    setHoverX(clientX - rect.left);
   }, [duration]);
+
+  const handleSeek = (e) => seekTo(e.clientX);
 
   const handleSeekStart = (e) => {
     setIsDragging(true);
-    seekTo(e.clientX, true);
+    seekTo(e.clientX);
   };
 
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove = (e) => { e.preventDefault(); seekTo(e.clientX); };
+    const onUp = () => setIsDragging(false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [isDragging, seekTo]);
+
   const handleProgressHover = (e) => {
-    if (isDragging) return;
     const progress = progressRef.current;
     if (!progress || duration <= 0) return;
     const rect = progress.getBoundingClientRect();
@@ -308,7 +295,14 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
     if (!video || !hasOpening) return;
     video.currentTime = opening.stop;
     setShowSkip(false);
+    setSkipTimer(null);
     if (skipIntervalRef.current) { clearInterval(skipIntervalRef.current); skipIntervalRef.current = null; }
+  };
+
+  const skipForward85 = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = Math.min(video.currentTime + 85, duration);
   };
 
   const handleMouseMove = () => {
@@ -318,35 +312,46 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
   };
 
   useEffect(() => {
-    const h = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', h);
-    return () => document.removeEventListener('fullscreenchange', h);
-  }, []);
-
-  useEffect(() => {
-    return () => { if (skipIntervalRef.current) clearInterval(skipIntervalRef.current); };
-  }, []);
-
-  useEffect(() => {
-    if (!isDragging) return;
-    const onMove = (e) => { e.preventDefault(); seekTo(e.clientX, true); };
-    const onUp = () => setIsDragging(false);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
-  }, [isDragging, seekTo]);
+    const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      const video = videoRef.current;
+      if (!video) return;
+      switch (e.code) {
+        case 'Space': e.preventDefault(); togglePlay(); break;
+        case 'ArrowLeft': e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); break;
+        case 'ArrowRight': e.preventDefault(); video.currentTime = Math.min(duration, video.currentTime + 10); break;
+        case 'ArrowUp':
+          e.preventDefault();
+          video.volume = Math.min(1, video.volume + 0.1);
+          setVolume(video.volume);
+          setIsMuted(video.volume === 0);
+          localStorage.setItem('player_volume', String(video.volume));
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          video.volume = Math.max(0, video.volume - 0.1);
+          setVolume(video.volume);
+          setIsMuted(video.volume === 0);
+          localStorage.setItem('player_volume', String(video.volume));
+          break;
+        case 'KeyF': e.preventDefault(); toggleFullscreen(); break;
+        case 'KeyM': e.preventDefault(); toggleMute(); break;
+        case 'Period': e.preventDefault(); skipNow(); break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlay, toggleFullscreen, toggleMute, duration, skipNow]);
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const displayPercent = (isDragging && hoverTime !== null) ? (hoverTime / duration) * 100 : progressPercent;
+  const displayPercent = isDragging && hoverTime !== null ? (hoverTime / duration) * 100 : progressPercent;
   const bufferedPercent = duration > 0 ? (buffered / duration) * 100 : 0;
   const episodeNum = currentEpisode?.ordinal || 1;
   const totalEpisodes = episodes?.length || 0;
 
-  const sortedForOverlay = [...episodes].sort((a, b) => a.ordinal - b.ordinal);
-
   return (
     <div
-      className={`video-player-wrapper ${isFullscreen ? 'fullscreen' : ''}`}
+      className={`video-player-wrapper ${isFullscreen ? 'fullscreen' : ''} ${!showControls && isFullscreen ? 'hide-cursor' : ''}`}
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
@@ -354,59 +359,30 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
     >
       {!hlsUrl ? (
         <div className="player-error-state">
-          {poster ? (
-            <img src={poster} alt="" className="player-fallback-poster" />
-          ) : (
-            <>
-              <Film size={48} />
-              <p>Видео для этого эпизода недоступно</p>
-            </>
-          )}
+          <Film size={48} />
+          <p>Видео для этого эпизода недоступно</p>
         </div>
       ) : error ? (
         <div className="player-error-state">
-          {poster && <img src={poster} alt="" className="player-fallback-poster" />}
-          <div className="player-error-overlay">
-            <Film size={48} />
-            <p>{error}</p>
-            <button className="retry-btn" onClick={() => initHls(hlsUrl)}>Повторить</button>
-          </div>
-        </div>
-      ) : isLoading ? (
-        <div className="player-loading-state">
-          {poster && <img src={poster} alt="" className="player-fallback-poster" />}
-          <div className="loading-pulse" />
-          <div className="player-error-overlay">
-            <div className="loading-spinner-video" />
-            <p>Загрузка видео...</p>
-          </div>
-        </div>
-      ) : showPoster ? (
-        <div className="player-error-state">
-          {poster && <img src={poster} alt="" className="player-fallback-poster" />}
-          <div className="player-error-overlay">
-            <Film size={48} />
-            <p>Видео недоступно</p>
-            <button className="retry-btn" onClick={() => { setShowPoster(false); initHls(hlsUrl); }}>Повторить</button>
-          </div>
+          <Film size={48} />
+          <p>{error}</p>
+          <button className="retry-btn" onClick={() => initHls(hlsUrl)}>Повторить</button>
         </div>
       ) : (
         <video ref={videoRef} className="player-video" onClick={togglePlay} playsInline preload="metadata" />
       )}
 
+      {isLoading && hlsUrl && <LoadingOverlay />}
+
       {currentEpisode && (
         <div className={`player-controls-overlay ${showControls || !isPlaying ? 'visible' : ''}`}>
           <div className="controls-gradient" />
 
-          <div className="control-top-bar">
+          <div className="controls-top">
             <div className="episode-badge">
               <span>Серия {episodeNum}</span>
-              {currentEpisode.name && <span className="ep-name"> — {currentEpisode.name}</span>}
+              {currentEpisode.name && <span className="episode-name"> — {currentEpisode.name}</span>}
             </div>
-            <button className="ctrl-btn episodes-overlay-btn" onClick={() => setShowEpisodesOverlay(!showEpisodesOverlay)} title="Эпизоды">
-              <List size={17} />
-              <span className="ep-overlay-count">{totalEpisodes}</span>
-            </button>
           </div>
 
           <div className="controls-center">
@@ -436,14 +412,24 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
               )}
             </div>
 
+            {showSkip && (
+              <div className="skip-controls">
+                <button className="skip-btn auto" onClick={skipNow}>
+                  <SkipForward size={16} />
+                  <span>Пропустить {skipTimer !== null ? `(${skipTimer}c)` : ''}</span>
+                </button>
+                <button className="skip-btn no-auto" onClick={() => {
+                  setShowSkip(false);
+                  setSkipTimer(null);
+                  if (skipIntervalRef.current) { clearInterval(skipIntervalRef.current); skipIntervalRef.current = null; }
+                }}>
+                  Смотреть
+                </button>
+              </div>
+            )}
+
             <div className="controls-row">
               <div className="controls-left">
-                <button className="ctrl-btn" onClick={togglePlay}>
-                  <div className="play-icon-wrap small">
-                    <Play size={16} className={`play-icon ${isPlaying ? 'hidden' : ''}`} />
-                    <Pause size={16} className={`pause-icon ${isPlaying ? '' : 'hidden'}`} />
-                  </div>
-                </button>
                 <button
                   className="ctrl-btn"
                   onClick={() => onEpisodeChange(episodeNum - 1)}
@@ -451,6 +437,12 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
                   title="Предыдущая серия"
                 >
                   <SkipBack size={16} />
+                </button>
+                <button className="ctrl-btn" onClick={togglePlay}>
+                  <div className="play-icon-wrap small">
+                    <Play size={16} className={`play-icon ${isPlaying ? 'hidden' : ''}`} />
+                    <Pause size={16} className={`pause-icon ${isPlaying ? '' : 'hidden'}`} />
+                  </div>
                 </button>
                 <button
                   className="ctrl-btn"
@@ -460,11 +452,15 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
                 >
                   <SkipForward size={16} />
                 </button>
-                <div className="volume-control">
+                <div
+                  className="volume-control"
+                  onMouseEnter={() => setShowVolumeHover(true)}
+                  onMouseLeave={() => setShowVolumeHover(false)}
+                >
                   <button className="ctrl-btn" onClick={toggleMute}>
                     {isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
                   </button>
-                  <div className="volume-slider-wrap">
+                  <div className={`volume-slider-wrap ${showVolumeHover ? 'visible' : ''}`}>
                     <input
                       type="range" min="0" max="1" step="0.05"
                       value={isMuted ? 0 : volume}
@@ -479,27 +475,19 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
               </div>
 
               <div className="controls-right">
-                {showSkip && (
-                  <button className="ctrl-btn skip-op-btn" onClick={skipNow} title="Пропустить опенинг">
-                    <SkipForward size={16} />
+                <div className="quality-selector">
+                  <button className="ctrl-btn quality-btn" onClick={() => setShowQualityMenu(!showQualityMenu)}>
+                    {quality}p
                   </button>
-                )}
-                <div className="settings-wrap">
-                  <button className="ctrl-btn" onClick={() => setShowSettings(!showSettings)} title="Настройки">
-                    <Settings size={16} />
-                  </button>
-                  {showSettings && (
-                    <div className="settings-menu">
-                      <div className="settings-group">
-                        <span className="settings-label">Качество</span>
-                        {availableQualities.map(q => (
-                          <button
-                            key={q}
-                            className={`settings-option ${quality === q ? 'active' : ''}`}
-                            onClick={() => { setQuality(q); setShowSettings(false); }}
-                          >{q}p</button>
-                        ))}
-                      </div>
+                  {showQualityMenu && (
+                    <div className="quality-menu">
+                      {availableQualities.map(q => (
+                        <button
+                          key={q}
+                          className={`quality-option ${quality === q ? 'active' : ''}`}
+                          onClick={() => { setQuality(q); setShowQualityMenu(false); }}
+                        >{q}p</button>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -507,41 +495,6 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, poster }) => {
                   {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showEpisodesOverlay && (
-        <div className="episodes-overlay" onClick={() => setShowEpisodesOverlay(false)}>
-          <div className="episodes-overlay-content" onClick={e => e.stopPropagation()}>
-            <div className="ep-overlay-header">
-              <h3>Эпизоды</h3>
-              <button className="ep-overlay-close" onClick={() => setShowEpisodesOverlay(false)}>
-                <ChevronRight size={18} />
-              </button>
-            </div>
-            <div className="ep-overlay-list">
-              {sortedForOverlay.map((ep, idx) => (
-                <button
-                  key={ep.id}
-                  className={`ep-overlay-item ${idx === episodes.indexOf(currentEpisode) ? 'active' : ''}`}
-                  onClick={() => { setShowEpisodesOverlay(false); onEpisodeChange(ep.ordinal); }}
-                >
-                  <div className="ep-overlay-thumb">
-                    {ep.preview?.preview ? (
-                      <img src={ep.preview.preview.startsWith('/') ? BASE_URL + ep.preview.preview : ep.preview.preview} alt="" loading="lazy" />
-                    ) : (
-                      <div className="ep-overlay-no-thumb"><Film size={14} /></div>
-                    )}
-                  </div>
-                  <div className="ep-overlay-info">
-                    <span className="ep-overlay-num">Серия {idx + 1}</span>
-                    {ep.name && <span className="ep-overlay-name">{ep.name}</span>}
-                  </div>
-                  {idx === episodes.indexOf(currentEpisode) && <span className="ep-overlay-active-indicator">✓</span>}
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -582,6 +535,7 @@ const AnimeWatch = () => {
   const { user, loading: authLoading } = useAuth();
   const { data: anime, isLoading, error, refetch } = useAnimeById(id);
   const [currentEpisodeIdx, setCurrentEpisodeIdx] = useState(0);
+  const [showEpisodes, setShowEpisodes] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const episodesListRef = useRef(null);
 
@@ -668,11 +622,14 @@ const AnimeWatch = () => {
 
       <div className="watch-layout">
         <div className="watch-main">
+          <button className={`episodes-toggle-fab ${showEpisodes ? 'active' : ''}`} onClick={() => setShowEpisodes(!showEpisodes)} title="Список серий">
+            <List size={18} />
+            <span className="fab-count">{sortedEpisodes.length}</span>
+          </button>
           <VideoPlayer
             episodes={sortedEpisodes}
             currentEpisode={currentEpisode}
             onEpisodeChange={handleEpisodeChange}
-            poster={poster.startsWith('/') ? BASE_URL + poster : poster}
           />
 
           <div className="watch-meta">
@@ -702,6 +659,39 @@ const AnimeWatch = () => {
             </motion.div>
           </div>
         </div>
+
+        <motion.aside
+          className={`watch-sidebar ${showEpisodes ? 'visible' : ''}`}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <div className="sidebar-header">
+            <h2 className="sidebar-title">
+              <Film size={15} />
+              <span>Эпизоды</span>
+              <span className="sidebar-count">{sortedEpisodes.length}</span>
+            </h2>
+            <button className="sidebar-close" onClick={() => setShowEpisodes(false)} title="Закрыть">
+              <ChevronRight size={16} />
+            </button>
+          </div>
+          <div className="sidebar-episodes" ref={episodesListRef}>
+            {sortedEpisodes.length > 0 ? (
+              sortedEpisodes.map((ep, idx) => (
+                <div key={ep.id} data-episode={ep.ordinal}>
+                  <EpisodeItem
+                    episode={ep} episodeNum={idx + 1}
+                    isActive={idx === currentEpisodeIdx}
+                    onClick={() => setCurrentEpisodeIdx(idx)}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="no-episodes"><Film size={32} /><p>Эпизоды пока не добавлены</p></div>
+            )}
+          </div>
+        </motion.aside>
       </div>
 
       <AuthModal isOpen={showAuthModal} onClose={() => navigate('/anime/' + id)} />
