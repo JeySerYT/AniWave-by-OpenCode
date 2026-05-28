@@ -20,6 +20,7 @@ import Dmca from './pages/Dmca';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OAuthCallback from './pages/OAuthCallback';
+import NotFound from './pages/NotFound';
 import './styles/variables.css';
 import './styles/globals.css';
 import './App.css';
@@ -46,14 +47,6 @@ const Layout = memo(({ children, hideHeader }) => (
     </motion.main>
   </div>
 ));
-
-const NotFound = () => (
-  <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-    <h1 style={{ fontSize: '4rem', marginBottom: '1rem' }}>404</h1>
-    <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Страница не найдена</p>
-    <a href="/" style={{ color: 'var(--accent-pink)' }}>Вернуться на главную</a>
-  </div>
-);
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
