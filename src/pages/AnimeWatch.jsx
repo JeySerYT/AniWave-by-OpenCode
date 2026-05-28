@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Hls from 'hls.js';
 import {
-  ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX,
-  Maximize, Minimize, SkipForward, SkipBack, List, Grid3X3, Film
+  ChevronLeft, Play, Pause, Volume2, VolumeX,
+  Maximize, Minimize, SkipForward, SkipBack, Film
 } from 'lucide-react';
 import { useAnimeById } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
@@ -64,7 +64,7 @@ const LoadingOverlay = () => (
   </div>
 );
 
-const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
+const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const progressRef = useRef(null);
@@ -380,8 +380,10 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
 
           <div className="controls-top">
             <div className="episode-badge">
-              <span>Серия {episodeNum}</span>
-              {currentEpisode.name && <span className="episode-name"> — {currentEpisode.name}</span>}
+              <span className="episode-badge-title">{title}</span>
+              <span className="episode-badge-sub">
+                Серия {episodeNum}{currentEpisode.name ? ` — ${currentEpisode.name}` : ''}
+              </span>
             </div>
           </div>
 
@@ -535,9 +537,11 @@ const AnimeWatch = () => {
   const { user, loading: authLoading } = useAuth();
   const { data: anime, isLoading, error, refetch } = useAnimeById(id);
   const [currentEpisodeIdx, setCurrentEpisodeIdx] = useState(0);
-  const [showEpisodes, setShowEpisodes] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const episodesListRef = useRef(null);
+  const playerContainerRef = useRef(null);
+  const sidebarRef = useRef(null);
+  const observerRef = useRef(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -564,6 +568,24 @@ const AnimeWatch = () => {
   }, [sortedEpisodes]);
 
   useEffect(() => { setCurrentEpisodeIdx(0); }, [id]);
+
+  useEffect(() => {
+    if (authLoading || isLoading) return;
+    const player = playerContainerRef.current;
+    const sidebar = sidebarRef.current;
+    if (!player || !sidebar) return;
+
+    const syncHeight = () => {
+      sidebar.style.maxHeight = player.offsetHeight + 'px';
+    };
+
+    syncHeight();
+    observerRef.current = new ResizeObserver(syncHeight);
+    observerRef.current.observe(player);
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, [authLoading, isLoading, id]);
 
   const saveRef = useRef({ id, title, poster, episodesTotal, genres: [] });
   useEffect(() => {
@@ -613,55 +635,22 @@ const AnimeWatch = () => {
 
   return (
     <motion.div className="anime-watch" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-      <div className="watch-nav">
+      <div className="watch-layout">
         <button className="watch-back-btn" onClick={() => navigate('/anime/' + id)}>
           <ChevronLeft size={20} />
-          <span>Назад к аниме</span>
         </button>
-      </div>
-
-      <div className="watch-layout">
-        <div className="watch-main">
-          <button className={`episodes-toggle-fab ${showEpisodes ? 'active' : ''}`} onClick={() => setShowEpisodes(!showEpisodes)} title="Список серий">
-            <List size={18} />
-            <span className="fab-count">{sortedEpisodes.length}</span>
-          </button>
+        <div className="watch-main" ref={playerContainerRef}>
           <VideoPlayer
             episodes={sortedEpisodes}
             currentEpisode={currentEpisode}
             onEpisodeChange={handleEpisodeChange}
+            title={title}
           />
-
-          <div className="watch-meta">
-            <motion.div className="meta-info" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <div className="meta-title-wrap">
-                <h1 className="meta-title">{title}</h1>
-                {currentEpisode && (
-                  <span className="meta-episode">
-                    Серия {currentEpisode.ordinal} / {sortedEpisodes.length}
-                    {currentEpisode.name && <> — {currentEpisode.name}</>}
-                  </span>
-                )}
-              </div>
-            </motion.div>
-
-            <motion.div className="meta-description" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-              <p>{description}</p>
-            </motion.div>
-
-            <motion.div className="meta-tags" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>
-              {genreNames.slice(0, 6).map((genre, i) => (
-                <span key={i} className="genre-tag">{genre}</span>
-              ))}
-              {anime.type?.value && <span className="genre-tag type">{anime.type.description}</span>}
-              {anime.year && <span className="genre-tag year">{anime.year}</span>}
-              {anime.age_rating?.label && <span className="genre-tag age">{anime.age_rating.label}</span>}
-            </motion.div>
-          </div>
         </div>
 
         <motion.aside
-          className={`watch-sidebar ${showEpisodes ? 'visible' : ''}`}
+          className="watch-sidebar"
+          ref={sidebarRef}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
@@ -672,9 +661,6 @@ const AnimeWatch = () => {
               <span>Эпизоды</span>
               <span className="sidebar-count">{sortedEpisodes.length}</span>
             </h2>
-            <button className="sidebar-close" onClick={() => setShowEpisodes(false)} title="Закрыть">
-              <ChevronRight size={16} />
-            </button>
           </div>
           <div className="sidebar-episodes" ref={episodesListRef}>
             {sortedEpisodes.length > 0 ? (
