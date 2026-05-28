@@ -20,6 +20,7 @@ const AnimeDetails = () => {
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCollMenu, setShowCollMenu] = useState(false);
+  const [bannerVideoFailed, setBannerVideoFailed] = useState(false);
   const { data: anime, isLoading: loading, error, refetch } = useAnimeById(id);
   const { getCollectionType, addToCollection, updateCollectionType, removeFromCollection, refresh } = useCollections();
   const { data: popular } = usePopularAnime();
@@ -45,17 +46,43 @@ const AnimeDetails = () => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !anime?.episodes?.[0]) return;
-    const hlsUrl = anime.episodes[0].hls_720 || anime.episodes[0].hls_480;
-    if (!hlsUrl) return;
+    const ep = anime.episodes[0];
+    const hlsUrl = ep.hls_720 || ep.hls_480;
+    if (!hlsUrl) { setBannerVideoFailed(true); return; }
     let hls = null;
+    const onLoaded = () => {
+      setBannerVideoFailed(false);
+      if (ep.opening?.start > 0 && ep.opening?.stop > ep.opening.start) {
+        video.currentTime = ep.opening.start;
+      }
+    };
+    const onTimeUpdate = () => {
+      if (ep.opening?.start > 0 && ep.opening?.stop > ep.opening.start) {
+        if (video.currentTime >= ep.opening.stop) {
+          video.currentTime = ep.opening.start;
+        }
+      }
+    };
     if (Hls.isSupported()) {
       hls = new Hls();
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, onLoaded);
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal) setBannerVideoFailed(true);
+      });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = hlsUrl;
+      video.addEventListener('loadedmetadata', onLoaded, { once: true });
+      video.addEventListener('error', () => setBannerVideoFailed(true), { once: true });
+    } else {
+      setBannerVideoFailed(true);
     }
-    return () => { if (hls) hls.destroy(); };
+    video.addEventListener('timeupdate', onTimeUpdate);
+    return () => {
+      if (hls) hls.destroy();
+      video.removeEventListener('timeupdate', onTimeUpdate);
+    };
   }, [anime]);
 
   useEffect(() => {
@@ -97,8 +124,8 @@ const AnimeDetails = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        {hlsUrl ? (
-          <video ref={videoRef} className="banner-video" muted autoPlay loop playsInline preload="metadata" />
+        {hlsUrl && !bannerVideoFailed ? (
+          <video ref={videoRef} className="banner-video" muted autoPlay loop playsInline preload="metadata" poster={poster && (poster.startsWith('/') ? BASE_URL + poster : poster)} />
         ) : (
           <div className="banner-image" style={{ backgroundImage: poster ? 'url(' + (poster.startsWith('/') ? BASE_URL + poster : poster) + ')' : 'none' }} />
         )}

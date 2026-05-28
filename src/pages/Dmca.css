@@ -1,10 +1,10 @@
-.faq-page {
+.dmca-page {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.faq-content {
+.dmca-content {
   flex: 1;
   max-width: 800px;
   margin: 0 auto;
@@ -12,50 +12,70 @@
   width: 100%;
 }
 
-.faq-content h1 {
+.dmca-content h1 {
   font-size: 2rem;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
-.faq-subtitle {
+.dmca-subtitle {
   color: var(--text-muted);
   font-size: 0.9rem;
   margin-bottom: 2rem;
 }
 
-.faq-content section {
+.dmca-content section {
   margin-bottom: 2rem;
 }
 
-.faq-content section h2 {
+.dmca-content section h2 {
   font-size: 1.15rem;
   color: var(--text-primary);
   margin-bottom: 0.75rem;
   font-weight: 600;
 }
 
-.faq-content section p {
+.dmca-content section p {
   color: var(--text-secondary);
   line-height: 1.7;
   font-size: 0.92rem;
 }
 
-.faq-content a {
+.dmca-content section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.dmca-content section ul li {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 0.35rem 0 0.35rem 1.2rem;
+  position: relative;
+}
+
+.dmca-content section ul li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--accent-pink);
+}
+
+.dmca-content a {
   color: var(--accent-pink);
   text-decoration: none;
 }
 
-.faq-content a:hover {
+.dmca-content a:hover {
   text-decoration: underline;
 }
 
 @media (max-width: 768px) {
-  .faq-content {
+  .dmca-content {
     padding: 2rem 1rem;
   }
 
-  .faq-content h1 {
+  .dmca-content h1 {
     font-size: 1.6rem;
   }
 }

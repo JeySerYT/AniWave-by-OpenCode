@@ -10,20 +10,20 @@
 .home-content {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0.5rem 2rem;
+  padding: 1.5rem 2rem 0;
 }
 
 .home-section {
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
 }
 
 .section-header {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .section-title-group {
@@ -43,7 +43,7 @@
 }
 
 .section-subtitle {
-  margin: 4px 0 0 0;
+  margin: 2px 0 0 0;
   font-size: 0.85rem;
   color: var(--text-muted);
   font-weight: 400;
@@ -84,7 +84,7 @@
 .section-nav {
   display: flex;
   justify-content: center;
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
 }
 
 .nav-btn {
@@ -125,7 +125,7 @@
 
 @media (max-width: 768px) {
   .home-content {
-    padding: 1.5rem;
+    padding: 1rem 1rem 0;
   }
 
   .section-title {
@@ -140,11 +140,15 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
   }
+
+  .home-section {
+    margin-bottom: 2rem;
+  }
 }
 
 @media (max-width: 480px) {
   .home-content {
-    padding: 1rem;
+    padding: 0.75rem 0.75rem 0;
   }
 
   .anime-grid {

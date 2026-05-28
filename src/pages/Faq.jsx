@@ -5,7 +5,7 @@ import './Faq.css';
 const faqData = [
   {
     question: 'Что такое AniWave?',
-    answer: 'AniWave — это каталог аниме с красивым дизайном и удобным поиском. Мы используем AniList API для получения актуальной информации об аниме.'
+    answer: 'AniWave — это каталог аниме с красивым дизайном и удобным поиском. Информация об аниме добавляется пользователями и из открытых источников.'
   },
   {
     question: 'Как добавить аниме в избранное?',
@@ -17,7 +17,7 @@ const faqData = [
   },
   {
     question: 'Откуда берутся данные об аниме?',
-    answer: 'Мы используем AniList GraphQL API — крупнейшую базу данных аниме. Информация обновляется автоматически.'
+    answer: 'Информация об аниме собирается из открытых источников и добавляется пользователями. Данные обновляются по мере поступления новой информации.'
   },
   {
     question: 'Есть ли мобильное приложение?',
@@ -32,31 +32,28 @@ const faqData = [
 const Faq = () => {
   return (
     <div className="faq-page">
-      <motion.div 
+      <motion.div
         className="faq-content"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h1 className="faq-title">FAQ</h1>
+        <h1>FAQ</h1>
         <p className="faq-subtitle">Часто задаваемые вопросы</p>
-        
-        <div className="faq-list">
-          {faqData.map((item, index) => (
-            <motion.div 
-              key={`faq-${index}`}
-              className="faq-item"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <h3 className="faq-question">{item.question}</h3>
-              <p className="faq-answer">{item.answer}</p>
-            </motion.div>
-          ))}
-        </div>
+
+        {faqData.map((item, index) => (
+          <motion.section
+            key={`faq-${index}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+          >
+            <h2>{item.question}</h2>
+            <p>{item.answer}</p>
+          </motion.section>
+        ))}
       </motion.div>
-      
+
       <Footer />
     </div>
   );

@@ -1,29 +1,81 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Volume2, VolumeX } from 'lucide-react';
 import Hls from 'hls.js';
 import './Hero.css';
 
 const BASE_URL = 'https://anilibria.top';
 
-const Hero = memo(({ anime, hlsUrl }) => {
+const Hero = memo(({ anime, hlsUrl, opening }) => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const hlsRef = useRef(null);
+
+  const hasOpening = opening?.start > 0 && opening?.stop > opening?.start;
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !hlsUrl) return;
 
+    if (hlsRef.current) { hlsRef.current.destroy(); hlsRef.current = null; }
+
     if (Hls.isSupported()) {
       const hls = new Hls();
+      hlsRef.current = hls;
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
-      return () => hls.destroy();
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(() => {});
+      });
+      hls.on(Hls.Events.ERROR, (_, data) => {
+        if (data.fatal) hls.destroy();
+      });
+      return () => { hls.destroy(); hlsRef.current = null; };
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = hlsUrl;
     }
   }, [hlsUrl]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !hasOpening) return;
+
+    const onTimeUpdate = () => {
+      if (video.currentTime >= opening.stop) {
+        video.currentTime = opening.start;
+      }
+    };
+
+    video.addEventListener('timeupdate', onTimeUpdate);
+    if (opening.start > 0) {
+      video.addEventListener('loadedmetadata', () => {
+        video.currentTime = opening.start;
+      }, { once: true });
+    }
+
+    return () => {
+      video.removeEventListener('timeupdate', onTimeUpdate);
+    };
+  }, [opening, hasOpening]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = isMuted;
+  }, [isMuted]);
+
+  const toggleMute = useCallback((e) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+    if (!video.muted) {
+      video.volume = 0.3;
+    }
+  }, []);
 
   if (!anime) return null;
 
@@ -119,18 +171,22 @@ const Hero = memo(({ anime, hlsUrl }) => {
                   }}
                 />
               )}
+              {hlsUrl && (
+                <button
+                  className="hero-mute-btn"
+                  onClick={toggleMute}
+                  title={isMuted ? 'Включить звук' : 'Выключить звук'}
+                >
+                  {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
 
-        <motion.div
-          className="hero-decoration"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <div className="deco-line" />
-        </motion.div>
+        <div className="hero-decoration">
+          <div className="deco-glow" />
+        </div>
       </div>
     </section>
   );

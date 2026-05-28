@@ -15,6 +15,7 @@ import Profile from './pages/Profile';
 import Faq from './pages/Faq';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import Dmca from './pages/Dmca';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OAuthCallback from './pages/OAuthCallback';
@@ -80,6 +81,7 @@ function App() {
                 <Route path="/faq" element={<Layout><Faq /></Layout>} />
                 <Route path="/terms" element={<Layout><Terms /></Layout>} />
                 <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
+                <Route path="/dmca" element={<Layout><Dmca /></Layout>} />
                 <Route path="/login" element={<Layout hideHeader><Login /></Layout>} />
                 <Route path="/register" element={<Layout hideHeader><Register /></Layout>} />
                 <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />

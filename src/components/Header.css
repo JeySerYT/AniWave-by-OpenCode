@@ -11,9 +11,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: linear-gradient(180deg, rgba(10, 10, 15, 0.98) 0%, rgba(10, 10, 15, 0.9) 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-primary);
   padding: 1rem 2rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -129,9 +127,7 @@
 
 .mobile-menu {
   overflow: hidden;
-  background: rgba(15, 15, 20, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-primary);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 

@@ -45,7 +45,11 @@ const Home = () => {
     queryFn: () => anilibriaApi.getReleaseById(topAnime?.id),
     enabled: !!topAnime?.id,
   });
-  const hlsUrl = topAnimeFull?.episodes?.[0]?.hls_720 || topAnimeFull?.episodes?.[0]?.hls_480 || null;
+
+  const episodes = topAnimeFull?.episodes || [];
+  const openingEp = episodes.find(e => e.opening?.start > 0 && e.opening?.stop > e.opening?.start) || episodes[0];
+  const opening = openingEp?.opening || null;
+  const hlsUrl = openingEp?.hls_720 || openingEp?.hls_480 || null;
 
   useEffect(() => {
     if (user) {
@@ -138,7 +142,7 @@ const Home = () => {
       ) : bestError ? (
         <ErrorMessage message={bestError} onRetry={handleRetry} />
       ) : (
-        <Hero anime={topAnime} hlsUrl={hlsUrl} />
+        <Hero anime={topAnime} hlsUrl={hlsUrl} opening={opening} episodes={episodes} />
       )}
 
       <div className="home-content">
