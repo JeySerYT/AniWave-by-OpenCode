@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
@@ -31,6 +31,9 @@ class User(Base):
 
 class WatchProgress(Base):
     __tablename__ = "watch_progress"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'anime_id', name='uq_watch_progress_user_anime'),
+    )
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)

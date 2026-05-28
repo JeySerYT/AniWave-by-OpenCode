@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Hls from 'hls.js';
 import {
   ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX,
-  Maximize, Minimize, SkipForward, List, Grid3X3, Film
+  Maximize, Minimize, SkipForward, SkipBack, List, Grid3X3, Film
 } from 'lucide-react';
 import { useAnimeById } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
@@ -90,10 +90,18 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
   const [hoverX, setHoverX] = useState(0);
   const [skipTimer, setSkipTimer] = useState(null);
   const [showSkip, setShowSkip] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const skipIntervalRef = useRef(null);
 
   const qualityKey = `hls_${quality}`;
   const hlsUrl = currentEpisode?.[qualityKey] || currentEpisode?.hls_1080 || currentEpisode?.hls_720 || currentEpisode?.hls_480;
+  const availableQualities = ['1080', '720', '480'].filter(q => currentEpisode?.[`hls_${q}`]);
+
+  useEffect(() => {
+    if (availableQualities.length > 0 && !availableQualities.includes(quality)) {
+      setQuality(availableQualities[0]);
+    }
+  }, [currentEpisode]);
 
   const opening = currentEpisode?.opening;
   const hasOpening = opening?.start > 0 && opening?.stop > opening?.start;
@@ -113,7 +121,8 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLoading(false);
-        if (isPlaying) video.play().catch(() => {});
+        const v = videoRef.current;
+        if (v && !v.paused) v.play().catch(() => {});
       });
       hls.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) { setError('Ошибка загрузки видео'); setIsLoading(false); }
@@ -122,13 +131,14 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
       video.src = url;
       video.addEventListener('loadedmetadata', () => {
         setIsLoading(false);
-        if (isPlaying) video.play().catch(() => {});
+        const v = videoRef.current;
+        if (v && !v.paused) v.play().catch(() => {});
       }, { once: true });
     } else {
       setError('Ваш браузер не поддерживает HLS');
       setIsLoading(false);
     }
-  }, [isPlaying]);
+  }, []);
 
   useEffect(() => {
     if (!hlsUrl) { setIsLoading(false); return; }
@@ -237,14 +247,30 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
     localStorage.setItem('player_volume', String(val));
   };
 
-  const handleSeek = (e) => {
+  const seekTo = useCallback((clientX) => {
     const video = videoRef.current;
     const progress = progressRef.current;
-    if (!video || !progress) return;
+    if (!video || !progress || duration <= 0) return;
     const rect = progress.getBoundingClientRect();
-    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     video.currentTime = pos * duration;
+  }, [duration]);
+
+  const handleSeek = (e) => seekTo(e.clientX);
+
+  const handleSeekStart = (e) => {
+    setIsDragging(true);
+    seekTo(e.clientX);
   };
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const onMove = (e) => { e.preventDefault(); seekTo(e.clientX); };
+    const onUp = () => setIsDragging(false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [isDragging, seekTo]);
 
   const handleProgressHover = (e) => {
     const progress = progressRef.current;
@@ -316,6 +342,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
   }, [togglePlay, toggleFullscreen, toggleMute, duration, skipNow]);
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const displayPercent = isDragging && hoverTime !== null ? (hoverTime / duration) * 100 : progressPercent;
   const bufferedPercent = duration > 0 ? (buffered / duration) * 100 : 0;
   const episodeNum = currentEpisode?.ordinal || 1;
   const totalEpisodes = episodes?.length || 0;
@@ -357,49 +384,28 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
           </div>
 
           <div className="controls-center">
-            <button
-              className="ctrl-btn ep-nav-btn"
-              onClick={() => onEpisodeChange(episodeNum - 2)}
-              disabled={episodeNum <= 1}
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <button
-              className="ctrl-btn ep-nav-btn"
-              onClick={() => onEpisodeChange(episodeNum)}
-              disabled={episodeNum >= totalEpisodes}
-            >
-              <ChevronRight size={22} />
-            </button>
             <button className="play-btn-large" onClick={togglePlay}>
               <div className="play-icon-wrap">
                 <Play size={26} className={`play-icon ${isPlaying ? 'hidden' : ''}`} />
                 <Pause size={26} className={`pause-icon ${isPlaying ? '' : 'hidden'}`} />
               </div>
             </button>
-            <button
-              className="ctrl-btn ep-nav-btn"
-              onClick={() => onEpisodeChange(episodeNum)}
-              disabled={episodeNum >= totalEpisodes}
-            >
-              <ChevronRight size={22} />
-            </button>
           </div>
 
           <div className="controls-bottom">
             <div
-              className="progress-bar"
+              className={`progress-bar ${isDragging ? 'dragging' : ''}`}
               ref={progressRef}
-              onClick={handleSeek}
+              onMouseDown={handleSeekStart}
               onMouseMove={handleProgressHover}
-              onMouseLeave={() => setHoverTime(null)}
+              onMouseLeave={() => !isDragging && setHoverTime(null)}
             >
               <div className="progress-buffered" style={{ width: `${bufferedPercent}%` }} />
-              <div className="progress-played" style={{ width: `${progressPercent}%` }} />
-              <div className="progress-thumb" style={{ left: `${progressPercent}%` }} />
-              {hoverTime !== null && (
+              <div className="progress-played" style={{ width: `${displayPercent}%` }} />
+              <div className="progress-thumb" style={{ left: `${displayPercent}%` }} />
+              {(hoverTime !== null || isDragging) && (
                 <div className="progress-tooltip" style={{ left: `${hoverX}px` }}>
-                  <span className="tooltip-time">{formatTime(hoverTime)}</span>
+                  <span className="tooltip-time">{formatTime(hoverTime || currentTime)}</span>
                 </div>
               )}
             </div>
@@ -428,7 +434,20 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
                     <Pause size={16} className={`pause-icon ${isPlaying ? '' : 'hidden'}`} />
                   </div>
                 </button>
-                <button className="ctrl-btn" onClick={skipForward85} title="Пропустить 85 сек">
+                <button
+                  className="ctrl-btn"
+                  onClick={() => onEpisodeChange(episodeNum - 1)}
+                  disabled={episodeNum <= 1}
+                  title="Предыдущая серия"
+                >
+                  <SkipBack size={16} />
+                </button>
+                <button
+                  className="ctrl-btn"
+                  onClick={() => onEpisodeChange(episodeNum + 1)}
+                  disabled={episodeNum >= totalEpisodes}
+                  title="Следующая серия"
+                >
                   <SkipForward size={16} />
                 </button>
                 <div
@@ -460,12 +479,12 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
                   </button>
                   {showQualityMenu && (
                     <div className="quality-menu">
-                      {[{ label: '1080p', key: '1080' }, { label: '720p', key: '720' }, { label: '480p', key: '480' }].map(q => (
+                      {availableQualities.map(q => (
                         <button
-                          key={q.key}
-                          className={`quality-option ${quality === q.key ? 'active' : ''}`}
-                          onClick={() => { setQuality(q.key); setShowQualityMenu(false); }}
-                        >{q.label}</button>
+                          key={q}
+                          className={`quality-option ${quality === q ? 'active' : ''}`}
+                          onClick={() => { setQuality(q); setShowQualityMenu(false); }}
+                        >{q}p</button>
                       ))}
                     </div>
                   )}
@@ -601,6 +620,10 @@ const AnimeWatch = () => {
 
       <div className="watch-layout">
         <div className="watch-main">
+          <button className={`episodes-toggle-fab ${showEpisodes ? 'active' : ''}`} onClick={() => setShowEpisodes(!showEpisodes)} title="Список серий">
+            <List size={18} />
+            <span className="fab-count">{sortedEpisodes.length}</span>
+          </button>
           <VideoPlayer
             episodes={sortedEpisodes}
             currentEpisode={currentEpisode}
@@ -613,15 +636,11 @@ const AnimeWatch = () => {
                 <h1 className="meta-title">{title}</h1>
                 {currentEpisode && (
                   <span className="meta-episode">
-                    Серия {currentEpisode.ordinal}
+                    Серия {currentEpisode.ordinal} / {sortedEpisodes.length}
                     {currentEpisode.name && <> — {currentEpisode.name}</>}
                   </span>
                 )}
               </div>
-              <button className={`episodes-toggle ${showEpisodes ? 'active' : ''}`} onClick={() => setShowEpisodes(!showEpisodes)}>
-                <List size={16} />
-                <span>Список серий ({sortedEpisodes.length})</span>
-              </button>
             </motion.div>
 
             <motion.div className="meta-description" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
@@ -646,8 +665,14 @@ const AnimeWatch = () => {
           transition={{ duration: 0.4, delay: 0.1 }}
         >
           <div className="sidebar-header">
-            <h2 className="sidebar-title"><Grid3X3 size={16} /><span>Эпизоды</span></h2>
-            <span className="sidebar-count">{sortedEpisodes.length}</span>
+            <h2 className="sidebar-title">
+              <Film size={15} />
+              <span>Эпизоды</span>
+              <span className="sidebar-count">{sortedEpisodes.length}</span>
+            </h2>
+            <button className="sidebar-close" onClick={() => setShowEpisodes(false)} title="Закрыть">
+              <ChevronRight size={16} />
+            </button>
           </div>
           <div className="sidebar-episodes" ref={episodesListRef}>
             {sortedEpisodes.length > 0 ? (
