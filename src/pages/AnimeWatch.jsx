@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import Hls from 'hls.js';
 import {
   ChevronLeft, Play, Pause, Volume2, VolumeX,
-  Maximize, Minimize, SkipForward, SkipBack, Film
+  Maximize, Minimize, SkipForward, SkipBack, Film,
+  Settings, PictureInPicture2, Subtitles, Sun, Gauge, Check
 } from 'lucide-react';
 import { useAnimeById } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
@@ -81,7 +82,12 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [quality, setQuality] = useState('1080');
-  const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [backgroundLight, setBackgroundLight] = useState(false);
+  const [subtitlesEnabled, setSubtitlesEnabled] = useState(false);
+  const [isPiP, setIsPiP] = useState(false);
   const [buffered, setBuffered] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -283,6 +289,48 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     setHoverX(e.clientX - rect.left);
   };
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.playbackRate = playbackSpeed;
+  }, [playbackSpeed]);
+
+  useEffect(() => {
+    if (!showSettings) return;
+    const handler = () => setShowSettings(false);
+    document.addEventListener('mousedown', handler, { once: true });
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showSettings]);
+
+  const togglePiP = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video) return;
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        setIsPiP(false);
+      } else {
+        await video.requestPictureInPicture();
+        setIsPiP(true);
+      }
+    } catch (e) {
+      /* PiP not supported */
+    }
+  }, []);
+
+  useEffect(() => {
+    const handlePiP = () => setIsPiP(!!document.pictureInPictureElement);
+    document.addEventListener('enterpictureinpicture', handlePiP);
+    document.addEventListener('leavepictureinpicture', handlePiP);
+    return () => {
+      document.removeEventListener('enterpictureinpicture', handlePiP);
+      document.removeEventListener('leavepictureinpicture', handlePiP);
+    };
+  }, []);
+
+  const toggleBackgroundLight = () => setBackgroundLight(prev => !prev);
+  const toggleSubtitles = () => setSubtitlesEnabled(prev => !prev);
+
   const toggleFullscreen = useCallback(async () => {
     const container = containerRef.current;
     if (!container) return;
@@ -351,7 +399,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
 
   return (
     <div
-      className={`video-player-wrapper ${isFullscreen ? 'fullscreen' : ''} ${!showControls && isFullscreen ? 'hide-cursor' : ''}`}
+      className={`video-player-wrapper ${isFullscreen ? 'fullscreen' : ''} ${backgroundLight ? 'with-bg-light' : ''} ${!showControls && isFullscreen ? 'hide-cursor' : ''}`}
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
@@ -379,11 +427,16 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
           <div className="controls-gradient" />
 
           <div className="controls-top">
-            <div className="episode-badge">
-              <span className="episode-badge-title">{title}</span>
-              <span className="episode-badge-sub">
-                Серия {episodeNum}{currentEpisode.name ? ` — ${currentEpisode.name}` : ''}
-              </span>
+            <div className="controls-top-row">
+              <div className="episode-badge">
+                <span className="episode-badge-title">{title}</span>
+                <span className="episode-badge-sub">
+                  Серия {episodeNum}{currentEpisode.name ? ` — ${currentEpisode.name}` : ''}
+                </span>
+              </div>
+              <button className="pip-btn" onClick={togglePiP} title={isPiP ? 'Закрыть PiP' : 'Картинка в картинке'}>
+                <PictureInPicture2 size={16} />
+              </button>
             </div>
           </div>
 
@@ -477,19 +530,75 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
               </div>
 
               <div className="controls-right">
-                <div className="quality-selector">
-                  <button className="ctrl-btn quality-btn" onClick={() => setShowQualityMenu(!showQualityMenu)}>
-                    {quality}p
+                <div className="settings-wrapper">
+                  <button
+                    className="ctrl-btn settings-btn"
+                    onClick={() => { setShowSettings(!showSettings); setSettingsTab(null); }}
+                  >
+                    <Settings size={16} />
                   </button>
-                  {showQualityMenu && (
-                    <div className="quality-menu">
-                      {availableQualities.map(q => (
-                        <button
-                          key={q}
-                          className={`quality-option ${quality === q ? 'active' : ''}`}
-                          onClick={() => { setQuality(q); setShowQualityMenu(false); }}
-                        >{q}p</button>
-                      ))}
+                  {showSettings && (
+                    <div className="settings-menu" onClick={e => e.stopPropagation()}>
+                      {settingsTab === 'speed' ? (
+                        <div className="settings-submenu">
+                          <button className="settings-back" onClick={() => setSettingsTab(null)}>
+                            <ChevronLeft size={14} /> Скорость
+                          </button>
+                          {[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].map(s => (
+                            <button
+                              key={s}
+                              className={`settings-option ${playbackSpeed === s ? 'active' : ''}`}
+                              onClick={() => { setPlaybackSpeed(s); setShowSettings(false); }}
+                            >
+                              {playbackSpeed === s && <Check size={14} />}
+                              <span>{s}x</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : settingsTab === 'quality' ? (
+                        <div className="settings-submenu">
+                          <button className="settings-back" onClick={() => setSettingsTab(null)}>
+                            <ChevronLeft size={14} /> Качество
+                          </button>
+                          {availableQualities.map(q => (
+                            <button
+                              key={q}
+                              className={`settings-option ${quality === q ? 'active' : ''}`}
+                              onClick={() => { setQuality(q); setShowSettings(false); }}
+                            >
+                              {quality === q && <Check size={14} />}
+                              <span>{q}p</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <>
+                          <button className="settings-option" onClick={() => setSettingsTab('speed')}>
+                            <Gauge size={14} />
+                            <span>Скорость</span>
+                            <span className="settings-value">{playbackSpeed}x</span>
+                          </button>
+                          <button className="settings-option" onClick={() => setSettingsTab('quality')}>
+                            <Film size={14} />
+                            <span>Качество</span>
+                            <span className="settings-value">{quality}p</span>
+                          </button>
+                          <button
+                            className={`settings-option ${backgroundLight ? 'active' : ''}`}
+                            onClick={toggleBackgroundLight}
+                          >
+                            <Sun size={14} />
+                            <span>Фоновая подсветка</span>
+                          </button>
+                          <button
+                            className={`settings-option ${subtitlesEnabled ? 'active' : ''}`}
+                            onClick={toggleSubtitles}
+                          >
+                            <Subtitles size={14} />
+                            <span>Субтитры</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -636,9 +745,6 @@ const AnimeWatch = () => {
   return (
     <motion.div className="anime-watch" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
       <div className="watch-layout">
-        <button className="watch-back-btn" onClick={() => navigate('/anime/' + id)}>
-          <ChevronLeft size={20} />
-        </button>
         <div className="watch-main" ref={playerContainerRef}>
           <VideoPlayer
             episodes={sortedEpisodes}
