@@ -60,9 +60,7 @@ const saveProgressServer = async (user, id, title, poster, episodeOrdinal, episo
 };
 
 const LoadingOverlay = () => (
-  <div className="player-loading-overlay">
-    <div className="loading-pulse" />
-  </div>
+  <div className="player-loading-overlay" />
 );
 
 const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
@@ -98,6 +96,43 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
   const [showSkip, setShowSkip] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const skipIntervalRef = useRef(null);
+  const lastClickRef = useRef({ time: 0, x: 0 });
+  const seekIndicatorRef = useRef(null);
+
+  const [seekDirection, setSeekDirection] = useState(null);
+  const [showSeekIndicator, setShowSeekIndicator] = useState(false);
+
+  const showSeekFeedback = useCallback((direction) => {
+    setSeekDirection(direction);
+    setShowSeekIndicator(true);
+    clearTimeout(seekIndicatorRef.current);
+    seekIndicatorRef.current = setTimeout(() => setShowSeekIndicator(false), 600);
+  }, []);
+
+  const handlePlayerClick = useCallback((e) => {
+    const now = Date.now();
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const isDoubleTap = now - lastClickRef.current.time < 350 && Math.abs(e.clientX - lastClickRef.current.x) < 100;
+    lastClickRef.current = { time: now, x: e.clientX };
+
+    if (!isDoubleTap) return;
+
+    const midX = rect.left + rect.width / 2;
+    const direction = e.clientX < midX ? 'backward' : 'forward';
+    const video = videoRef.current;
+    if (!video) return;
+
+    const seekAmount = 10;
+    if (direction === 'backward') {
+      video.currentTime = Math.max(0, video.currentTime - seekAmount);
+    } else {
+      video.currentTime = Math.min(duration, video.currentTime + seekAmount);
+    }
+
+    showSeekFeedback(direction);
+  }, [duration, showSeekFeedback]);
 
   const qualityKey = `hls_${quality}`;
   const hlsUrl = currentEpisode?.[qualityKey] || currentEpisode?.hls_1080 || currentEpisode?.hls_720 || currentEpisode?.hls_480;
@@ -385,8 +420,8 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
       if (!video) return;
       switch (e.code) {
         case 'Space': e.preventDefault(); togglePlay(); break;
-        case 'ArrowLeft': e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); break;
-        case 'ArrowRight': e.preventDefault(); video.currentTime = Math.min(duration, video.currentTime + 10); break;
+        case 'ArrowLeft': e.preventDefault(); video.currentTime = Math.max(0, video.currentTime - 10); showSeekFeedback('backward'); break;
+        case 'ArrowRight': e.preventDefault(); video.currentTime = Math.min(duration, video.currentTime + 10); showSeekFeedback('forward'); break;
         case 'ArrowUp':
           e.preventDefault();
           video.volume = Math.min(1, video.volume + 0.1);
@@ -422,6 +457,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => isPlaying && setShowControls(false)}
+      onClick={handlePlayerClick}
       tabIndex={0}
     >
       {!hlsUrl ? (
@@ -438,6 +474,17 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
       ) : (
         <video ref={videoRef} className="player-video" onClick={togglePlay} playsInline preload="metadata" />
       )}
+
+      <div className={`seek-indicator ${showSeekIndicator ? 'visible' : ''}`}>
+        <div className={`seek-half ${seekDirection === 'backward' ? 'active' : ''}`}>
+          <SkipBack size={20} />
+          <span className="seek-label">10</span>
+        </div>
+        <div className={`seek-half ${seekDirection === 'forward' ? 'active' : ''}`}>
+          <SkipForward size={20} />
+          <span className="seek-label">10</span>
+        </div>
+      </div>
 
       {isLoading && hlsUrl && <LoadingOverlay />}
 
@@ -812,14 +859,20 @@ const AnimeWatch = () => {
   if (authLoading || isLoading) {
     return (
       <div className="anime-watch">
-        <div className="watch-skeleton">
-          <div className="skeleton-back" />
-          <div className="skeleton-player" />
-          <div className="skeleton-info">
-            <div className="skeleton-line wide" />
-            <div className="skeleton-line" />
-            <div className="skeleton-line short" />
+        <div className="watch-layout">
+          <div className="watch-main">
+            <div className="skeleton-player" />
           </div>
+          <aside className="watch-sidebar">
+            <div className="sidebar-header">
+              <div className="skeleton-sidebar-title" />
+            </div>
+            <div className="skeleton-sidebar-list">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="skeleton-episode" />
+              ))}
+            </div>
+          </aside>
         </div>
       </div>
     );

@@ -29,14 +29,34 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 
 def get_current_user(
+    response: Response,
     token: Optional[str] = Depends(oauth2_scheme),
     cookie_token: Optional[str] = Cookie(None, alias="access_token"),
+    cookie_refresh: Optional[str] = Cookie(None, alias="refresh_token"),
     db: Session = Depends(get_db)
 ):
     if not token and cookie_token:
         token = cookie_token
     
     if not token:
+        if cookie_refresh:
+            payload = decode_token(cookie_refresh)
+            if payload and payload.get("type") == "refresh":
+                user_id = payload.get("sub")
+                if user_id:
+                    user = UserService.get_by_id(db, user_id)
+                    if user:
+                        new_access = create_access_token(data={"sub": user.id, "email": user.email})
+                        response.set_cookie(
+                            key="access_token",
+                            value=new_access,
+                            httponly=True,
+                            samesite="lax",
+                            max_age=900,
+                            domain=None
+                        )
+                        return user
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -45,6 +65,24 @@ def get_current_user(
     
     payload = decode_token(token)
     if not payload:
+        if cookie_refresh:
+            payload = decode_token(cookie_refresh)
+            if payload and payload.get("type") == "refresh":
+                user_id = payload.get("sub")
+                if user_id:
+                    user = UserService.get_by_id(db, user_id)
+                    if user:
+                        new_access = create_access_token(data={"sub": user.id, "email": user.email})
+                        response.set_cookie(
+                            key="access_token",
+                            value=new_access,
+                            httponly=True,
+                            samesite="lax",
+                            max_age=900,
+                            domain=None
+                        )
+                        return user
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
@@ -417,7 +455,9 @@ def logout(response: Response, current_user: UserResponse = Depends(get_current_
 
 @router.get("/me")
 def get_me(
+    response: Response,
     access_token: Optional[str] = Cookie(None),
+    refresh_token: Optional[str] = Cookie(None),
     authorization: Optional[str] = Header(None)
 ):
     token = access_token
@@ -426,6 +466,29 @@ def get_me(
         token = authorization[7:]
     
     if not token:
+        if refresh_token:
+            payload = decode_token(refresh_token)
+            if payload and payload.get("type") == "refresh":
+                user_id = payload.get("sub")
+                if user_id:
+                    from app.database import SessionLocal
+                    db = SessionLocal()
+                    try:
+                        user = UserService.get_by_id(db, user_id)
+                        if user:
+                            new_access = create_access_token(data={"sub": user.id, "email": user.email})
+                            response.set_cookie(
+                                key="access_token",
+                                value=new_access,
+                                httponly=True,
+                                samesite="lax",
+                                max_age=900,
+                                domain=None
+                            )
+                            return user
+                    finally:
+                        db.close()
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -433,6 +496,29 @@ def get_me(
     
     payload = decode_token(token)
     if not payload:
+        if refresh_token:
+            payload = decode_token(refresh_token)
+            if payload and payload.get("type") == "refresh":
+                user_id = payload.get("sub")
+                if user_id:
+                    from app.database import SessionLocal
+                    db = SessionLocal()
+                    try:
+                        user = UserService.get_by_id(db, user_id)
+                        if user:
+                            new_access = create_access_token(data={"sub": user.id, "email": user.email})
+                            response.set_cookie(
+                                key="access_token",
+                                value=new_access,
+                                httponly=True,
+                                samesite="lax",
+                                max_age=900,
+                                domain=None
+                            )
+                            return user
+                    finally:
+                        db.close()
+        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",

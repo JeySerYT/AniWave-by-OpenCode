@@ -13,6 +13,7 @@ import AnimeDetails from './pages/AnimeDetails';
 import AnimeWatch from './pages/AnimeWatch';
 import Profile from './pages/Profile';
 import Faq from './pages/Faq';
+import Footer from './components/Footer';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Dmca from './pages/Dmca';
