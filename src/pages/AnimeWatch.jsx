@@ -10,10 +10,10 @@ import { useAnimeById } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
 import AuthModal from '../components/AuthModal';
 import ErrorMessage from '../components/ErrorMessage';
+import { API_URL } from '../api/config';
 import './AnimeWatch.css';
 
 const BASE_URL = 'https://anilibria.top';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 const CW_KEY = 'continue_watching';
 
 const formatTime = (seconds) => {
@@ -42,7 +42,7 @@ const saveProgressLocal = (animeId, title, poster, episodeOrdinal, episodesTotal
 const saveProgressServer = async (user, id, title, poster, episodeOrdinal, episodesTotal, genres) => {
   if (!user) return;
   try {
-    await fetch(`${API_URL}/profile/watch-progress`, {
+    await fetch(`${API_URL}/watch-progress`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -80,7 +80,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange }) => {
   const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [quality, setQuality] = useState('720');
+  const [quality, setQuality] = useState('1080');
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [buffered, setBuffered] = useState(0);
   const [isLoading, setIsLoading] = useState(true);

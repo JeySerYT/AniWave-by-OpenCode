@@ -1,13 +1,14 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Hls from 'hls.js';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
 import AuthModal from '../components/AuthModal';
 import { useAnimeById, usePopularAnime } from '../hooks/useAnime';
-import { useFavorites } from '../hooks/useFavorites';
+import { useCollections } from '../hooks/useFavorites';
 import { useAuth } from '../context/AuthContext';
 import './AnimeDetails.css';
 
@@ -18,10 +19,12 @@ const AnimeDetails = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCollMenu, setShowCollMenu] = useState(false);
   const { data: anime, isLoading: loading, error, refetch } = useAnimeById(id);
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { getCollectionType, addToCollection, updateCollectionType, removeFromCollection, refresh } = useCollections();
   const { data: popular } = usePopularAnime();
-  const favorite = isFavorite(id);
+  const currentType = getCollectionType(id);
+  const videoRef = useRef(null);
 
   const handleWatch = () => {
     if (!user) {
@@ -39,6 +42,31 @@ const AnimeDetails = () => {
   const formatStatus = (isOngoing) => isOngoing ? 'Сейчас выходит' : 'Завершено';
   const formatType = (type) => type?.description || type?.value || '';
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !anime?.episodes?.[0]) return;
+    const hlsUrl = anime.episodes[0].hls_720 || anime.episodes[0].hls_480;
+    if (!hlsUrl) return;
+    let hls = null;
+    if (Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = hlsUrl;
+    }
+    return () => { if (hls) hls.destroy(); };
+  }, [anime]);
+
+  useEffect(() => {
+    if (!showCollMenu) return;
+    const handler = (e) => {
+      if (!e.target.closest('.cover-collection-wrap')) setShowCollMenu(false);
+    };
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [showCollMenu]);
+
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage message={error} onRetry={() => refetch()} />;
   if (!anime) return <ErrorMessage message="Аниме не найдено" />;
@@ -47,6 +75,7 @@ const AnimeDetails = () => {
   const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Аниме';
   const description = anime.description || 'Описание недоступно';
   const genreNames = anime.genres?.map(g => g.name) || [];
+  const hlsUrl = anime.episodes?.[0]?.hls_720 || anime.episodes?.[0]?.hls_480 || null;
 
   const related = popular
     ? popular
@@ -64,11 +93,15 @@ const AnimeDetails = () => {
     <div className="anime-details">
       <motion.div
         className="details-banner"
-        style={{ backgroundImage: poster ? 'url(' + (poster.startsWith('/') ? BASE_URL + poster : poster) + ')' : 'none' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+        {hlsUrl ? (
+          <video ref={videoRef} className="banner-video" muted autoPlay loop playsInline preload="metadata" />
+        ) : (
+          <div className="banner-image" style={{ backgroundImage: poster ? 'url(' + (poster.startsWith('/') ? BASE_URL + poster : poster) + ')' : 'none' }} />
+        )}
         <div className="banner-overlay" />
         <div className="banner-gradient" />
       </motion.div>
@@ -93,16 +126,61 @@ const AnimeDetails = () => {
                   <span className="score">{(anime.averageScore / 10).toFixed(1)}</span>
                 </div>
               )}
-              <motion.button
-                className={'cover-favorite-btn' + (favorite ? ' active' : '')}
-                onClick={() => toggleFavorite(id)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill={favorite ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-              </motion.button>
+              <div className="cover-collection-wrap">
+                <motion.button
+                  className={'cover-collection-btn' + (currentType ? ' active' : '')}
+                  onClick={() => {
+                    if (!user) { setShowAuthModal(true); return; }
+                    setShowCollMenu(!showCollMenu);
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                </motion.button>
+                {showCollMenu && (
+                  <div className="collection-menu">
+                    {[
+                      { key: 'watching', label: 'Смотрю' },
+                      { key: 'completed', label: 'Просмотренное' },
+                      { key: 'planned', label: 'Буду смотреть' },
+                    ].map(opt => (
+                      <button
+                        key={opt.key}
+                        className={`coll-menu-item ${currentType === opt.key ? 'current' : ''}`}
+                        onClick={async () => {
+                          if (currentType === opt.key) {
+                            setShowCollMenu(false);
+                            return;
+                          }
+                          if (currentType) {
+                            await updateCollectionType(id, opt.key);
+                          } else {
+                            await addToCollection(anime, opt.key);
+                          }
+                          setShowCollMenu(false);
+                        }}
+                      >
+                        {opt.label}
+                        {currentType === opt.key && <span className="coll-menu-check">✓</span>}
+                      </button>
+                    ))}
+                    {currentType && (
+                      <>
+                        <div className="coll-menu-divider" />
+                        <button className="coll-menu-item remove" onClick={async () => {
+                          await removeFromCollection(id);
+                          setShowCollMenu(false);
+                        }}>
+                          Удалить из коллекции
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
             </motion.div>
           </div>
 

@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.schemas import ProfileUpdate, UserResponse, FavoriteBase, FavoriteResponse, WatchProgressBase, WatchProgressResponse
+from app.schemas.schemas import ProfileUpdate, UserResponse, FavoriteBase, FavoriteUpdate, FavoriteResponse, WatchProgressBase, WatchProgressResponse
 from app.services.user_service import UserService
 from app.services.favorite_service import FavoriteService
 from app.services.watch_progress_service import WatchProgressService
@@ -29,7 +30,7 @@ def update_profile(
                 status_code=409,
                 detail="Username already taken"
             )
-    
+
     user = UserService.update_profile(
         db,
         current_user,
@@ -43,10 +44,11 @@ def update_profile(
 
 @router.get("/favorites", response_model=list[FavoriteResponse])
 def get_favorites(
+    collection_type: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    favorites = FavoriteService.get_by_user(db, current_user.id)
+    favorites = FavoriteService.get_by_user(db, current_user.id, collection_type)
     return favorites
 
 
@@ -60,18 +62,32 @@ def add_favorite(
         db, current_user.id, favorite_data.anime_id
     )
     if existing:
-        raise HTTPException(
-            status_code=409,
-            detail="Already in favorites"
-        )
-    
+        existing.collection_type = favorite_data.collection_type or "planned"
+        db.commit()
+        db.refresh(existing)
+        return existing
+
     favorite = FavoriteService.create(
         db,
         user_id=current_user.id,
         anime_id=favorite_data.anime_id,
         title=favorite_data.title,
-        image=favorite_data.image
+        image=favorite_data.image,
+        collection_type=favorite_data.collection_type
     )
+    return favorite
+
+
+@router.patch("/favorites/{anime_id}", response_model=FavoriteResponse)
+def update_favorite(
+    anime_id: str,
+    update_data: FavoriteUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    favorite = FavoriteService.update_type(db, current_user.id, anime_id, update_data.collection_type)
+    if not favorite:
+        raise HTTPException(status_code=404, detail="Favorite not found")
     return favorite
 
 

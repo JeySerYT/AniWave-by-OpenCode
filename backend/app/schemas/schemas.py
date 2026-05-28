@@ -65,6 +65,11 @@ class FavoriteBase(BaseModel):
     anime_id: str
     title: Optional[str] = None
     image: Optional[str] = None
+    collection_type: Optional[str] = "planned"
+
+
+class FavoriteUpdate(BaseModel):
+    collection_type: str
 
 
 class FavoriteResponse(FavoriteBase):

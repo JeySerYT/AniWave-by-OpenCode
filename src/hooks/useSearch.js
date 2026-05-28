@@ -1,94 +1,99 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { anilibriaApi } from '../api/anilibria';
 
-export const useSearch = (initialFilters = {}) => {
+const genreNamesToIds = {};
+let genreMapLoaded = false;
+
+const ensureGenreMap = async () => {
+  if (genreMapLoaded) return;
+  try {
+    const genres = await anilibriaApi.getGenres();
+    if (Array.isArray(genres)) {
+      genres.forEach(g => { genreNamesToIds[g.name] = g.id; });
+      genreMapLoaded = true;
+    }
+  } catch (e) {
+    console.error('Failed to load genre map', e);
+  }
+};
+
+const sortMap = {
+  rating: 'RATING_DESC',
+  popularity: 'RATING_DESC',
+  updated_at: 'FRESH_AT_DESC',
+};
+
+export const useSearch = () => {
   const [anime, setAnime] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const searchId = useRef(0);
-
+  const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState({
-    search: '',
-    genre: '',
-    year: '',
-    kind: '',
-    status: '',
-    sort: 'rating',
-    ...initialFilters,
+    search: '', genre: '', year: '', status: '', sort: 'popularity',
   });
+  const pageRef = useRef(1);
 
-  const doSearch = useCallback(async (reset = true, pageOverride) => {
-    const id = ++searchId.current;
-    const currentPage = reset ? 1 : (pageOverride ?? page);
+  const buildApiParams = useCallback((f, page) => {
+    const params = { limit: 20, page };
 
-    if (reset) { setPage(1); setAnime([]); }
+    if (f.search) params.search = f.search;
+
+    if (f.genre && genreNamesToIds[f.genre]) {
+      params.genres = String(genreNamesToIds[f.genre]);
+    }
+
+    if (f.year) {
+      params.from_year = f.year;
+      params.to_year = f.year;
+    }
+
+    if (f.status) {
+      params.publish_statuses = f.status === 'ongoing' ? 'IS_ONGOING' : 'IS_NOT_ONGOING';
+    }
+
+    if (sortMap[f.sort]) {
+      params.sorting = sortMap[f.sort];
+    }
+
+    return params;
+  }, []);
+
+  const doSearch = useCallback(async (f, reset = true) => {
+    await ensureGenreMap();
+
+    const page = reset ? 1 : pageRef.current + 1;
+    if (reset) { setAnime([]); pageRef.current = 1; }
     setLoading(true);
     setError(null);
 
     try {
-      const params = { limit: 20, page: currentPage };
-
-      const filterParts = [];
-      if (filters.search) {
-        filterParts.push('name');
-        params.name = filters.search;
-      }
-      if (filters.year) {
-        filterParts.push('year');
-        params.year = String(filters.year);
-      }
-      if (filters.status) {
-        filterParts.push('publish_status');
-        params.publish_status = filters.status;
-      }
-      if (filters.genre) {
-        filterParts.push('genres');
-        params.genres = filters.genre;
-      }
-      if (filters.kind) {
-        filterParts.push('type');
-        params.type = filters.kind;
-      }
-
-      if (filterParts.length) params.filter = filterParts.join(',');
-      if (filters.sort) params.sorting = filters.sort;
-
-      const response = await anilibriaApi.getTitleList(params);
-      if (id !== searchId.current) return;
-
+      const apiParams = buildApiParams(f, page);
+      const response = await anilibriaApi.getTitleList(apiParams);
       const list = response?.data || [];
+      const metaTotal = response?.meta?.pagination?.total || 0;
+
       if (reset) setAnime(list);
       else setAnime(prev => [...prev, ...list]);
-
-      setHasMore(list.length >= 20);
+      setTotal(metaTotal);
+      if (!reset) pageRef.current = page;
     } catch (err) {
-      if (id === searchId.current) setError(err.message);
+      setError(err.message);
     } finally {
-      if (id === searchId.current) setLoading(false);
+      setLoading(false);
     }
-  }, [filters, page]);
+  }, [buildApiParams]);
 
-  const updateFilters = useCallback((newFilters) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+  const updateFilters = useCallback((updates) => {
+    setFilters(prev => ({ ...prev, ...updates }));
   }, []);
 
   const resetFilters = useCallback(() => {
-    setFilters({ search: '', genre: '', year: '', kind: '', status: '', sort: 'rating' });
+    setFilters({ search: '', genre: '', year: '', status: '', sort: 'popularity' });
   }, []);
 
-  const loadMore = useCallback(() => {
-    setPage(prev => {
-      const nextPage = prev + 1;
-      doSearch(false, nextPage);
-      return nextPage;
-    });
-  }, [doSearch]);
-
   return {
-    anime, loading, error, filters, page, hasMore,
-    updateFilters, resetFilters, doSearch, loadMore,
+    anime, loading, error, filters, total,
+    updateFilters, resetFilters, doSearch,
   };
 };
 

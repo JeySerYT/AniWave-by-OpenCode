@@ -1,132 +1,32 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useCollections } from '../hooks/useFavorites';
 import { useLanguage } from '../context/LanguageContext';
 import AnimeCard from '../components/AnimeCard';
 import Footer from '../components/Footer';
-import { useFavorites } from '../hooks/useFavorites';
-import { translateMultipleToRussian } from '../utils/translation';
 import logoSvg from '../assets/logo.svg';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
 import './Profile.css';
 
+const TABS = [
+  { key: 'watching', label: 'Смотрю' },
+  { key: 'completed', label: 'Просмотренное' },
+  { key: 'planned', label: 'Буду смотреть' },
+];
+
 const ProfileContent = () => {
-  const { user, loading: authLoading, updateProfile } = useAuth();
-  const { favorites, addFavorite, removeFavorite } = useFavorites();
-  const { t, language } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
+  const { collections, loading: collLoading, removeFromCollection, updateCollectionType } = useCollections();
+  const { t } = useLanguage();
   const navigate = useNavigate();
-  const [translatedTitles, setTranslatedTitles] = useState({});
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    username: user?.username || '',
-    avatar: user?.avatar || '',
-    banner: user?.banner || '',
-    bio: user?.bio || ''
-  });
-  const [bannerDragging, setBannerDragging] = useState(false);
-  const [avatarDragging, setAvatarDragging] = useState(false);
-  const bannerInputRef = useRef(null);
-  const avatarInputRef = useRef(null);
-
-  useEffect(() => {
-    if (user) {
-      setEditForm({
-        username: user.username || '',
-        avatar: user.avatar || '',
-        banner: user.banner || '',
-        bio: user.bio || ''
-      });
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (favorites.length === 0 || language !== 'ru') return;
-
-    const titlesToTranslate = favorites.map(anime => [
-      anime.id,
-      anime.title?.english || anime.title?.romaji || ''
-    ]).filter(([_, title]) => title);
-
-    if (titlesToTranslate.length === 0) return;
-
-    translateMultipleToRussian(titlesToTranslate).then(results => {
-      setTranslatedTitles(results);
-    });
-  }, [favorites, language]);
-
-  const getTranslatedTitle = (anime) => {
-    if (language !== 'ru') return null;
-    return translatedTitles[anime.id] || null;
-  };
-
-  const handleEdit = () => {
-    setEditForm({
-      username: user?.username || '',
-      avatar: user?.avatar || '',
-      banner: user?.banner || '',
-      bio: user?.bio || ''
-    });
-    setIsEditing(true);
-  };
-
-  const handleSave = async () => {
-    try {
-      await updateProfile(editForm);
-      setIsEditing(false);
-    } catch (err) {
-      console.error('Failed to update profile:', err);
-    }
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e, field) => {
-    e.preventDefault();
-    setBannerDragging(false);
-    setAvatarDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setEditForm(prev => ({ ...prev, [field]: event.target.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleFileSelect = (e, field) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setEditForm(prev => ({ ...prev, [field]: event.target.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const [activeTab, setActiveTab] = useState('watching');
 
   if (authLoading) {
     return (
       <div className="profile-page">
         <div className="profile-loading">
-          <div className="loading-spinner"></div>
+          <div className="loading-spinner" />
         </div>
       </div>
     );
@@ -136,7 +36,7 @@ const ProfileContent = () => {
     return (
       <div className="profile-page">
         <div className="guest-profile">
-          <motion.div 
+          <motion.div
             className="guest-card"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -145,20 +45,10 @@ const ProfileContent = () => {
             <h1>{t('loginToContinue')}</h1>
             <p>{t('loginToContinueText')}</p>
             <div className="guest-actions">
-              <motion.button
-                className="guest-btn primary"
-                onClick={() => navigate('/login')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <motion.button className="guest-btn primary" onClick={() => navigate('/login')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 {t('login')}
               </motion.button>
-              <motion.button
-                className="guest-btn secondary"
-                onClick={() => navigate('/register')}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <motion.button className="guest-btn secondary" onClick={() => navigate('/register')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 {t('register')}
               </motion.button>
             </div>
@@ -169,26 +59,25 @@ const ProfileContent = () => {
     );
   }
 
-  const headerClass = editForm.banner ? 'profile-header' : 'profile-header default-banner';
-  const headerStyle = editForm.banner ? { backgroundImage: `url(${editForm.banner})` } : {};
+  const currentList = collections[activeTab] || [];
+
+  const animeFromFavorite = (fav) => ({
+    id: fav.anime_id,
+    name: { main: fav.title },
+    poster: { optimized: { src: fav.image }, preview: fav.image, src: fav.image },
+  });
 
   return (
     <div className="profile-page">
       <div className="profile-content">
-        <motion.div 
-          className={headerClass}
-          style={headerStyle}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        />
+        <motion.div className="profile-header" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} />
 
         <div className="profile-avatar-wrapper">
           <div className="profile-avatar">
-            <img src={editForm.avatar || logoSvg} alt={editForm.username} />
+            <img src={user.avatar || logoSvg} alt={user.username} />
           </div>
           <div className="online-status">
-            <span className="status-dot"></span>
+            <span className="status-dot" />
             <span className="status-text">Online</span>
           </div>
         </div>
@@ -197,205 +86,73 @@ const ProfileContent = () => {
           <h1 className="profile-name">{user.username}</h1>
           {user.bio && <p className="profile-status">{user.bio}</p>}
         </div>
-        
-        <motion.button
-          className="edit-profile-btn"
-          onClick={handleEdit}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {t('editProfile')}
-        </motion.button>
-        
-        {import.meta.env.DEV && (
-          <div style={{ display: 'flex', gap: '10px', marginTop: '16px', flexWrap: 'wrap' }}>
-            <button 
-              onClick={() => {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.reload();
-              }}
-              style={{
-                padding: '8px 16px',
-                background: '#ff6b6b',
-                border: 'none',
-                borderRadius: '6px',
-                color: '#fff',
-                cursor: 'pointer',
-                fontSize: '12px'
-              }}
-            >
-              Clear LocalStorage + Cache
-            </button>
-            <button 
-              onClick={async () => {
-                try {
-                  await fetch('http://localhost:8081/api/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include'
-                  });
-                } catch (e) {}
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
-                window.location.reload();
-              }}
-              style={{
-                padding: '8px 16px',
-                background: '#feca57',
-                border: 'none',
-                borderRadius: '6px',
-                color: '#333',
-                cursor: 'pointer',
-                fontSize: '12px'
-              }}
-            >
-              Clear Cookies
-            </button>
-            <button 
-              onClick={() => {
-                fetch('http://localhost:8081/api/auth/logout', {
-                  method: 'POST',
-                  credentials: 'include'
-                }).finally(() => {
-                  localStorage.clear();
-                  window.location.href = '/';
-                });
-              }}
-              style={{
-                padding: '8px 16px',
-                background: '#48dbfb',
-                border: 'none',
-                borderRadius: '6px',
-                color: '#333',
-                cursor: 'pointer',
-                fontSize: '12px'
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        )}
-        
-        <motion.section 
-          className="favorites-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
-          <h2 className="favorites-title">
-            {t('favorites')}
-            <span className="favorites-count">{favorites.length}</span>
-          </h2>
 
-          {favorites.length === 0 ? (
-            <div className="empty-favorites">
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              <h3>{t('noFavoritesTitle')}</h3>
-              <p>{t('noFavoritesText')}</p>
-            </div>
-          ) : (
-            <div className="favorites-grid">
-              {favorites.map((anime, index) => (
-                <AnimeCard key={anime.id} anime={anime} index={index} translatedTitle={getTranslatedTitle(anime)} />
-              ))}
-            </div>
-          )}
-        </motion.section>
-      </div>
-      
-      <Footer />
-      
-      {isEditing && (
-        <div className="edit-modal-backdrop" onClick={handleCancel}>
-          <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{t('editProfile')}</h2>
-            <div className="edit-field">
-              <label>{t('username')}</label>
-              <input type="text" name="username" value={editForm.username} onChange={handleChange} />
-            </div>
-            <div className="edit-field">
-              <label>Banner</label>
-              <div 
-                className={`drop-zone ${bannerDragging ? 'dragging' : ''}`}
-                onDragOver={handleDragOver}
-                onDragLeave={(e) => { handleDragLeave(e); setBannerDragging(false); }}
-                onDrop={(e) => handleDrop(e, 'banner')}
-                onClick={() => bannerInputRef.current?.click()}
-              >
-                {editForm.banner ? (
-                  <img src={editForm.banner} alt="Banner preview" className="drop-preview" />
-                ) : (
-                  <div className="drop-placeholder">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/>
-                      <circle cx="8.5" cy="8.5" r="1.5"/>
-                      <path d="M21 15l-5-5L5 21"/>
-                    </svg>
-                    <span>Drop image or click</span>
-                  </div>
-                )}
-              </div>
-              <input 
-                ref={bannerInputRef}
-                type="file" 
-                accept="image/*" 
-                onChange={(e) => handleFileSelect(e, 'banner')} 
-                style={{ display: 'none' }} 
-              />
-            </div>
-
-            <div className="edit-field">
-              <label>Avatar</label>
-              <div 
-                className={`drop-zone drop-zone-small ${avatarDragging ? 'dragging' : ''}`}
-                onDragOver={handleDragOver}
-                onDragLeave={(e) => { handleDragLeave(e); setAvatarDragging(false); }}
-                onDrop={(e) => handleDrop(e, 'avatar')}
-                onClick={() => avatarInputRef.current?.click()}
-              >
-                {editForm.avatar ? (
-                  <img src={editForm.avatar} alt="Avatar preview" className="drop-preview-avatar" />
-                ) : (
-                  <div className="drop-placeholder">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/>
-                      <circle cx="8.5" cy="8.5" r="1.5"/>
-                      <path d="M21 15l-5-5L5 21"/>
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <input 
-                ref={avatarInputRef}
-                type="file" 
-                accept="image/*" 
-                onChange={(e) => handleFileSelect(e, 'avatar')} 
-                style={{ display: 'none' }} 
-              />
-            </div>
-            <div className="edit-field">
-              <label>Bio</label>
-              <textarea name="bio" value={editForm.bio} onChange={handleChange} rows={3} />
-            </div>
-            <div className="edit-actions">
-              <button className="cancel-btn" onClick={handleCancel}>{t('cancel')}</button>
-              <button className="save-btn" onClick={handleSave}>{t('save')}</button>
-            </div>
-          </div>
+        <div className="profile-tabs">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              className={`profile-tab ${activeTab === tab.key ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+              <span className="tab-count">{collections[tab.key]?.length || 0}</span>
+            </button>
+          ))}
         </div>
-      )}
+
+        <AnimatePresence mode="wait">
+          <motion.section
+            key={activeTab}
+            className="collections-section"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {collLoading ? (
+              <div className="profile-loading"><div className="loading-spinner" /></div>
+            ) : currentList.length === 0 ? (
+              <div className="empty-collection">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <h3>Пусто</h3>
+                <p>Добавьте аниме из карточки на сайте</p>
+              </div>
+            ) : (
+              <div className="collections-grid">
+                {currentList.map((fav, i) => (
+                  <div key={fav.id || fav.anime_id} className="collection-card-wrap">
+                    <AnimeCard anime={animeFromFavorite(fav)} index={i} />
+                    <div className="collection-card-actions">
+                      {TABS.filter(t => t.key !== activeTab).map(tab => (
+                        <button
+                          key={tab.key}
+                          className="coll-action-btn"
+                          onClick={() => updateCollectionType(fav.anime_id, tab.key)}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                      <button
+                        className="coll-action-btn remove"
+                        onClick={() => removeFromCollection(fav.anime_id)}
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.section>
+        </AnimatePresence>
+      </div>
+      <Footer />
     </div>
   );
 };
 
-const Profile = () => {
-  return <ProfileContent />;
-};
+const Profile = () => <ProfileContent />;
 
 export default Profile;

@@ -1,16 +1,15 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../api/config';
 import './AuthModal.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
 
 const AuthModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const handleOAuth = async (provider) => {
     try {
-      const r = await fetch(`${API_URL}/api/auth/oauth/${provider}`, { credentials: 'include' });
+      const r = await fetch(`${API_URL}/auth/oauth/${provider}`, { credentials: 'include' });
       const d = await r.json();
       if (d.auth_url) window.location.href = d.auth_url;
     } catch (e) { /* ignore */ }

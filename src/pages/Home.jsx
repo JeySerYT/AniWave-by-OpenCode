@@ -8,9 +8,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
 import { anilibriaApi } from '../api/anilibria';
+import { API_URL } from '../api/config';
 import './Home.css';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 function getCurrentSeason() {
   const month = new Date().getMonth();
@@ -25,7 +24,7 @@ const Home = () => {
   const currentYear = new Date().getFullYear();
   const currentSeason = getCurrentSeason();
 
-  const [visibleCounts, setVisibleCounts] = useState({ best: 6, seasonal: 6, ongoing: 6, recent: 6 });
+  const [visibleCounts, setVisibleCounts] = useState({ best: 7, seasonal: 7, ongoing: 7, recent: 7 });
   const [continueWatching, setContinueWatching] = useState([]);
 
   const { data: bestAnime, isLoading: bestLoading, error: bestError, refetch: refetchBest } = useTrendingAnime();
@@ -50,7 +49,7 @@ const Home = () => {
 
   useEffect(() => {
     if (user) {
-      fetch(`${API_URL}/profile/watch-progress`, { credentials: 'include' })
+      fetch(`${API_URL}/watch-progress`, { credentials: 'include' })
         .then(r => r.ok ? r.json() : [])
         .then(data => {
           if (Array.isArray(data) && data.length > 0) {
@@ -74,16 +73,16 @@ const Home = () => {
   }, [user]);
 
   const handleLoadMore = (section) => {
-    setVisibleCounts(prev => ({ ...prev, [section]: (prev[section] || 6) + 6 }));
+    setVisibleCounts(prev => ({ ...prev, [section]: (prev[section] || 7) + 7 }));
   };
 
   const totalWatching = useMemo(() => {
     if (!bestAnime) return 0;
-    return bestAnime.slice(0, 6).reduce((sum, a) => sum + (a.added_in_watching_collection || 0), 0);
+    return bestAnime.slice(0, 7).reduce((sum, a) => sum + (a.added_in_watching_collection || 0), 0);
   }, [bestAnime]);
 
   const renderSection = (key, title, subtitle, data, loading, error) => {
-    const count = visibleCounts[key] || 6;
+    const count = visibleCounts[key] || 7;
 
     return (
       <section className="home-section" key={key}>
@@ -144,7 +143,7 @@ const Home = () => {
               </div>
             </div>
             <div className="anime-grid">
-              {continueWatching.slice(0, 6).map((item, i) => (
+              {continueWatching.slice(0, 7).map((item, i) => (
                 <AnimeCard key={item.id} anime={{
                   id: item.id,
                   name: { main: item.title },

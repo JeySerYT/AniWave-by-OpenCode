@@ -5,7 +5,7 @@ import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import Logo from '../assets/logo.svg';
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+import { API_URL } from '../api/config';
 import './Auth.css';
 
 function Login() {
@@ -33,7 +33,7 @@ function Login() {
 
   const handleOAuthLogin = async (provider) => {
     try {
-      const response = await fetch(`${API_URL}/api/auth/oauth/${provider}`, {
+      const response = await fetch(`${API_URL}/auth/oauth/${provider}`, {
         credentials: 'include'
       });
       const data = await response.json();

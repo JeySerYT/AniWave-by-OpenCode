@@ -56,9 +56,10 @@ class Favorite(Base):
     anime_id = Column(String, nullable=False)
     title = Column(String(255), default="")
     image = Column(String(500), default="")
+    collection_type = Column(String(20), default="planned")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="favorites")
 
     def __repr__(self):
-        return f"<Favorite {self.anime_id} for user {self.user_id}>"
+        return f"<Favorite {self.anime_id} for user {self.user_id} ({self.collection_type})>"
