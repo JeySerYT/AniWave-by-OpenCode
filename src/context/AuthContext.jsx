@@ -8,14 +8,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('logged_in') === 'true') {
-      fetchUserFromCookie().then(() => {
-        window.location.href = '/profile';
-      });
-      return;
-    }
-
     fetchUserFromCookie();
   }, []);
 
@@ -75,6 +67,13 @@ export function AuthProvider({ children }) {
     });
     const userData = await userRes.json();
     setUser(userData);
+
+    const redirectUrl = sessionStorage.getItem('redirect_after_login');
+    if (redirectUrl) {
+      sessionStorage.removeItem('redirect_after_login');
+      window.location.href = redirectUrl;
+    }
+
     return result;
   };
 
@@ -97,6 +96,13 @@ export function AuthProvider({ children }) {
     });
     const userData = await userRes.json();
     setUser(userData);
+
+    const redirectUrl = sessionStorage.getItem('redirect_after_login');
+    if (redirectUrl) {
+      sessionStorage.removeItem('redirect_after_login');
+      window.location.href = redirectUrl;
+    }
+
     return result;
   };
 
@@ -112,7 +118,7 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('auth_token');
     sessionStorage.removeItem('user');
     setUser(null);
-    window.location.href = '/';
+    window.location.href = '/profile';
   };
 
   const updateProfile = async (data) => {

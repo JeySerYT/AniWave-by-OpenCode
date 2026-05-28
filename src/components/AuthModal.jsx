@@ -5,6 +5,10 @@ import { API_URL } from '../api/config';
 import './AuthModal.css';
 
 const AuthModal = ({ isOpen, onClose }) => {
+  const handleClose = () => {
+    sessionStorage.removeItem('redirect_after_login');
+    onClose();
+  };
   const navigate = useNavigate();
 
   const handleOAuth = async (provider) => {
@@ -32,7 +36,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={e => e.stopPropagation()}
           >
-            <button className="authmodal-close" onClick={onClose}>
+            <button className="authmodal-close" onClick={handleClose}>
               <X size={18} />
             </button>
 

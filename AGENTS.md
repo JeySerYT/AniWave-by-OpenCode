@@ -50,13 +50,16 @@ cd backend && uvicorn app.main:app --reload --port 8081
 
 # Run with custom port
 PORT=8082 py backend/main.py
+
+# Note: frontend dev server proxies /api -> localhost:8081 via vite.config.js
+# Restart frontend dev server after changing backend port
 ```
 
 ## Environment Variables
 
 ### Frontend (.env)
 ```
-VITE_API_URL=http://localhost:8081/api
+VITE_API_URL=/api
 ```
 
 ### Backend (backend/.env)

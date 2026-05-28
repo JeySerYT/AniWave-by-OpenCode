@@ -147,12 +147,14 @@
   color: var(--text-primary);
 }
 
-.authmodal-oauth-btn.google {
+.authmodal-oauth-btn.google,
+.authmodal-oauth-btn.github {
   color: var(--text-primary);
 }
 
+.authmodal-oauth-btn.google:hover,
 .authmodal-oauth-btn.github:hover {
-  border-color: #666;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 @media (max-width: 480px) {

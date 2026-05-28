@@ -220,7 +220,7 @@ def google_callback(
             domain=None
         )
         
-        response.headers["Location"] = f"{FRONTEND_URL}/profile?logged_in=true"
+        response.headers["Location"] = f"{FRONTEND_URL}/profile"
         response.status_code = status.HTTP_302_FOUND
         return response
         
@@ -315,7 +315,7 @@ def github_callback(
             domain=None
         )
         
-        response.headers["Location"] = f"{FRONTEND_URL}/profile?logged_in=true"
+        response.headers["Location"] = f"{FRONTEND_URL}/profile"
         response.status_code = status.HTTP_302_FOUND
         return response
         

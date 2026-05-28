@@ -29,6 +29,7 @@ const AnimeDetails = () => {
 
   const handleWatch = () => {
     if (!user) {
+      sessionStorage.setItem('redirect_after_login', '/anime/' + id + '/watch');
       setShowAuthModal(true);
     } else {
       navigate('/anime/' + id + '/watch');
