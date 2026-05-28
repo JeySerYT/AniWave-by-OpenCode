@@ -23,7 +23,6 @@
   background: #000;
   border-radius: 14px;
   overflow: hidden;
-  cursor: pointer;
   user-select: none;
   outline: none;
   container-type: inline-size;
@@ -211,13 +210,16 @@
   border-radius: 9999px;
   cursor: pointer;
   margin-bottom: clamp(0.3rem, 0.6cqi, 0.8rem);
-  transition: height 0.15s ease;
+  transition: height 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.progress-bar:hover { height: 6px; }
+.progress-bar:hover { height: clamp(4px, 0.7cqi, 8px); }
 .progress-bar:hover .progress-thumb,
-.progress-bar.dragging .progress-thumb { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-.progress-bar.dragging { height: 6px; }
+.progress-bar.dragging .progress-thumb {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.progress-bar.dragging { height: clamp(4px, 0.7cqi, 8px); }
 
 .progress-buffered {
   position: absolute;
@@ -225,6 +227,7 @@
   height: 100%;
   background: rgba(255,255,255,0.1);
   border-radius: 9999px;
+  transition: width 0.3s ease;
 }
 
 .progress-played {
@@ -233,6 +236,7 @@
   height: 100%;
   background: linear-gradient(90deg, var(--accent-red), var(--accent-pink));
   border-radius: 9999px;
+  transition: width 0.08s linear;
 }
 
 .progress-thumb {
@@ -345,7 +349,7 @@
 .volume-slider-wrap {
   width: 0;
   overflow: hidden;
-  transition: width 0.2s ease;
+  transition: width 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   margin-left: 0.3rem;
   border-radius: 6px;
   height: 24px;
@@ -360,7 +364,7 @@
   height: 3px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255,255,255,0.2);
+  background: linear-gradient(to right, #fff 0%, #fff var(--volume-pct, 100%), rgba(255,255,255,0.18) var(--volume-pct, 100%), rgba(255,255,255,0.18) 100%);
   border-radius: 9999px;
   outline: none;
   cursor: pointer;
@@ -384,6 +388,17 @@
   background: #fff;
   cursor: pointer;
   border: none;
+}
+
+.volume-range::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+.volume-range::-moz-range-progress {
+  background: #fff;
+  height: 3px;
+  border-radius: 9999px;
 }
 
 .time-display {
@@ -413,7 +428,11 @@
   min-width: 180px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   z-index: 30;
+  transform-origin: bottom right;
+  animation: menuIn 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
+
+
 
 .settings-submenu {
   display: flex;
@@ -462,12 +481,19 @@
   font-size: 0.75rem;
 }
 
+.settings-empty {
+  padding: 1.5rem 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
 .pip-btn {
   background: none;
   border: none;
   color: rgba(255,255,255,0.6);
   cursor: pointer;
-  padding: 0.3rem;
+  padding: clamp(0.2rem, 0.6cqi, 0.5rem);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -478,23 +504,20 @@
 
 .pip-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
-.controls-top-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+.pip-btn svg {
+  width: clamp(14px, 2cqi, 24px) !important;
+  height: clamp(14px, 2cqi, 24px) !important;
 }
 
-.with-bg-light::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  pointer-events: none;
-  box-shadow:
-    inset 0 0 60px rgba(255,64,129,0.12),
-    0 0 80px rgba(255,64,129,0.08);
-  z-index: 5;
+.controls-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
+
+
+
 
 .watch-sidebar {
   background: var(--bg-secondary);
