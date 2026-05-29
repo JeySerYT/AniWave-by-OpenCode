@@ -84,7 +84,22 @@ const SkeletonAnimeDetails = () => (
             <div className="skeleton-line w-60" />
           </div>
           <div className="info-panel glass-card">
-            <div className="skeleton-line w-70" style={{ margin: 0 }} />
+            <div className="info-row">
+              <span className="skeleton-line" style={{ width: 100, margin: 0, flexShrink: 0 }} />
+              <span className="skeleton-line" style={{ width: 180, margin: 0 }} />
+            </div>
+            <div className="info-row">
+              <span className="skeleton-line" style={{ width: 100, margin: 0, flexShrink: 0 }} />
+              <span className="skeleton-line" style={{ width: 120, margin: 0 }} />
+            </div>
+            <div className="info-row">
+              <span className="skeleton-line" style={{ width: 100, margin: 0, flexShrink: 0 }} />
+              <span className="skeleton-line" style={{ width: 80, margin: 0 }} />
+            </div>
+            <div className="info-row" style={{ borderBottom: 'none', marginBottom: 0, paddingBottom: 0 }}>
+              <span className="skeleton-line" style={{ width: 100, margin: 0, flexShrink: 0 }} />
+              <span className="skeleton-line" style={{ width: 140, margin: 0 }} />
+            </div>
           </div>
         </div>
       </div>
