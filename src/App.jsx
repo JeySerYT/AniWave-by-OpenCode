@@ -1,10 +1,10 @@
-import { useState, useEffect, memo } from 'react';
+import { memo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './components/Toast';
 import Header from './components/Header';
-import LoadingSpinner from './components/LoadingSpinner';
 import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Search from './pages/Search';
@@ -48,19 +48,10 @@ const Layout = memo(({ children, hideHeader }) => (
 ));
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setIsLoading(false);
-  }, []);
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <ToastProvider>
           <BrowserRouter>
             <ScrollToTop />
             <div className="App">
@@ -81,7 +72,8 @@ function App() {
               </Routes>
             </div>
           </BrowserRouter>
-        </AuthProvider>
+        </ToastProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
