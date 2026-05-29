@@ -175,6 +175,25 @@ export const anilibriaApi = {
     if (!response.ok) throw new Error('API error: ' + response.status);
     return response.json();
   },
+
+  async getSimilarByGenre(genreIds) {
+    const results = await Promise.all(
+      genreIds.map(gid =>
+        this.getTitleList({ sorting: 'RATING_DESC', limit: 4, genres: String(gid) })
+      )
+    );
+    const seen = new Set();
+    const combined = [];
+    for (const res of results) {
+      for (const item of (res.data || [])) {
+        if (!seen.has(item.id)) {
+          seen.add(item.id);
+          combined.push(item);
+        }
+      }
+    }
+    return { data: combined };
+  },
 };
 
 export default anilibriaApi;

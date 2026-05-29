@@ -17,7 +17,7 @@ const BASE_URL = 'https://anilibria.top';
 const GenreSimilar = ({ anime, id }) => {
   const genreIds = anime?.genres?.map(g => g.id) || [];
   const { data: similarByGenre, isLoading } = useSimilarByGenre(genreIds);
-  const related = (similarByGenre || []).filter(r => String(r.id) !== String(id)).slice(0, 10);
+  const related = (similarByGenre || []).filter(r => String(r.id) !== String(id));
 
   if (isLoading) return null;
   if (related.length === 0) return null;
@@ -29,7 +29,7 @@ const GenreSimilar = ({ anime, id }) => {
       animate={{ opacity: 1 }}
       transition={{ delay: 0.8 }}
     >
-      <h2 className="related-title">Похожее</h2>
+      <h2 className="related-title">Похожее по жанрам</h2>
       <div className="related-grid">
         {related.map((a, i) => (
           <AnimeCard key={a.id} anime={a} index={i} brief={a.genres?.slice(0, 3).map(g => g.name).join(', ')} />
