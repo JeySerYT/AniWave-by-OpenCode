@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Hls from 'hls.js';
-import { SkeletonGrid, SkeletonBanner } from '../components/Skeleton';
+import { SkeletonAnimeDetails } from '../components/Skeleton';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
@@ -135,13 +135,7 @@ const AnimeDetails = () => {
 
   if (loading) return (
     <div className="anime-details">
-      <div className="details-banner" style={{ background: '#1a1a1a', height: 400 }} />
-      <div className="details-content" style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem' }}>
-        <SkeletonBanner />
-        <div style={{ marginTop: '2rem' }}>
-          <SkeletonGrid count={6} />
-        </div>
-      </div>
+      <SkeletonAnimeDetails />
       <Footer />
     </div>
   );
