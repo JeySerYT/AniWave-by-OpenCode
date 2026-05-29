@@ -65,11 +65,15 @@ export function AuthProvider({ children }) {
       throw new Error(msg);
     }
     
-    const userRes = await fetch(`${API_URL}/auth/me`, {
-      credentials: 'include'
-    });
-    const userData = await userRes.json();
-    setUser(userData);
+    try {
+      const userRes = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include'
+      });
+      const userData = await userRes.json();
+      setUser(userData);
+    } catch (err) {
+      console.error('Failed to fetch user after register:', err);
+    }
 
     const redirectUrl = sessionStorage.getItem('redirect_after_login');
     if (redirectUrl) {
@@ -93,11 +97,15 @@ export function AuthProvider({ children }) {
       throw new Error(msg);
     }
     
-    const userRes = await fetch(`${API_URL}/auth/me`, {
-      credentials: 'include'
-    });
-    const userData = await userRes.json();
-    setUser(userData);
+    try {
+      const userRes = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include'
+      });
+      const userData = await userRes.json();
+      setUser(userData);
+    } catch (err) {
+      console.error('Failed to fetch user after login:', err);
+    }
 
     const redirectUrl = sessionStorage.getItem('redirect_after_login');
     if (redirectUrl) {
@@ -137,7 +145,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile, refresh: fetchUserFromCookie }}>
       {children}
     </AuthContext.Provider>
   );
