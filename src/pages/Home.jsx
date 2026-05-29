@@ -186,7 +186,7 @@ const Home = () => {
         {renderSection('best', 'Лучшие аниме', 'Популярное сейчас', bestAnime, bestLoading, bestError)}
         {renderSection('seasonal', 'Сезонное', { winter: 'Зимние аниме', spring: 'Весенние аниме', summer: 'Летние аниме', autumn: 'Осенние аниме' }[currentSeason], seasonalAnime, seasonalLoading, seasonalError)}
         {renderSection('recent', 'Новые эпизоды', 'Последние релизы', recentAnime, recentLoading, recentError)}
-        {renderSection('year', 'Вышло в этом году', String(currentYear), shuffledYearAnime, yearLoading, yearError)}
+        {renderSection('year', 'Вышло в этом году', `Аниме вышедшие в ${currentYear} году`, shuffledYearAnime, yearLoading, yearError)}
       </div>
       <Footer />
     </div>
