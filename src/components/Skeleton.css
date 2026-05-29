@@ -66,6 +66,7 @@
 .w-60 { width: 60%; }
 .w-80 { width: 80%; }
 .w-40 { width: 40%; }
+.w-20 { width: 20%; }
 
 @media (max-width: 768px) {
   .skeleton-grid {
@@ -100,18 +101,8 @@
   margin-bottom: 3rem;
 }
 
-.details-left-skeleton {
-  flex-shrink: 0;
-}
-
 .details-right-skeleton {
   flex: 1;
-}
-
-.meta-row-skeleton {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
 }
 
 .info-panel-skeleton {
@@ -124,16 +115,6 @@
 .related-skeleton {
   margin-top: 2rem;
 }
-
-.w-30 { width: 30%; }
-.w-40 { width: 40%; }
-.w-45 { width: 45%; }
-.w-50 { width: 50%; }
-.w-60 { width: 60%; }
-.w-70 { width: 70%; }
-.w-80 { width: 80%; }
-.w-90 { width: 90%; }
-.w-100 { width: 100%; }
 
 @media (max-width: 768px) {
   .details-main-skeleton {
