@@ -57,39 +57,32 @@ const Home = () => {
   const hlsUrl = openingEp?.hls_720 || openingEp?.hls_480 || null;
 
   useEffect(() => {
+    if (!user) return;
     setCwLoading(true);
-    if (user) {
-      fetch(`${API_URL}/watch-progress`, { credentials: 'include' })
-        .then(r => r.ok ? r.json() : [])
-        .then(data => {
-          setCwLoading(false);
-          if (Array.isArray(data) && data.length > 0) {
-            const seen = new Set();
-            const deduped = [];
-            for (const w of data) {
-              if (!seen.has(w.anime_id)) {
-                seen.add(w.anime_id);
-                deduped.push({
-                  id: w.anime_id,
-                  title: w.title,
-                  poster: w.poster,
-                  progress: parseInt(w.episode) || 1,
-                  episodes_total: parseInt(w.episodes_total) || 0,
-                  genres: (() => { try { return JSON.parse(w.genres || '[]'); } catch { return []; } })()
-                });
-              }
+    fetch(`${API_URL}/watch-progress`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        setCwLoading(false);
+        if (Array.isArray(data) && data.length > 0) {
+          const seen = new Set();
+          const deduped = [];
+          for (const w of data) {
+            if (!seen.has(w.anime_id)) {
+              seen.add(w.anime_id);
+              deduped.push({
+                id: w.anime_id,
+                title: w.title,
+                poster: w.poster,
+                progress: parseInt(w.episode) || 1,
+                episodes_total: parseInt(w.episodes_total) || 0,
+                genres: (() => { try { return JSON.parse(w.genres || '[]'); } catch { return []; } })()
+              });
             }
-            setContinueWatching(deduped);
           }
-        })
-        .catch(() => { setCwLoading(false); });
-    } else {
-      setCwLoading(false);
-      try {
-        const saved = JSON.parse(localStorage.getItem('continue_watching') || '[]');
-        setContinueWatching(saved);
-      } catch (e) { /* ignore */ }
-    }
+          setContinueWatching(deduped);
+        }
+      })
+      .catch(() => { setCwLoading(false); });
   }, [user]);
 
   const handleLoadMore = (section) => {

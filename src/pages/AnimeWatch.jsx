@@ -15,7 +15,6 @@ import { API_URL } from '../api/config';
 import './AnimeWatch.css';
 
 const BASE_URL = 'https://anilibria.top';
-const CW_KEY = 'continue_watching';
 
 const formatTime = (seconds) => {
   if (!seconds || isNaN(seconds)) return '0:00';
@@ -24,20 +23,6 @@ const formatTime = (seconds) => {
   const s = Math.floor(seconds % 60);
   if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   return `${m}:${s.toString().padStart(2, '0')}`;
-};
-
-const saveProgressLocal = (animeId, title, poster, episodeOrdinal, episodesTotal, genres) => {
-  try {
-    const saved = JSON.parse(localStorage.getItem(CW_KEY) || '[]');
-    const idx = saved.findIndex(i => i.id === animeId);
-    const entry = {
-      id: animeId, title, poster, progress: episodeOrdinal,
-      episodes_total: episodesTotal, genres, updatedAt: Date.now()
-    };
-    if (idx >= 0) saved[idx] = entry;
-    else saved.unshift(entry);
-    localStorage.setItem(CW_KEY, JSON.stringify(saved.slice(0, 20)));
-  } catch (e) { /* ignore */ }
 };
 
 const saveProgressServer = async (user, id, title, poster, episodeOrdinal, episodesTotal, genres) => {
@@ -813,7 +798,6 @@ const AnimeWatch = () => {
   useEffect(() => {
     if (!currentEpisode) return;
     const { id, title, poster, episodesTotal, genres } = saveRef.current;
-    saveProgressLocal(id, title, poster, currentEpisode.ordinal, episodesTotal, genres);
     saveProgressServer(user, id, title, poster, currentEpisode.ordinal, episodesTotal, genres);
   }, [currentEpisode?.ordinal, user]);
 
@@ -821,7 +805,6 @@ const AnimeWatch = () => {
     if (!currentEpisode) return;
     const interval = setInterval(() => {
       const { id, title, poster, episodesTotal, genres } = saveRef.current;
-      saveProgressLocal(id, title, poster, currentEpisode.ordinal, episodesTotal, genres);
       saveProgressServer(user, id, title, poster, currentEpisode.ordinal, episodesTotal, genres);
     }, 30000);
     return () => clearInterval(interval);
