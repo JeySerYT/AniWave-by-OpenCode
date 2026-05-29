@@ -184,7 +184,7 @@ const Home = () => {
         )}
 
         {renderSection('best', 'Лучшие аниме', 'Популярное сейчас', bestAnime, bestLoading, bestError)}
-        {renderSection('seasonal', 'Сезонное', 'Текущий сезон', seasonalAnime, seasonalLoading, seasonalError)}
+        {renderSection('seasonal', 'Сезонное', { winter: 'Зима', spring: 'Весна', summer: 'Лето', autumn: 'Осень' }[currentSeason] || 'Текущий сезон', seasonalAnime, seasonalLoading, seasonalError)}
         {renderSection('recent', 'Новые эпизоды', 'Последние релизы', recentAnime, recentLoading, recentError)}
         {renderSection('year', 'Вышло в этом году', String(currentYear), shuffledYearAnime, yearLoading, yearError)}
       </div>
