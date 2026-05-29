@@ -27,6 +27,16 @@ const AnimeDetails = () => {
   const currentType = getCollectionType(id);
   const videoRef = useRef(null);
 
+  const franchiseReleases = useMemo(() => {
+    if (!franchiseData) return null;
+    const franchises = Array.isArray(franchiseData) ? franchiseData : [franchiseData];
+    const first = franchises[0];
+    if (!first || !first.releases) return null;
+    return first.releases.filter(r => String(r.id) !== String(id)).slice(0, 10);
+  }, [franchiseData, id]);
+
+  const related = franchiseReleases || [];
+
   const handleWatch = () => {
     if (!user) {
       sessionStorage.setItem('redirect_after_login', '/anime/' + id + '/watch');
@@ -115,16 +125,6 @@ const AnimeDetails = () => {
   const description = anime.description || 'Описание недоступно';
   const genreNames = anime.genres?.map(g => g.name) || [];
   const hlsUrl = anime.episodes?.[0]?.hls_720 || anime.episodes?.[0]?.hls_480 || null;
-
-  const franchiseReleases = useMemo(() => {
-    if (!franchiseData) return null;
-    const franchises = Array.isArray(franchiseData) ? franchiseData : [franchiseData];
-    const first = franchises[0];
-    if (!first || !first.releases) return null;
-    return first.releases.filter(r => String(r.id) !== String(id)).slice(0, 10);
-  }, [franchiseData, id]);
-
-  const related = franchiseReleases || [];
 
   return (
     <div className="anime-details">
