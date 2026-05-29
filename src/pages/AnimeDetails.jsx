@@ -82,36 +82,41 @@ const AnimeDetails = () => {
   const formatStatus = (isOngoing) => isOngoing ? 'Сейчас выходит' : 'Завершено';
   const formatType = (type) => type?.description || type?.value || '';
 
+  const bannerEp = useMemo(() => {
+    if (!anime?.episodes?.length) return null;
+    return anime.episodes.find(e => e.opening?.start > 0 && e.opening?.stop > e.opening?.start) || anime.episodes[0];
+  }, [anime]);
+
+  const bannerHlsUrl = bannerEp?.hls_720 || bannerEp?.hls_480 || null;
+  const bannerOpening = bannerEp?.opening || null;
+
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !anime?.episodes?.[0]) return;
-    const ep = anime.episodes[0];
-    const hlsUrl = ep.hls_720 || ep.hls_480;
-    if (!hlsUrl) { setBannerVideoFailed(true); return; }
+    if (!video || !bannerHlsUrl) { setBannerVideoFailed(true); return; }
     let hls = null;
     const onLoaded = () => {
       setBannerVideoFailed(false);
-      if (ep.opening?.start > 0 && ep.opening?.stop > ep.opening.start) {
-        video.currentTime = ep.opening.start;
+      if (bannerOpening?.start > 0 && bannerOpening?.stop > bannerOpening.start) {
+        video.currentTime = bannerOpening.start;
       }
     };
     const onTimeUpdate = () => {
-      if (ep.opening?.start > 0 && ep.opening?.stop > ep.opening.start) {
-        if (video.currentTime >= ep.opening.stop) {
-          video.currentTime = ep.opening.start;
+      if (bannerOpening?.start > 0 && bannerOpening?.stop > bannerOpening.start) {
+        if (video.currentTime >= bannerOpening.stop) {
+          video.currentTime = bannerOpening.start;
         }
       }
     };
     if (Hls.isSupported()) {
       hls = new Hls();
-      hls.loadSource(hlsUrl);
+      hls.loadSource(bannerHlsUrl);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, onLoaded);
       hls.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) setBannerVideoFailed(true);
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = hlsUrl;
+      video.src = bannerHlsUrl;
       video.addEventListener('loadedmetadata', onLoaded, { once: true });
       video.addEventListener('error', () => setBannerVideoFailed(true), { once: true });
     } else {
@@ -122,7 +127,7 @@ const AnimeDetails = () => {
       if (hls) hls.destroy();
       video.removeEventListener('timeupdate', onTimeUpdate);
     };
-  }, [anime]);
+  }, [bannerHlsUrl, bannerOpening]);
 
   useEffect(() => {
     if (!showCollMenu) return;
@@ -146,7 +151,6 @@ const AnimeDetails = () => {
   const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Аниме';
   const description = anime.description || 'Описание недоступно';
   const genreNames = anime.genres?.map(g => g.name) || [];
-  const hlsUrl = anime.episodes?.[0]?.hls_720 || anime.episodes?.[0]?.hls_480 || null;
 
   return (
     <div className="anime-details">
@@ -156,7 +160,7 @@ const AnimeDetails = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        {hlsUrl && !bannerVideoFailed ? (
+        {bannerHlsUrl && !bannerVideoFailed ? (
           <video ref={videoRef} className="banner-video" muted autoPlay loop playsInline preload="metadata" poster={poster && (poster.startsWith('/') ? BASE_URL + poster : poster)} />
         ) : (
           <div className="banner-image" style={{ backgroundImage: poster ? 'url(' + (poster.startsWith('/') ? BASE_URL + poster : poster) + ')' : 'none' }} />
