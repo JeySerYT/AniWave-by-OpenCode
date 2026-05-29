@@ -5,6 +5,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import jwt, JWTError
+from app.schemas.schemas import TokenData
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,10 @@ def create_refresh_token(data: dict) -> str:
 def decode_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        TokenData(user_id=str(user_id))
         return payload
     except JWTError:
         return None

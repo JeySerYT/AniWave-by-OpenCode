@@ -1,10 +1,6 @@
 import os
-from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 def get_database_url() -> str:
     db_host = os.getenv("DB_HOST", "localhost")

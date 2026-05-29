@@ -1,7 +1,7 @@
 import os
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, Form, Response, Cookie, Query, Header
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie, Query, Header
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from typing import Optional
 import httpx
@@ -10,6 +10,7 @@ from google.auth.transport import requests as google_requests
 
 from app.database import get_db
 from app.schemas.schemas import Token, UserCreate, UserResponse
+from app.models.models import User
 from app.services.user_service import UserService
 from pydantic import BaseModel
 
@@ -460,53 +461,6 @@ def logout(response: Response, current_user: UserResponse = Depends(get_current_
     return {"message": "Выход выполнен успешно"}
 
 
-@router.get("/me")
-def get_me(
-    response: Response,
-    access_token: Optional[str] = Cookie(None),
-    refresh_token: Optional[str] = Cookie(None),
-    authorization: Optional[str] = Header(None),
-    db: Session = Depends(get_db)
-):
-    token = access_token
-    
-    if not token and authorization and authorization.startswith("Bearer "):
-        token = authorization[7:]
-    
-    if not token:
-        if refresh_token:
-            user = _refresh_access_token(response, db, refresh_token)
-            if user:
-                return user
-        
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Не авторизован",
-        )
-    
-    payload = decode_token(token)
-    if not payload:
-        if refresh_token:
-            user = _refresh_access_token(response, db, refresh_token)
-            if user:
-                return user
-        
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Недействительный или просроченный токен",
-        )
-    
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Недействительная полезная нагрузка токена",
-        )
-    
-    user = UserService.get_by_id(db, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Пользователь не найден",
-        )
-    return user
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
