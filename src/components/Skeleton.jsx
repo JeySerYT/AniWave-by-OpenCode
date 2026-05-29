@@ -32,6 +32,32 @@ const SkeletonBanner = () => (
   </div>
 );
 
+const SkeletonHero = () => (
+  <div className="skeleton-hero">
+    <div className="skeleton-hero-overlay" />
+    <div className="skeleton-hero-content">
+      <div className="skeleton-hero-info">
+        <div className="skeleton-line w-50" style={{ height: 28, marginBottom: 8 }} />
+        <div className="skeleton-line w-30" style={{ height: 16, marginBottom: 16 }} />
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <div className="skeleton-line" style={{ width: 72, height: 24, borderRadius: 9999 }} />
+          <div className="skeleton-line" style={{ width: 80, height: 24, borderRadius: 9999 }} />
+          <div className="skeleton-line" style={{ width: 60, height: 24, borderRadius: 9999 }} />
+        </div>
+        <div className="skeleton-line w-90" style={{ height: 14, marginBottom: 4 }} />
+        <div className="skeleton-line w-60" style={{ height: 14, marginBottom: 24 }} />
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div className="skeleton-line" style={{ width: 140, height: 44, borderRadius: 12 }} />
+          <div className="skeleton-line" style={{ width: 120, height: 44, borderRadius: 12 }} />
+        </div>
+      </div>
+      <div className="skeleton-hero-poster">
+        <div className="skeleton-poster" style={{ width: 200, height: 280, borderRadius: 16 }} />
+      </div>
+    </div>
+  </div>
+);
+
 const SkeletonLine = ({ width = '100%' }) => (
   <div className="skeleton-line" style={{ width }} />
 );
@@ -74,4 +100,4 @@ const SkeletonAnimeDetails = () => (
   </div>
 );
 
-export { SkeletonGrid, SkeletonBanner, SkeletonLine, SkeletonAnimeDetails };
+export { SkeletonGrid, SkeletonBanner, SkeletonLine, SkeletonAnimeDetails, SkeletonHero };

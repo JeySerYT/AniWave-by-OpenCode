@@ -128,7 +128,53 @@
   .skeleton-title,
   .skeleton-subtitle,
   .skeleton-banner-img,
-  .skeleton-line {
+  .skeleton-line,
+  .skeleton-hero {
     background: #1a1a1a;
+  }
+}
+
+.skeleton-hero {
+  position: relative;
+  min-height: 70vh;
+  background: #0a0a0a;
+  overflow: hidden;
+}
+
+.skeleton-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, #0a0a0a 0%, transparent 50%);
+}
+
+.skeleton-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 70vh;
+  gap: 2rem;
+}
+
+.skeleton-hero-info {
+  flex: 1;
+}
+
+.skeleton-hero-poster {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .skeleton-hero {
+    min-height: auto;
+  }
+  .skeleton-hero-content {
+    flex-direction: column;
+    min-height: auto;
+    padding-top: 4rem;
   }
 }

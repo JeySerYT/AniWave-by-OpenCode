@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
-import { SkeletonGrid, SkeletonBanner } from '../components/Skeleton';
+import { SkeletonGrid, SkeletonHero } from '../components/Skeleton';
 import { useToast } from '../components/Toast';
 import Footer from '../components/Footer';
 import { useQuery } from '@tanstack/react-query';
@@ -27,6 +27,7 @@ const Home = () => {
   const { addToast } = useToast();
   const [visibleCounts, setVisibleCounts] = useState({ best: 7, seasonal: 7, recent: 7 });
   const [continueWatching, setContinueWatching] = useState([]);
+  const [cwLoading, setCwLoading] = useState(false);
 
   const { data: bestAnime, isLoading: bestLoading, error: bestError, refetch: refetchBest } = useTrendingAnime();
   const { data: seasonalAnime, isLoading: seasonalLoading, error: seasonalError } = useSeasonalAnime(currentYear, currentSeason);
@@ -56,10 +57,12 @@ const Home = () => {
   const hlsUrl = openingEp?.hls_720 || openingEp?.hls_480 || null;
 
   useEffect(() => {
+    setCwLoading(true);
     if (user) {
       fetch(`${API_URL}/watch-progress`, { credentials: 'include' })
         .then(r => r.ok ? r.json() : [])
         .then(data => {
+          setCwLoading(false);
           if (Array.isArray(data) && data.length > 0) {
             const seen = new Set();
             const deduped = [];
@@ -79,8 +82,9 @@ const Home = () => {
             setContinueWatching(deduped);
           }
         })
-        .catch(() => {});
+        .catch(() => { setCwLoading(false); });
     } else {
+      setCwLoading(false);
       try {
         const saved = JSON.parse(localStorage.getItem('continue_watching') || '[]');
         setContinueWatching(saved);
@@ -155,13 +159,24 @@ const Home = () => {
   return (
     <div className="home">
       {bestLoading || bestError ? (
-        <SkeletonBanner />
+        <SkeletonHero />
       ) : (
         <Hero anime={topAnime} hlsUrl={hlsUrl} opening={opening} episodes={episodes} />
       )}
 
       <div className="home-content">
-        {continueWatching.length > 0 && (
+        {cwLoading && (
+          <section className="home-section">
+            <div className="section-header">
+              <div className="section-title-group">
+                <h2 className="section-title">Продолжить просмотр</h2>
+                <p className="section-subtitle">Вернись к тому, на чём остановился</p>
+              </div>
+            </div>
+            <SkeletonGrid count={7} />
+          </section>
+        )}
+        {!cwLoading && continueWatching.length > 0 && (
           <section className="home-section">
             <div className="section-header">
               <div className="section-title-group">
