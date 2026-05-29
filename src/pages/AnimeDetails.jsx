@@ -14,6 +14,31 @@ import './AnimeDetails.css';
 
 const BASE_URL = 'https://anilibria.top';
 
+const GenreSimilar = ({ anime, id }) => {
+  const genreIds = anime?.genres?.map(g => g.id) || [];
+  const { data: similarByGenre, isLoading } = useSimilarByGenre(genreIds);
+  const related = (similarByGenre || []).filter(r => String(r.id) !== String(id)).slice(0, 10);
+
+  if (isLoading) return null;
+  if (related.length === 0) return null;
+
+  return (
+    <motion.section
+      className="related-section"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.8 }}
+    >
+      <h2 className="related-title">Похожее</h2>
+      <div className="related-grid">
+        {related.map((a, i) => (
+          <AnimeCard key={a.id} anime={a} index={i} brief={a.genres?.slice(0, 3).map(g => g.name).join(', ')} />
+        ))}
+      </div>
+    </motion.section>
+  );
+};
+
 const AnimeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -36,15 +61,6 @@ const AnimeDetails = () => {
   }, [franchiseData, id]);
 
   const hasFranchise = franchiseReleases && franchiseReleases.length > 0;
-
-  const genreIds = anime?.genres?.map(g => g.id) || [];
-  const { data: similarByGenre, isLoading: similarLoading } = useSimilarByGenre(genreIds, {
-    enabled: !franchiseLoading && !hasFranchise && genreIds.length > 0
-  });
-
-  const genreRelated = (similarByGenre || []).filter(r => String(r.id) !== String(id)).slice(0, 10);
-  const related = hasFranchise ? franchiseReleases : genreRelated;
-  const relatedLoading = franchiseLoading || (!hasFranchise && similarLoading);
 
   const handleWatch = () => {
     if (!user) {
@@ -357,7 +373,7 @@ const AnimeDetails = () => {
 
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
-      {!relatedLoading && related.length > 0 && (
+      {hasFranchise && (
           <motion.section
             className="related-section"
             initial={{ opacity: 0 }}
@@ -366,11 +382,15 @@ const AnimeDetails = () => {
           >
             <h2 className="related-title">Похожее</h2>
             <div className="related-grid">
-              {related.map((a, i) => (
+              {franchiseReleases.map((a, i) => (
                 <AnimeCard key={a.id} anime={a} index={i} brief={a.genres?.slice(0, 3).map(g => g.name).join(', ')} />
               ))}
             </div>
           </motion.section>
+        )}
+
+        {!hasFranchise && !franchiseLoading && anime && (
+          <GenreSimilar anime={anime} id={id} />
         )}
       </div>
       <Footer />
