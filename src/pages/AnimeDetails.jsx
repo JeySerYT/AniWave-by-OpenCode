@@ -92,7 +92,7 @@ const AnimeDetails = () => {
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !bannerHlsUrl) { setBannerVideoFailed(true); return; }
+    if (!video || !bannerHlsUrl) return;
     let hls = null;
     const onLoaded = () => {
       setBannerVideoFailed(false);
