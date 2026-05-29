@@ -105,6 +105,7 @@ const AuthModal = ({ isOpen, onClose }) => {
               </button>
             </div>
             )}
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
