@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { SkeletonGrid, SkeletonBanner } from '../components/Skeleton';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import { useQuery } from '@tanstack/react-query';
-import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased } from '../hooks/useAnime';
+import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased, useYearAnime } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
 import { anilibriaApi } from '../api/anilibria';
 import { API_URL } from '../api/config';
@@ -31,6 +31,7 @@ const Home = () => {
   const { data: seasonalAnime, isLoading: seasonalLoading, error: seasonalError } = useSeasonalAnime(currentYear, currentSeason);
   const { data: ongoingAnime, isLoading: ongoingLoading, error: ongoingError } = useOngoingAnime();
   const { data: recentAnime, isLoading: recentLoading, error: recentError } = useRecentlyReleased();
+  const { data: yearAnime, isLoading: yearLoading, error: yearError } = useYearAnime(currentYear);
 
   const handleRetry = () => refetchBest();
 
@@ -93,6 +94,16 @@ const Home = () => {
     return bestAnime.slice(0, 7).reduce((sum, a) => sum + (a.added_in_watching_collection || 0), 0);
   }, [bestAnime]);
 
+  const shuffledYearAnime = useMemo(() => {
+    if (!yearAnime) return [];
+    const arr = [...yearAnime];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [yearAnime]);
+
   const renderSection = (key, title, subtitle, data, loading, error) => {
     const count = visibleCounts[key] || 7;
 
@@ -113,7 +124,7 @@ const Home = () => {
           </div>
         </div>
 
-        {loading && <LoadingSpinner />}
+        {loading && <SkeletonGrid count={7} />}
         {error && <ErrorMessage message={error} onRetry={handleRetry} />}
         {!loading && !error && (
           <>
@@ -138,7 +149,7 @@ const Home = () => {
   return (
     <div className="home">
       {bestLoading ? (
-        <div className="home-hero-skeleton" />
+        <SkeletonBanner />
       ) : bestError ? (
         <ErrorMessage message={bestError} onRetry={handleRetry} />
       ) : (
@@ -171,7 +182,8 @@ const Home = () => {
         {renderSection('best', 'Лучшие аниме', 'Популярное сейчас', bestAnime, bestLoading, bestError)}
         {renderSection('ongoing', 'Онгоинги', 'Сейчас выходят', ongoingAnime, ongoingLoading, ongoingError)}
         {renderSection('seasonal', 'Сезонное', 'Текущий сезон', seasonalAnime, seasonalLoading, seasonalError)}
-        {renderSection('recent', 'Недавно вышло', 'Последние релизы', recentAnime, recentLoading, recentError)}
+        {renderSection('recent', 'Новые эпизоды', 'Последние релизы', recentAnime, recentLoading, recentError)}
+        {renderSection('year', 'Вышло в этом году', String(currentYear), shuffledYearAnime, yearLoading, yearError)}
       </div>
       <Footer />
     </div>

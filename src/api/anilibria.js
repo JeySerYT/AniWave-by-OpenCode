@@ -148,13 +148,32 @@ export const anilibriaApi = {
   async getTopAnime(type, limit) {
     const sortMap = {
       'ranked': 'RATING_DESC',
-      'popular': 'RATING_DESC',
       'updated': 'FRESH_AT_DESC'
     };
     return this.getTitleList({
       sorting: sortMap[type] || 'RATING_DESC',
       limit: limit || 20,
     });
+  },
+
+  async getFranchises(releaseId) {
+    const response = await fetchWithTimeout(
+      `${ANILIBRIA_API_BASE}/anime/franchises/release/${releaseId}`,
+      { headers: apiHeaders },
+      30000
+    );
+    if (!response.ok) throw new Error('API error: ' + response.status);
+    return response.json();
+  },
+
+  async getFranchiseById(franchiseId) {
+    const response = await fetchWithTimeout(
+      `${ANILIBRIA_API_BASE}/anime/franchises/${franchiseId}`,
+      { headers: apiHeaders },
+      30000
+    );
+    if (!response.ok) throw new Error('API error: ' + response.status);
+    return response.json();
   },
 };
 

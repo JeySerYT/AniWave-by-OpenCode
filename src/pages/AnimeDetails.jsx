@@ -1,13 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Hls from 'hls.js';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { SkeletonGrid, SkeletonBanner } from '../components/Skeleton';
 import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
 import AuthModal from '../components/AuthModal';
-import { useAnimeById, usePopularAnime } from '../hooks/useAnime';
+import { useAnimeById, useFranchise } from '../hooks/useAnime';
 import { useCollections } from '../hooks/useFavorites';
 import { useAuth } from '../context/AuthContext';
 import './AnimeDetails.css';
@@ -23,7 +23,7 @@ const AnimeDetails = () => {
   const [bannerVideoFailed, setBannerVideoFailed] = useState(false);
   const { data: anime, isLoading: loading, error, refetch } = useAnimeById(id);
   const { getCollectionType, addToCollection, updateCollectionType, removeFromCollection, refresh } = useCollections();
-  const { data: popular } = usePopularAnime();
+  const { data: franchiseData, isLoading: franchiseLoading } = useFranchise(id);
   const currentType = getCollectionType(id);
   const videoRef = useRef(null);
 
@@ -95,7 +95,18 @@ const AnimeDetails = () => {
     return () => document.removeEventListener('click', handler);
   }, [showCollMenu]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return (
+    <div className="anime-details">
+      <div className="details-banner" style={{ background: '#1a1a1a', height: 400 }} />
+      <div className="details-content" style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem' }}>
+        <SkeletonBanner />
+        <div style={{ marginTop: '2rem' }}>
+          <SkeletonGrid count={6} />
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
   if (error) return <ErrorMessage message={error} onRetry={() => refetch()} />;
   if (!anime) return <ErrorMessage message="Аниме не найдено" />;
 
@@ -105,17 +116,15 @@ const AnimeDetails = () => {
   const genreNames = anime.genres?.map(g => g.name) || [];
   const hlsUrl = anime.episodes?.[0]?.hls_720 || anime.episodes?.[0]?.hls_480 || null;
 
-  const related = popular
-    ? popular
-        .filter(a => a.id !== Number(id))
-        .map(a => ({
-          ...a,
-          matchCount: (a.genres || []).filter(g => genreNames.includes(g.name)).length
-        }))
-        .filter(a => a.matchCount > 0)
-        .sort((a, b) => b.matchCount - a.matchCount)
-        .slice(0, 6)
-    : [];
+  const franchiseReleases = useMemo(() => {
+    if (!franchiseData) return null;
+    const franchises = Array.isArray(franchiseData) ? franchiseData : [franchiseData];
+    const first = franchises[0];
+    if (!first || !first.releases) return null;
+    return first.releases.filter(r => String(r.id) !== String(id)).slice(0, 10);
+  }, [franchiseData, id]);
+
+  const related = franchiseReleases || [];
 
   return (
     <div className="anime-details">
@@ -339,14 +348,14 @@ const AnimeDetails = () => {
 
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
-      {related.length > 0 && (
+      {!franchiseLoading && related.length > 0 && (
           <motion.section
             className="related-section"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            <h2 className="related-title">Похожее</h2>
+            <h2 className="related-title">Франшиза</h2>
             <div className="related-grid">
               {related.map((a, i) => (
                 <AnimeCard key={a.id} anime={a} index={i} brief={a.genres?.slice(0, 3).map(g => g.name).join(', ')} />
