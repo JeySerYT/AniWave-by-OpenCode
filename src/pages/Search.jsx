@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, SlidersHorizontal, X, ChevronDown, RotateCcw } from 'lucide-react';
 import AnimeCard from '../components/AnimeCard';
+import { SkeletonGrid } from '../components/Skeleton';
 import { useSearch } from '../hooks/useSearch';
 import { anilibriaApi } from '../api/anilibria';
 import './Search.css';
@@ -204,15 +205,7 @@ const SearchPage = () => {
 
       <div className="search-results">
         {loading && anime.length === 0 && (
-          <div className="search-skeleton">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="skeleton-card">
-                <div className="skeleton-poster" />
-                <div className="skeleton-line wide" />
-                <div className="skeleton-line" />
-              </div>
-            ))}
-          </div>
+          <SkeletonGrid count={8} />
         )}
 
         {error && !loading && (

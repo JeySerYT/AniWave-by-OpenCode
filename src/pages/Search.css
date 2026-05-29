@@ -282,42 +282,6 @@
   gap: 18px;
 }
 
-.search-skeleton {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 18px;
-}
-
-.skeleton-card {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.skeleton-poster {
-  aspect-ratio: 2/3;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 10px;
-  margin-bottom: 0.6rem;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.skeleton-line {
-  height: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 4px;
-  margin-bottom: 0.4rem;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-.skeleton-line.wide {
-  width: 80%;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
 .search-error {
   text-align: center;
   padding: 3rem 1rem;

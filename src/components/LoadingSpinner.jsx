@@ -16,7 +16,7 @@ const LoadingSpinner = () => {
         </div>
         <div className="spinner-ring"></div>
       </div>
-      <p className="loading-text">Loading...</p>
+      <p className="loading-text">Загрузка...</p>
     </motion.div>
   );
 };

@@ -1,192 +1,95 @@
-.skeleton-shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite linear;
-}
-
-.skeleton-card {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite linear;
-}
-
-.skeleton-line,
-.skeleton-circle {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite linear;
-}
-
-.skeleton-circle {
-  border-radius: 50%;
-}
-
-.skeleton-hero {
-  min-height: 70vh;
-  background: var(--bg-primary);
-}
-
-.skeleton-hero-banner {
-  height: 400px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite linear;
-  border-radius: 0;
-}
-
-.skeleton-hero-content {
-  max-width: 1400px;
-  margin: -100px auto 0;
-  padding: 2rem;
-  display: flex;
-  gap: 4rem;
-}
-
-.skeleton-hero-left {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.skeleton-hero-right {
-  flex-shrink: 0;
-}
-
-.skeleton-hero-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.skeleton-hero-btn {
-  width: 140px;
-  height: 44px;
-  border-radius: 9999px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite linear;
-}
-
 .skeleton-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 2rem;
 }
 
-.skeleton-details {
-  min-height: 100vh;
+.skeleton-card {
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.skeleton-details-banner {
-  height: 400px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite linear;
+.skeleton-poster {
+  aspect-ratio: 3/4;
+  background: #222;
 }
 
-.skeleton-details-content {
-  max-width: 1200px;
-  margin: -100px auto 0;
-  padding: 2rem;
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 2rem;
+.skeleton-title {
+  height: 16px;
+  width: 70%;
+  background: #222;
+  border-radius: 8px;
+  margin: 8px;
 }
 
-.skeleton-details-meta {
+.skeleton-subtitle {
+  height: 12px;
+  width: 40%;
+  background: #222;
+  border-radius: 8px;
+  margin: 8px;
+}
+
+.skeleton-banner {
   display: flex;
-  gap: 1rem;
-  margin: 1rem 0;
+  flex-direction: row;
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 20px;
+  gap: 20px;
 }
 
-.skeleton-details-right {
+.skeleton-banner-img {
+  width: 200px;
+  height: 280px;
+  background: #222;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.skeleton-banner-info {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 8px;
+  justify-content: center;
 }
 
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+.skeleton-line {
+  height: 14px;
+  background: #222;
+  border-radius: 8px;
+  margin: 8px 0;
 }
+
+.w-60 { width: 60%; }
+.w-80 { width: 80%; }
+.w-40 { width: 40%; }
 
 @media (max-width: 768px) {
-  .skeleton-hero-banner,
-  .skeleton-details-banner {
-    height: 250px;
-  }
-
-  .skeleton-hero-content {
-    flex-direction: column;
-    align-items: center;
-    gap: 2rem;
-    padding: 1.5rem;
-    margin-top: -60px;
-  }
-
-  .skeleton-hero-right {
-    order: -1;
-  }
-
-  .skeleton-details-content {
-    grid-template-columns: 1fr;
-    padding: 1.5rem;
-    margin-top: -60px;
-  }
-
   .skeleton-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 16px;
-    padding: 1rem;
   }
 
-  .skeleton-hero-btn {
-    width: 100px;
-    height: 38px;
+  .skeleton-banner {
+    flex-direction: column;
+    align-items: center;
   }
 
-  .skeleton-details-meta {
-    flex-wrap: wrap;
+  .skeleton-banner-img {
+    width: 150px;
+    height: 210px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton-shimmer {
-    animation: none;
-    background: #333;
+  .skeleton-poster,
+  .skeleton-title,
+  .skeleton-subtitle,
+  .skeleton-banner-img,
+  .skeleton-line {
+    background: #1a1a1a;
   }
 }

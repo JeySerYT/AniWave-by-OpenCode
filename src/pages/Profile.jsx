@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCollections } from '../hooks/useFavorites';
 import { API_URL } from '../api/config';
 import AnimeCard from '../components/AnimeCard';
+import { SkeletonGrid } from '../components/Skeleton';
 import Footer from '../components/Footer';
 import './Profile.css';
 
@@ -93,9 +94,10 @@ const ProfileContent = () => {
   if (authLoading) {
     return (
       <div className="profile-page">
-        <div className="profile-loading">
-          <div className="loading-spinner" />
+        <div className="profile-content">
+          <SkeletonGrid count={6} />
         </div>
+        <Footer />
       </div>
     );
   }
@@ -285,7 +287,7 @@ const ProfileContent = () => {
             transition={{ duration: 0.2 }}
           >
             {collLoading ? (
-              <div className="profile-loading"><div className="loading-spinner" /></div>
+              <SkeletonGrid count={6} />
             ) : currentList.length === 0 ? (
               <div className="empty-collection">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3">
