@@ -7,7 +7,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
 import AuthModal from '../components/AuthModal';
-import { useAnimeById, useFranchise } from '../hooks/useAnime';
+import { useAnimeById, useFranchise, useSimilarByGenre } from '../hooks/useAnime';
 import { useCollections } from '../hooks/useFavorites';
 import { useAuth } from '../context/AuthContext';
 import './AnimeDetails.css';
@@ -35,7 +35,13 @@ const AnimeDetails = () => {
     return first.releases.filter(r => String(r.id) !== String(id)).slice(0, 10);
   }, [franchiseData, id]);
 
-  const related = franchiseReleases || [];
+  const genreIds = anime?.genres?.map(g => g.id) || [];
+  const { data: similarByGenre, isLoading: similarLoading } = useSimilarByGenre(genreIds);
+
+  const hasFranchise = franchiseReleases && franchiseReleases.length > 0;
+  const genreRelated = (similarByGenre || []).filter(r => String(r.id) !== String(id)).slice(0, 10);
+  const related = hasFranchise ? franchiseReleases : genreRelated;
+  const relatedLoading = franchiseLoading || (!hasFranchise && similarLoading);
 
   const handleWatch = () => {
     if (!user) {
@@ -348,14 +354,14 @@ const AnimeDetails = () => {
 
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
-      {!franchiseLoading && related.length > 0 && (
+      {!relatedLoading && related.length > 0 && (
           <motion.section
             className="related-section"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            <h2 className="related-title">Франшиза</h2>
+            <h2 className="related-title">Похожее</h2>
             <div className="related-grid">
               {related.map((a, i) => (
                 <AnimeCard key={a.id} anime={a} index={i} brief={a.genres?.slice(0, 3).map(g => g.name).join(', ')} />

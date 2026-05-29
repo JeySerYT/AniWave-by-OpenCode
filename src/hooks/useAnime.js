@@ -105,3 +105,20 @@ export const useFranchise = (releaseId, options = {}) => {
   });
   return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
+
+export const useSimilarByGenre = (genreIds, options = {}) => {
+  const query = useQuery({
+    queryKey: ['similarByGenre', genreIds],
+    queryFn: () => anilibriaApi.getTitleList({
+      sorting: 'RATING_DESC',
+      limit: 10,
+      genres: genreIds.join(',')
+    }),
+    select: (data) => data?.data || [],
+    staleTime,
+    gcTime,
+    enabled: (genreIds || []).length > 0,
+    ...options
+  });
+  return { data: query.data, isLoading: query.isLoading, error: query.error };
+};
