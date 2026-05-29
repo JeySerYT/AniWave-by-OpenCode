@@ -46,7 +46,7 @@ export const useOngoingAnime = (options = {}) => {
     queryFn: () => anilibriaApi.getTitleList({
       sorting: 'FRESH_AT_DESC',
       limit: 20,
-      status: 'ongoing'
+      publish_statuses: 'IS_ONGOING'
     }),
     select: (data) => data?.data || [],
     staleTime,
