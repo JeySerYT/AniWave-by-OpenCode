@@ -12,8 +12,6 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showRetryPopup, setShowRetryPopup] = useState(false);
-  const [retryUrl, setRetryUrl] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -40,9 +38,7 @@ function Login() {
       if (data.auth_url) {
         const popup = window.open(data.auth_url, 'oauth_popup', 'width=600,height=700,focus=yes');
         if (!popup) {
-          setError('Не удалось открыть окно авторизации. Пожалуйста, разрешите всплывающие окна для этого сайта.');
-          setShowRetryPopup(true);
-          setRetryUrl(data.auth_url);
+          window.location.href = data.auth_url;
           return;
         }
         const handleMessage = (event) => {
@@ -126,24 +122,6 @@ function Login() {
           <div className="auth-divider">
             <span>или</span>
           </div>
-
-          {showRetryPopup && (
-            <div className="oauth-retry">
-              <p>Попробуйте ещё раз или войдите через стандартную форму:</p>
-              <button
-                className="auth-btn primary"
-                onClick={() => {
-                  const w = window.open(retryUrl, 'oauth_popup', 'width=600,height=700,focus=yes,noopener=yes');
-                  if (w) {
-                    setShowRetryPopup(false);
-                    setError('');
-                  }
-                }}
-              >
-                Открыть окно авторизации
-              </button>
-            </div>
-          )}
 
           <div className="oauth-buttons">
             <motion.button 

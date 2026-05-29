@@ -15,7 +15,25 @@ const AuthModal = ({ isOpen, onClose }) => {
     try {
       const r = await fetch(`${API_URL}/auth/oauth/${provider}`, { credentials: 'include' });
       const d = await r.json();
-      if (d.auth_url) window.location.href = d.auth_url;
+      if (!d.auth_url) return;
+      const popup = window.open(d.auth_url, 'oauth_popup', 'width=600,height=700,focus=yes');
+      if (!popup) {
+        window.location.href = d.auth_url;
+        return;
+      }
+      const handleMessage = (event) => {
+        if (event.data === 'oauth-login') {
+          window.removeEventListener('message', handleMessage);
+          window.location.href = '/profile';
+        }
+      };
+      window.addEventListener('message', handleMessage);
+      const pollTimer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(pollTimer);
+          window.removeEventListener('message', handleMessage);
+        }
+      }, 1000);
     } catch (e) { /* ignore */ }
   };
 
