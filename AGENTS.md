@@ -212,11 +212,11 @@ export default ComponentName;
 
 #### OAuth (Google/GitHub)
 1. Frontend calls `/api/auth/oauth/{provider}` → gets auth_url
-2. User is redirected to Google/GitHub
-3. OAuth provider redirects to `/api/auth/oauth/{provider}/callback`
-4. Backend exchanges code for tokens, creates user if not exists
-5. Backend sets tokens as httpOnly cookies (access_token — 15min, refresh_token — 7 days)
-6. Backend redirects to `/profile?logged_in=true`
+2. Tries `window.open` popup (600×700, `oauth_popup`)
+3. If popup blocked (returns null) → shows notification asking user to allow popups
+4. Listens for `postMessage('oauth-login')` from the popup → redirects to `/profile`
+5. Three entry points: Login page, Register page, AuthModal overlay (when clicking Смотреть without account)
+6. AuthModal previously used `window.location.href` redirect — now uses same popup approach
 
 #### Email/Password Auth
 1. User registers/logs in via `/api/auth/register` or `/api/auth/login`
@@ -250,9 +250,12 @@ export default ComponentName;
 ### AniLibria API
 
 - Uses AniLibria REST API (https://anilibria.top/api/v1)
+- In dev mode proxies through Vite (`/api/v1` → `www.anilibria.top`) to avoid CORS
 - All fetches via `fetchWithTimeout()` in `src/api/anilibria.js`
-- @tanstack/react-query for caching (staleTime: 5min, gcTime: 10min)
-- Endpoints: getTitle, getTitleList, getTitleUpdates, getTitleOngoing, getSchedule, getGenres, getYears, searchTitles, getTopAnime
+- @tanstack/react-query for caching (staleTime: 30min lists / 5min details, gcTime: 60min lists / 30min details)
+- Endpoints: getTitle, getTitleList, getReleaseById, getTitleUpdates, getTitleOngoing, getSchedule, getGenres, getYears, searchTitles, getTopAnime, getFranchises, getFranchiseById, getSimilarByGenre
+- Response format: list endpoints return `{ data: [...] }` — hooks use `select: d => d?.data || []`
+- Single item endpoints (getReleaseById, getTitle) return raw object
 
 ### API Endpoints (Backend)
 
@@ -282,6 +285,9 @@ export default ComponentName;
 - Memoize expensive computations with useMemo
 - Use useCallback for event handlers passed as props
 - Use proper key props in lists
+- **Skeleton approach**: skeleton components render inside the same DOM structure as real content (same CSS classes, same aspect-ratios) — eliminates layout shift. SkeletonGrid returns fragment (no wrapper div); callers wrap in `.anime-grid`/`.collections-grid`/`.related-grid`. SkeletonAnimeDetails matches AnimeDetails structure (details-banner + details-content + related-section). SkeletonHero matches Hero structure (hero + hero-overlay + hero-layout + hero-poster-wrap).
+- **Continue watching**: only works via backend API (`/watch-progress`). No localStorage fallback. Requires authenticated user. Unauthenticated users don't see the section.
+- **AnimeDetails banner video**: searches across ALL episodes for one with a valid opening (`opening.start > 0 && opening.stop > opening.start`), not hardcoded to `episodes[0]`.
 
 ### Animations
 
