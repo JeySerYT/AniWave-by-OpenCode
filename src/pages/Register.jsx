@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, User, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
 import Logo from '../assets/logo.svg';
 import { API_URL } from '../api/config';
 import './Auth.css';
@@ -16,7 +15,6 @@ function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
-  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -24,7 +22,7 @@ function Register() {
     setError('');
     
     if (!agreed) {
-      setError(t('acceptTerms'));
+      setError('Вы должны принять условия');
       return;
     }
 
@@ -46,7 +44,24 @@ function Register() {
       });
       const data = await response.json();
       if (data.auth_url) {
-        window.location.href = data.auth_url;
+        const popup = window.open(data.auth_url, 'oauth_popup', 'width=600,height=700,focus=yes');
+        if (!popup) {
+          window.location.href = data.auth_url;
+          return;
+        }
+        const handleMessage = (event) => {
+          if (event.data === 'oauth-login') {
+            window.removeEventListener('message', handleMessage);
+            window.location.href = '/profile';
+          }
+        };
+        window.addEventListener('message', handleMessage);
+        const pollTimer = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(pollTimer);
+            window.removeEventListener('message', handleMessage);
+          }
+        }, 1000);
       }
     } catch (err) {
       console.error('OAuth error:', err);
@@ -66,8 +81,8 @@ function Register() {
             <Link to="/" className="auth-logo">
               <img src={Logo} alt="AniWave" />
             </Link>
-            <h1>{t('createAccount')}</h1>
-            <p>{t('registerSubtitle')}</p>
+            <h1>Создать аккаунт</h1>
+            <p>Присоединяйтесь к AniWave</p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
@@ -99,7 +114,7 @@ function Register() {
                   required
                 />
                 <User size={16} className="input-icon" />
-                <label>{t('username')}</label>
+                <label>Имя пользователя</label>
               </div>
             </div>
 
@@ -114,7 +129,7 @@ function Register() {
                   required
                 />
                 <Lock size={16} className="input-icon" />
-                <label>{t('password')}</label>
+                <label>Пароль</label>
               </div>
             </div>
 
@@ -127,7 +142,7 @@ function Register() {
                 />
                 <span className="checkbox-custom"></span>
                 <span className="checkbox-text">
-                  {t('agreeTerms')} <Link to="/terms">{t('termsOfUse')}</Link> {t('and')} <Link to="/privacy">{t('privacyPolicy')}</Link>
+                  Я согласен с <Link to="/terms">Условиями использования</Link> и <Link to="/privacy">Политикой конфиденциальности</Link>
                 </span>
               </label>
             </div>
@@ -139,12 +154,12 @@ function Register() {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
-              {loading ? t('loading') : t('register')}
+              {loading ? 'Загрузка...' : 'Регистрация'}
             </motion.button>
           </form>
 
           <div className="auth-divider">
-            <span>{t('or')}</span>
+            <span>или</span>
           </div>
 
           <div className="oauth-buttons">
@@ -178,7 +193,7 @@ function Register() {
           </div>
 
           <p className="auth-switch">
-            {t('haveAccount')} <Link to="/login">{t('login')}</Link>
+            Уже есть аккаунт? <Link to="/login">Войти</Link>
           </p>
         </motion.div>
       </div>

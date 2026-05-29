@@ -2,7 +2,6 @@ import { useState, useEffect, memo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -61,8 +60,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AuthProvider>
+      <AuthProvider>
           <BrowserRouter>
             <ScrollToTop />
             <div className="App">
@@ -84,7 +82,6 @@ function App() {
             </div>
           </BrowserRouter>
         </AuthProvider>
-      </LanguageProvider>
     </QueryClientProvider>
   );
 }

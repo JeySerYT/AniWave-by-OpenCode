@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
 import Logo from '../assets/logo.svg';
 import { API_URL } from '../api/config';
 import './Auth.css';
@@ -14,7 +13,6 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -38,7 +36,24 @@ function Login() {
       });
       const data = await response.json();
       if (data.auth_url) {
-        window.location.href = data.auth_url;
+        const popup = window.open(data.auth_url, 'oauth_popup', 'width=600,height=700,focus=yes');
+        if (!popup) {
+          window.location.href = data.auth_url;
+          return;
+        }
+        const handleMessage = (event) => {
+          if (event.data === 'oauth-login') {
+            window.removeEventListener('message', handleMessage);
+            window.location.href = '/profile';
+          }
+        };
+        window.addEventListener('message', handleMessage);
+        const pollTimer = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(pollTimer);
+            window.removeEventListener('message', handleMessage);
+          }
+        }, 1000);
       }
     } catch (err) {
       console.error('OAuth error:', err);
@@ -58,8 +73,8 @@ function Login() {
             <Link to="/" className="auth-logo">
               <img src={Logo} alt="AniWave" />
             </Link>
-            <h1>{t('welcomeBack')}</h1>
-            <p>{t('loginSubtitle')}</p>
+            <h1>С возвращением!</h1>
+            <p>Войдите в свой аккаунт</p>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
@@ -89,7 +104,7 @@ function Login() {
                   required
                 />
                 <Lock size={16} className="input-icon" />
-                <label>{t('password')}</label>
+                <label>Пароль</label>
               </div>
             </div>
 
@@ -100,12 +115,12 @@ function Login() {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
-              {loading ? t('loading') : t('login')}
+              {loading ? 'Загрузка...' : 'Войти'}
             </motion.button>
           </form>
 
           <div className="auth-divider">
-            <span>{t('or')}</span>
+            <span>или</span>
           </div>
 
           <div className="oauth-buttons">
@@ -139,7 +154,7 @@ function Login() {
           </div>
 
           <p className="auth-switch">
-            {t('noAccount')} <Link to="/register">{t('register')}</Link>
+            Нет аккаунта? <Link to="/register">Регистрация</Link>
           </p>
         </motion.div>
       </div>

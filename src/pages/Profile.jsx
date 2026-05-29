@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCollections } from '../hooks/useFavorites';
-import { useLanguage } from '../context/LanguageContext';
 import { API_URL } from '../api/config';
 import AnimeCard from '../components/AnimeCard';
 import Footer from '../components/Footer';
@@ -19,7 +18,6 @@ const TABS = [
 const ProfileContent = () => {
   const { user, loading: authLoading, refresh, logout } = useAuth();
   const { collections, loading: collLoading, removeFromCollection, updateCollectionType } = useCollections();
-  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('watching');
   const [showEdit, setShowEdit] = useState(false);
@@ -112,14 +110,14 @@ const ProfileContent = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <h1>{t('loginToContinue')}</h1>
-            <p>{t('loginToContinueText')}</p>
+            <h1>Войдите, чтобы продолжить</h1>
+            <p>Для доступа к профилю необходимо войти в аккаунт или зарегистрироваться</p>
             <div className="guest-actions">
               <motion.button className="guest-btn primary" onClick={() => navigate('/login')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                {t('login')}
+                Войти
               </motion.button>
               <motion.button className="guest-btn secondary" onClick={() => navigate('/register')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                {t('register')}
+                Регистрация
               </motion.button>
             </div>
           </motion.div>

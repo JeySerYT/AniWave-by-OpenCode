@@ -1,5 +1,5 @@
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from app.models.models import WatchProgress
 
@@ -36,7 +36,7 @@ class WatchProgressService:
             existing.title = title or existing.title
             existing.poster = poster or existing.poster
             existing.genres = genres or existing.genres
-            existing.updated_at = datetime.utcnow()
+            existing.updated_at = datetime.now(timezone.utc)
             db.commit()
             db.refresh(existing)
             return existing

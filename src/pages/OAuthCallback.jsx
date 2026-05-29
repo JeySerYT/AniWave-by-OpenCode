@@ -9,51 +9,29 @@ function OAuthCallback() {
   const location = useLocation();
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const code = params.get('code');
-    const provider = location.pathname.split('/').pop();
-
-    if (!code) {
-      setError('No authorization code received');
-      return;
-    }
-
-    const fetchToken = async () => {
+    const verify = async () => {
       try {
-        const response = await fetch(`${API_URL}/auth/oauth/${provider}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `code=${encodeURIComponent(code)}`
-        });
-
-        if (!response.ok) {
-          const err = await response.json();
-          throw new Error(err.detail || 'OAuth failed');
-        }
-
-        const tokens = await response.json();
-        
-        localStorage.setItem('token', tokens.access_token);
-        localStorage.setItem('refreshToken', tokens.refresh_token);
-
         const userRes = await fetch(`${API_URL}/auth/me`, {
-          headers: { 'Authorization': `Bearer ${tokens.access_token}` }
+          credentials: 'include'
         });
         
         if (userRes.ok) {
-          const userData = await userRes.json();
-          localStorage.setItem('user', JSON.stringify(userData));
-          window.location.href = '/profile';
+          if (window.opener) {
+            window.opener.postMessage('oauth-login', window.location.origin);
+            window.close();
+          } else {
+            window.location.href = '/profile';
+          }
         } else {
-          window.location.href = '/';
+          setError('Ошибка авторизации');
         }
       } catch (err) {
         setError(err.message);
       }
     };
 
-    fetchToken();
-  }, [location, navigate]);
+    verify();
+  }, [navigate]);
 
   if (error) {
     return (
@@ -71,7 +49,7 @@ function OAuthCallback() {
           animate={{ opacity: 1, y: 0 }}
           style={{ textAlign: 'center' }}
         >
-          <h2 style={{ color: '#ff4d4d', marginBottom: '16px' }}>OAuth Error</h2>
+          <h2 style={{ color: '#ff4d4d', marginBottom: '16px' }}>Ошибка OAuth</h2>
           <p style={{ color: '#888' }}>{error}</p>
           <button 
             onClick={() => navigate('/login')}
@@ -85,7 +63,7 @@ function OAuthCallback() {
               cursor: 'pointer'
             }}
           >
-            Back to Login
+            Назад
           </button>
         </motion.div>
       </div>
@@ -114,7 +92,7 @@ function OAuthCallback() {
           animation: 'spin 1s linear infinite',
           margin: '0 auto 16px'
         }} />
-        <p>Completing sign in...</p>
+        <p>Завершение входа...</p>
       </motion.div>
       <style>{`
         @keyframes spin {

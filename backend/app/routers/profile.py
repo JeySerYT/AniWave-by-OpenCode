@@ -28,7 +28,7 @@ def update_profile(
         if existing and existing.id != current_user.id:
             raise HTTPException(
                 status_code=409,
-                detail="Username already taken"
+                detail="Имя пользователя уже занято"
             )
 
     user = UserService.update_profile(
@@ -87,7 +87,7 @@ def update_favorite(
 ):
     favorite = FavoriteService.update_type(db, current_user.id, anime_id, update_data.collection_type)
     if not favorite:
-        raise HTTPException(status_code=404, detail="Favorite not found")
+        raise HTTPException(status_code=404, detail="Избранное не найдено")
     return favorite
 
 
@@ -101,9 +101,9 @@ def remove_favorite(
     if not deleted:
         raise HTTPException(
             status_code=404,
-            detail="Favorite not found"
+            detail="Избранное не найдено"
         )
-    return {"message": "Removed from favorites"}
+    return {"message": "Удалено из избранного"}
 
 
 @router.get("/watch-progress", response_model=list[WatchProgressResponse])
@@ -142,6 +142,6 @@ def remove_watch_progress(
     if not deleted:
         raise HTTPException(
             status_code=404,
-            detail="Watch progress not found"
+            detail="Прогресс просмотра не найден"
         )
-    return {"message": "Removed from watch progress"}
+    return {"message": "Удалено из просмотренного"}

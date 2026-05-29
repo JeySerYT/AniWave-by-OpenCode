@@ -1,6 +1,10 @@
-from pydantic import BaseModel, EmailStr, ConfigDict, Field
-from typing import Optional
+import re
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
+from typing import Optional, Literal
 from datetime import datetime
+
+
+CollectionType = Literal["watching", "completed", "planned"]
 
 
 class UserBase(BaseModel):
@@ -12,6 +16,17 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)
     terms_accepted: bool
     privacy_accepted: bool
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'\d', v):
+            raise ValueError('Password must contain at least one digit')
+        return v
 
 
 class UserResponse(UserBase):
@@ -65,11 +80,11 @@ class FavoriteBase(BaseModel):
     anime_id: str
     title: Optional[str] = None
     image: Optional[str] = None
-    collection_type: Optional[str] = "planned"
+    collection_type: Optional[CollectionType] = "planned"
 
 
 class FavoriteUpdate(BaseModel):
-    collection_type: str
+    collection_type: CollectionType
 
 
 class FavoriteResponse(FavoriteBase):

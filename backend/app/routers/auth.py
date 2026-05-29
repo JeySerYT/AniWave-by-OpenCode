@@ -11,6 +11,8 @@ from google.auth.transport import requests as google_requests
 from app.database import get_db
 from app.schemas.schemas import Token, UserCreate, UserResponse
 from app.services.user_service import UserService
+from pydantic import BaseModel
+
 from app.utils.auth import (
     create_access_token,
     create_refresh_token,
@@ -19,13 +21,37 @@ from app.utils.auth import (
     OAUTH_STATE_COOKIE_NAME,
 )
 
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8081")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+BACKEND_URL = os.getenv("BACKEND_URL")
+if not BACKEND_URL:
+    raise RuntimeError("BACKEND_URL environment variable is required")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+if not FRONTEND_URL:
+    raise RuntimeError("FRONTEND_URL environment variable is required")
+
+
+def _refresh_access_token(response: Response, db: Session, refresh_token: str) -> Optional[User]:
+    payload = decode_token(refresh_token)
+    if not payload or payload.get("type") != "refresh":
+        return None
+    user_id = payload.get("sub")
+    if not user_id:
+        return None
+    user = UserService.get_by_id(db, user_id)
+    if not user:
+        return None
+    new_access = create_access_token(data={"sub": user.id, "email": user.email})
+    response.set_cookie(key="access_token", value=new_access, httponly=True, samesite="lax", secure=True, max_age=900)
+    return user
 
 
 def get_current_user(
@@ -40,65 +66,39 @@ def get_current_user(
     
     if not token:
         if cookie_refresh:
-            payload = decode_token(cookie_refresh)
-            if payload and payload.get("type") == "refresh":
-                user_id = payload.get("sub")
-                if user_id:
-                    user = UserService.get_by_id(db, user_id)
-                    if user:
-                        new_access = create_access_token(data={"sub": user.id, "email": user.email})
-                        response.set_cookie(
-                            key="access_token",
-                            value=new_access,
-                            httponly=True,
-                            samesite="lax",
-                            max_age=900,
-                            domain=None
-                        )
-                        return user
+            user = _refresh_access_token(response, db, cookie_refresh)
+            if user:
+                return user
         
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="Не авторизован",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
     payload = decode_token(token)
     if not payload:
         if cookie_refresh:
-            payload = decode_token(cookie_refresh)
-            if payload and payload.get("type") == "refresh":
-                user_id = payload.get("sub")
-                if user_id:
-                    user = UserService.get_by_id(db, user_id)
-                    if user:
-                        new_access = create_access_token(data={"sub": user.id, "email": user.email})
-                        response.set_cookie(
-                            key="access_token",
-                            value=new_access,
-                            httponly=True,
-                            samesite="lax",
-                            max_age=900,
-                            domain=None
-                        )
-                        return user
+            user = _refresh_access_token(response, db, cookie_refresh)
+            if user:
+                return user
         
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail="Недействительный или просроченный токен",
             headers={"WWW-Authenticate": "Bearer"},
         )
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
+            detail="Недействительная полезная нагрузка токена",
         )
     user = UserService.get_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail="Пользователь не найден",
         )
     return user
 
@@ -117,6 +117,7 @@ def google_oauth(response: Response):
         value=state,
         httponly=True,
         samesite="lax",
+        secure=True,
         max_age=600,
         domain=None
     )
@@ -144,6 +145,7 @@ def github_oauth(response: Response):
         value=state,
         httponly=True,
         samesite="lax",
+        secure=True,
         max_age=600,
         domain=None
     )
@@ -169,7 +171,7 @@ def google_callback(
     db: Session = Depends(get_db)
 ):
     if not verify_oauth_state(state, oauth_state):
-        raise HTTPException(status_code=400, detail="Invalid OAuth state")
+        raise HTTPException(status_code=400, detail="Недействительное состояние OAuth")
     
     response.delete_cookie(key=OAUTH_STATE_COOKIE_NAME, domain=None)
     
@@ -178,7 +180,7 @@ def google_callback(
         google_client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
         
         if not google_client_id or not google_client_secret:
-            raise HTTPException(status_code=500, detail="Google OAuth not configured")
+            raise HTTPException(status_code=500, detail="Google OAuth не настроен")
         
         token_url = "https://oauth2.googleapis.com/token"
         redirect_uri = f"{BACKEND_URL}/api/auth/oauth/google/callback"
@@ -197,28 +199,25 @@ def google_callback(
         if token_response.status_code != 200:
             raise HTTPException(
                 status_code=400, 
-                detail=f"Google token exchange failed: {token_json}"
+                detail=f"Ошибка обмена токена Google: {token_json}"
             )
         
         if "id_token" not in token_json:
             raise HTTPException(
                 status_code=400, 
-                detail=f"Failed to get Google ID token. Response: {token_json}"
+                detail=f"Не удалось получить ID токен Google. Ответ: {token_json}"
             )
         
-        access_token_google = token_json.get("access_token")
-        
-        userinfo_response = httpx.get(
-            "https://www.googleapis.com/oauth2/v3/userinfo",
-            headers={"Authorization": f"Bearer {access_token_google}"}
+        id_info = id_token.verify_oauth2_token(
+            token_json["id_token"],
+            google_requests.Request(),
+            google_client_id
         )
-        userinfo = userinfo_response.json()
-        
-        email = userinfo.get("email")
-        google_id = userinfo.get("sub")
+        email = id_info.get("email")
+        google_id = id_info.get("sub")
         
         if not email:
-            raise HTTPException(status_code=400, detail="No email in Google response")
+            raise HTTPException(status_code=400, detail="Нет email в ответе Google")
         
         user = UserService.get_by_email(db, email)
         
@@ -246,6 +245,7 @@ def google_callback(
             value=access_token,
             httponly=True,
             samesite="lax",
+            secure=True,
             max_age=900,
             domain=None
         )
@@ -254,16 +254,17 @@ def google_callback(
             value=refresh_token,
             httponly=True,
             samesite="lax",
+            secure=True,
             max_age=604800,
             domain=None
         )
         
-        response.headers["Location"] = f"{FRONTEND_URL}/profile"
+        response.headers["Location"] = f"{FRONTEND_URL}/oauth/callback/google"
         response.status_code = status.HTTP_302_FOUND
         return response
         
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Google OAuth failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка Google OAuth: {str(e)}")
 
 
 @router.get("/oauth/github/callback")
@@ -275,7 +276,7 @@ def github_callback(
     db: Session = Depends(get_db)
 ):
     if not verify_oauth_state(state, oauth_state):
-        raise HTTPException(status_code=400, detail="Invalid OAuth state")
+        raise HTTPException(status_code=400, detail="Недействительное состояние OAuth")
     
     response.delete_cookie(key=OAUTH_STATE_COOKIE_NAME, domain=None)
     
@@ -284,7 +285,7 @@ def github_callback(
         github_client_secret = os.getenv("GITHUB_CLIENT_SECRET")
         
         if not github_client_id or not github_client_secret:
-            raise HTTPException(status_code=500, detail="GitHub OAuth not configured")
+            raise HTTPException(status_code=500, detail="GitHub OAuth не настроен")
         
         token_url = "https://github.com/login/oauth/access_token"
         token_data = {
@@ -299,7 +300,7 @@ def github_callback(
         
         access_token_github = token_json.get("access_token")
         if not access_token_github:
-            raise HTTPException(status_code=400, detail="Failed to get GitHub access token")
+            raise HTTPException(status_code=400, detail="Не удалось получить токен доступа GitHub")
         
         user_headers = {"Authorization": f"token {access_token_github}"}
         user_response = httpx.get("https://api.github.com/user", headers=user_headers)
@@ -310,7 +311,7 @@ def github_callback(
         email = next((e["email"] for e in emails if e.get("primary")), None)
         
         if not email:
-            raise HTTPException(status_code=400, detail="No email from GitHub")
+            raise HTTPException(status_code=400, detail="Нет email от GitHub")
         
         github_id = str(github_user.get("id"))
         github_login = github_user.get("login")
@@ -341,6 +342,7 @@ def github_callback(
             value=access_token_jwt,
             httponly=True,
             samesite="lax",
+            secure=True,
             max_age=900,
             domain=None
         )
@@ -349,18 +351,19 @@ def github_callback(
             value=refresh_token,
             httponly=True,
             samesite="lax",
+            secure=True,
             max_age=604800,
             domain=None
         )
         
-        response.headers["Location"] = f"{FRONTEND_URL}/profile"
+        response.headers["Location"] = f"{FRONTEND_URL}/oauth/callback/github"
         response.status_code = status.HTTP_302_FOUND
         return response
         
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"GitHub OAuth failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Ошибка GitHub OAuth: {str(e)}")
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -368,25 +371,25 @@ def register(response: Response, user_data: UserCreate, db: Session = Depends(ge
     if not user_data.terms_accepted or not user_data.privacy_accepted:
         raise HTTPException(
             status_code=400,
-            detail="You must accept terms and privacy policy"
+            detail="Вы должны принять условия и политику конфиденциальности"
         )
     
     if len(user_data.password) < 8:
         raise HTTPException(
             status_code=400,
-            detail="Password must be at least 8 characters"
+            detail="Пароль должен содержать минимум 8 символов"
         )
     
     if UserService.get_by_email(db, user_data.email):
         raise HTTPException(
             status_code=409,
-            detail="Email already registered"
+            detail="Email уже зарегистрирован"
         )
     
     if UserService.get_by_username(db, user_data.username):
         raise HTTPException(
             status_code=409,
-            detail="Username already taken"
+            detail="Имя пользователя уже занято"
         )
     
     user = UserService.create(db, user_data)
@@ -398,6 +401,7 @@ def register(response: Response, user_data: UserCreate, db: Session = Depends(ge
         value=access_token,
         httponly=True,
         samesite="lax",
+        secure=True,
         max_age=900,
         domain=None
     )
@@ -406,6 +410,7 @@ def register(response: Response, user_data: UserCreate, db: Session = Depends(ge
         value=refresh_token,
         httponly=True,
         samesite="lax",
+        secure=True,
         max_age=604800,
         domain=None
     )
@@ -414,12 +419,12 @@ def register(response: Response, user_data: UserCreate, db: Session = Depends(ge
 
 
 @router.post("/login", response_model=Token)
-def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = UserService.authenticate(db, form_data.username, form_data.password)
+def login(response: Response, form_data: LoginRequest, db: Session = Depends(get_db)):
+    user = UserService.authenticate(db, form_data.email, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
+            detail="Неверный email или пароль",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -431,6 +436,7 @@ def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), 
         value=access_token,
         httponly=True,
         samesite="lax",
+        secure=True,
         max_age=900,
         domain=None
     )
@@ -439,6 +445,7 @@ def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), 
         value=refresh_token,
         httponly=True,
         samesite="lax",
+        secure=True,
         max_age=604800,
         domain=None
     )
@@ -450,7 +457,7 @@ def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), 
 def logout(response: Response, current_user: UserResponse = Depends(get_current_user)):
     response.delete_cookie(key="access_token", domain=None)
     response.delete_cookie(key="refresh_token", domain=None)
-    return {"message": "Logged out successfully"}
+    return {"message": "Выход выполнен успешно"}
 
 
 @router.get("/me")
@@ -458,7 +465,8 @@ def get_me(
     response: Response,
     access_token: Optional[str] = Cookie(None),
     refresh_token: Optional[str] = Cookie(None),
-    authorization: Optional[str] = Header(None)
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
 ):
     token = access_token
     
@@ -467,79 +475,38 @@ def get_me(
     
     if not token:
         if refresh_token:
-            payload = decode_token(refresh_token)
-            if payload and payload.get("type") == "refresh":
-                user_id = payload.get("sub")
-                if user_id:
-                    from app.database import SessionLocal
-                    db = SessionLocal()
-                    try:
-                        user = UserService.get_by_id(db, user_id)
-                        if user:
-                            new_access = create_access_token(data={"sub": user.id, "email": user.email})
-                            response.set_cookie(
-                                key="access_token",
-                                value=new_access,
-                                httponly=True,
-                                samesite="lax",
-                                max_age=900,
-                                domain=None
-                            )
-                            return user
-                    finally:
-                        db.close()
+            user = _refresh_access_token(response, db, refresh_token)
+            if user:
+                return user
         
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="Не авторизован",
         )
     
     payload = decode_token(token)
     if not payload:
         if refresh_token:
-            payload = decode_token(refresh_token)
-            if payload and payload.get("type") == "refresh":
-                user_id = payload.get("sub")
-                if user_id:
-                    from app.database import SessionLocal
-                    db = SessionLocal()
-                    try:
-                        user = UserService.get_by_id(db, user_id)
-                        if user:
-                            new_access = create_access_token(data={"sub": user.id, "email": user.email})
-                            response.set_cookie(
-                                key="access_token",
-                                value=new_access,
-                                httponly=True,
-                                samesite="lax",
-                                max_age=900,
-                                domain=None
-                            )
-                            return user
-                    finally:
-                        db.close()
+            user = _refresh_access_token(response, db, refresh_token)
+            if user:
+                return user
         
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail="Недействительный или просроченный токен",
         )
     
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
+            detail="Недействительная полезная нагрузка токена",
         )
     
-    from app.database import SessionLocal
-    db = SessionLocal()
-    try:
-        user = UserService.get_by_id(db, user_id)
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-            )
-        return user
-    finally:
-        db.close()
+    user = UserService.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Пользователь не найден",
+        )
+    return user

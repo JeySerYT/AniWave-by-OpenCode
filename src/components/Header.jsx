@@ -2,18 +2,16 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../assets/logo.svg';
-import { useLanguage } from '../context/LanguageContext';
 import './Header.css';
 
 function Header() {
-  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: t('home') },
-    { path: '/search', label: t('search') },
-    { path: '/profile', label: t('profile') },
+    { path: '/', label: 'Главная' },
+    { path: '/search', label: 'Поиск' },
+    { path: '/profile', label: 'Профиль' },
   ];
 
   const toggleMenu = () => setMobileMenuOpen(!mobileMenuOpen);

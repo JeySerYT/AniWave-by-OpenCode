@@ -60,7 +60,10 @@ export function AuthProvider({ children }) {
       credentials: 'include'
     });
     const result = await res.json();
-    if (!res.ok) throw new Error(result.detail || 'Registration failed');
+    if (!res.ok) {
+      const msg = Array.isArray(result.detail) ? result.detail[0]?.msg || 'Ошибка регистрации' : result.detail || 'Ошибка регистрации';
+      throw new Error(msg);
+    }
     
     const userRes = await fetch(`${API_URL}/auth/me`, {
       credentials: 'include'
@@ -78,18 +81,17 @@ export function AuthProvider({ children }) {
   };
 
   const login = async (data) => {
-    const formData = new URLSearchParams();
-    formData.append('username', data.email);
-    formData.append('password', data.password);
-    
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: data.email, password: data.password }),
       credentials: 'include'
     });
     const result = await res.json();
-    if (!res.ok) throw new Error(result.detail || 'Login failed');
+    if (!res.ok) {
+      const msg = Array.isArray(result.detail) ? result.detail[0]?.msg || 'Ошибка входа' : result.detail || 'Ошибка входа';
+      throw new Error(msg);
+    }
     
     const userRes = await fetch(`${API_URL}/auth/me`, {
       credentials: 'include'

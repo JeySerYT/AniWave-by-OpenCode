@@ -1,30 +1,31 @@
 import os
+import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 load_dotenv()
 
 limiter = Limiter(key_func=get_remote_address)
 
-from app.database import engine
+from app.database import engine, get_db
 from app.models.models import Base
 from app.routers import auth, profile
 
 
-@limiter.limit("30/minute")
-async def slowapi_default(request: Request):
-    pass
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(ThreadPoolExecutor(), Base.metadata.create_all, engine)
     yield
 
 
@@ -66,8 +67,12 @@ def root():
 
 
 @app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+def health_check(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Database unhealthy: {e}")
 
 
 if __name__ == "__main__":
