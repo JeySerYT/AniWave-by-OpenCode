@@ -1,4 +1,4 @@
-const ANILIBRIA_API_BASE = 'https://anilibria.top/api/v1';
+const ANILIBRIA_API_BASE = import.meta.env.DEV ? '/api/v1' : 'https://anilibria.top/api/v1';
 
 const fetchWithTimeout = async (url, options = {}, timeout = 30000) => {
   const controller = new AbortController();

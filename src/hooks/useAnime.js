@@ -85,6 +85,7 @@ export const useYearAnime = (year, options = {}) => {
   const query = useQuery({
     queryKey: ['year', year],
     queryFn: () => anilibriaApi.getTitleList({ sorting: 'FRESH_AT_DESC', limit: 30 }),
+    select: (data) => data?.data || [],
     staleTime,
     gcTime,
     enabled: !!year,

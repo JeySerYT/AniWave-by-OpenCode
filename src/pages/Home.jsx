@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
 import { SkeletonGrid, SkeletonBanner } from '../components/Skeleton';
-import ErrorMessage from '../components/ErrorMessage';
+import { useToast } from '../components/Toast';
 import Footer from '../components/Footer';
 import { useQuery } from '@tanstack/react-query';
 import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased, useYearAnime } from '../hooks/useAnime';
@@ -24,6 +24,7 @@ const Home = () => {
   const currentYear = new Date().getFullYear();
   const currentSeason = getCurrentSeason();
 
+  const { addToast } = useToast();
   const [visibleCounts, setVisibleCounts] = useState({ best: 7, seasonal: 7, ongoing: 7, recent: 7 });
   const [continueWatching, setContinueWatching] = useState([]);
 
@@ -32,6 +33,12 @@ const Home = () => {
   const { data: ongoingAnime, isLoading: ongoingLoading, error: ongoingError } = useOngoingAnime();
   const { data: recentAnime, isLoading: recentLoading, error: recentError } = useRecentlyReleased();
   const { data: yearAnime, isLoading: yearLoading, error: yearError } = useYearAnime(currentYear);
+
+  useEffect(() => { if (bestError) addToast(bestError instanceof Error ? bestError.message : 'Ошибка загрузки'); }, [bestError, addToast]);
+  useEffect(() => { if (seasonalError) addToast(seasonalError instanceof Error ? seasonalError.message : 'Ошибка загрузки'); }, [seasonalError, addToast]);
+  useEffect(() => { if (ongoingError) addToast(ongoingError instanceof Error ? ongoingError.message : 'Ошибка загрузки'); }, [ongoingError, addToast]);
+  useEffect(() => { if (recentError) addToast(recentError instanceof Error ? recentError.message : 'Ошибка загрузки'); }, [recentError, addToast]);
+  useEffect(() => { if (yearError) addToast(yearError instanceof Error ? yearError.message : 'Ошибка загрузки'); }, [yearError, addToast]);
 
   const topAnime = useMemo(() => {
     if (!bestAnime) return null;
@@ -104,6 +111,7 @@ const Home = () => {
 
   const renderSection = (key, title, subtitle, data, loading, error) => {
     const count = visibleCounts[key] || 7;
+    const hasData = data?.length > 0;
 
     return (
       <section className="home-section" key={key}>
@@ -122,16 +130,15 @@ const Home = () => {
           </div>
         </div>
 
-        {loading && <SkeletonGrid count={7} />}
-        {error && <ErrorMessage message={error} onRetry={refetchBest} />}
-        {!loading && !error && (
+        {loading && !hasData && <SkeletonGrid count={7} />}
+        {hasData && (
           <>
             <div className="anime-grid">
-              {data?.slice(0, count).map((anime, i) => (
+              {data.slice(0, count).map((anime, i) => (
                 <AnimeCard key={anime.id} anime={anime} index={i} />
               ))}
             </div>
-            {data?.length > count && (
+            {data.length > count && (
               <div className="section-nav">
                 <button className="nav-btn" onClick={() => handleLoadMore(key)}>
                   Показать ещё
@@ -140,16 +147,17 @@ const Home = () => {
             )}
           </>
         )}
+        {!loading && !hasData && !error && (
+          <p className="section-empty">Нет данных</p>
+        )}
       </section>
     );
   };
 
   return (
     <div className="home">
-      {bestLoading ? (
+      {bestLoading || bestError ? (
         <SkeletonBanner />
-      ) : bestError ? (
-        <ErrorMessage message={bestError} onRetry={refetchBest} />
       ) : (
         <Hero anime={topAnime} hlsUrl={hlsUrl} opening={opening} episodes={episodes} />
       )}
