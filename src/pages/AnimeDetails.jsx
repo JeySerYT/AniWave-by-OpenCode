@@ -35,10 +35,13 @@ const AnimeDetails = () => {
     return first.releases.filter(r => String(r.id) !== String(id)).slice(0, 10);
   }, [franchiseData, id]);
 
-  const genreIds = anime?.genres?.map(g => g.id) || [];
-  const { data: similarByGenre, isLoading: similarLoading } = useSimilarByGenre(genreIds);
-
   const hasFranchise = franchiseReleases && franchiseReleases.length > 0;
+
+  const genreIds = anime?.genres?.map(g => g.id) || [];
+  const { data: similarByGenre, isLoading: similarLoading } = useSimilarByGenre(genreIds, {
+    enabled: !franchiseLoading && !hasFranchise && genreIds.length > 0
+  });
+
   const genreRelated = (similarByGenre || []).filter(r => String(r.id) !== String(id)).slice(0, 10);
   const related = hasFranchise ? franchiseReleases : genreRelated;
   const relatedLoading = franchiseLoading || (!hasFranchise && similarLoading);
