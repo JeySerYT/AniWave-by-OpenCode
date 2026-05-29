@@ -31,7 +31,7 @@ export const usePopularAnime = (options = {}) => {
 export const useSeasonalAnime = (year = null, season = null, options = {}) => {
   const query = useQuery({
     queryKey: ['seasonal', year, season],
-    queryFn: () => anilibriaApi.getTitleList({ sorting: 'RATING_DESC', limit: 20 }),
+    queryFn: () => anilibriaApi.getTitleList({ sorting: 'RATING_DESC', limit: 20, seasons: season, from_year: year, to_year: year }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,
@@ -84,7 +84,7 @@ export const useAnimeById = (code, options = {}) => {
 export const useYearAnime = (year, options = {}) => {
   const query = useQuery({
     queryKey: ['year', year],
-    queryFn: () => anilibriaApi.getTitleList({ sorting: 'FRESH_AT_DESC', limit: 30 }),
+    queryFn: () => anilibriaApi.getTitleList({ sorting: 'RATING_DESC', limit: 30, from_year: year, to_year: year }),
     select: (data) => data?.data || [],
     staleTime,
     gcTime,

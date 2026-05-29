@@ -5,7 +5,7 @@ import { SkeletonGrid, SkeletonBanner } from '../components/Skeleton';
 import { useToast } from '../components/Toast';
 import Footer from '../components/Footer';
 import { useQuery } from '@tanstack/react-query';
-import { useTrendingAnime, useOngoingAnime, useSeasonalAnime, useRecentlyReleased, useYearAnime } from '../hooks/useAnime';
+import { useTrendingAnime, useSeasonalAnime, useRecentlyReleased, useYearAnime } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
 import { anilibriaApi } from '../api/anilibria';
 import { API_URL } from '../api/config';
@@ -25,18 +25,16 @@ const Home = () => {
   const currentSeason = getCurrentSeason();
 
   const { addToast } = useToast();
-  const [visibleCounts, setVisibleCounts] = useState({ best: 7, seasonal: 7, ongoing: 7, recent: 7 });
+  const [visibleCounts, setVisibleCounts] = useState({ best: 7, seasonal: 7, recent: 7 });
   const [continueWatching, setContinueWatching] = useState([]);
 
   const { data: bestAnime, isLoading: bestLoading, error: bestError, refetch: refetchBest } = useTrendingAnime();
   const { data: seasonalAnime, isLoading: seasonalLoading, error: seasonalError } = useSeasonalAnime(currentYear, currentSeason);
-  const { data: ongoingAnime, isLoading: ongoingLoading, error: ongoingError } = useOngoingAnime();
   const { data: recentAnime, isLoading: recentLoading, error: recentError } = useRecentlyReleased();
   const { data: yearAnime, isLoading: yearLoading, error: yearError } = useYearAnime(currentYear);
 
   useEffect(() => { if (bestError) addToast(bestError instanceof Error ? bestError.message : 'Ошибка загрузки'); }, [bestError, addToast]);
   useEffect(() => { if (seasonalError) addToast(seasonalError instanceof Error ? seasonalError.message : 'Ошибка загрузки'); }, [seasonalError, addToast]);
-  useEffect(() => { if (ongoingError) addToast(ongoingError instanceof Error ? ongoingError.message : 'Ошибка загрузки'); }, [ongoingError, addToast]);
   useEffect(() => { if (recentError) addToast(recentError instanceof Error ? recentError.message : 'Ошибка загрузки'); }, [recentError, addToast]);
   useEffect(() => { if (yearError) addToast(yearError instanceof Error ? yearError.message : 'Ошибка загрузки'); }, [yearError, addToast]);
 
@@ -186,7 +184,6 @@ const Home = () => {
         )}
 
         {renderSection('best', 'Лучшие аниме', 'Популярное сейчас', bestAnime, bestLoading, bestError)}
-        {renderSection('ongoing', 'Онгоинги', 'Сейчас выходят', ongoingAnime, ongoingLoading, ongoingError)}
         {renderSection('seasonal', 'Сезонное', 'Текущий сезон', seasonalAnime, seasonalLoading, seasonalError)}
         {renderSection('recent', 'Новые эпизоды', 'Последние релизы', recentAnime, recentLoading, recentError)}
         {renderSection('year', 'Вышло в этом году', String(currentYear), shuffledYearAnime, yearLoading, yearError)}
