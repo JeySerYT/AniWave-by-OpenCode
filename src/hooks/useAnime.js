@@ -1,16 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { anilibriaApi } from '../api/anilibria';
 
-const staleTime = 5 * 60 * 1000;
-const gcTime = 10 * 60 * 1000;
+const listStaleTime = 30 * 60 * 1000;
+const listGcTime = 60 * 60 * 1000;
+const detailStaleTime = 5 * 60 * 1000;
+const detailGcTime = 30 * 60 * 1000;
 
 export const useTrendingAnime = (options = {}) => {
   const query = useQuery({
     queryKey: ['trending'],
     queryFn: () => anilibriaApi.getTitleList({ sorting: 'RATING_DESC', limit: 20 }),
     select: (data) => data?.data || [],
-    staleTime,
-    gcTime,
+    staleTime: listStaleTime,
+    gcTime: listGcTime,
     ...options
   });
   return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
@@ -21,8 +23,8 @@ export const usePopularAnime = (options = {}) => {
     queryKey: ['popular'],
     queryFn: () => anilibriaApi.getTitleList({ sorting: 'RATING_DESC', limit: 20 }),
     select: (data) => data?.data || [],
-    staleTime,
-    gcTime,
+    staleTime: listStaleTime,
+    gcTime: listGcTime,
     ...options
   });
   return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
@@ -33,8 +35,8 @@ export const useSeasonalAnime = (year = null, season = null, options = {}) => {
     queryKey: ['seasonal', year, season],
     queryFn: () => anilibriaApi.getTitleList({ sorting: 'RATING_DESC', limit: 20, seasons: season, from_year: year, to_year: year }),
     select: (data) => data?.data || [],
-    staleTime,
-    gcTime,
+    staleTime: listStaleTime,
+    gcTime: listGcTime,
     ...options
   });
   return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
@@ -49,8 +51,8 @@ export const useOngoingAnime = (options = {}) => {
       publish_statuses: 'IS_ONGOING'
     }),
     select: (data) => data?.data || [],
-    staleTime,
-    gcTime,
+    staleTime: listStaleTime,
+    gcTime: listGcTime,
     ...options
   });
 };
@@ -63,8 +65,8 @@ export const useRecentlyReleased = (options = {}) => {
       limit: 20
     }),
     select: (data) => data?.data || [],
-    staleTime,
-    gcTime,
+    staleTime: listStaleTime,
+    gcTime: listGcTime,
     ...options
   });
 };
@@ -73,8 +75,8 @@ export const useAnimeById = (code, options = {}) => {
   const query = useQuery({
     queryKey: ['anime', code],
     queryFn: () => code ? anilibriaApi.getReleaseById(code) : null,
-    staleTime,
-    gcTime,
+    staleTime: detailStaleTime,
+    gcTime: detailGcTime,
     enabled: !!code,
     ...options
   });
@@ -86,8 +88,8 @@ export const useYearAnime = (year, options = {}) => {
     queryKey: ['year', year],
     queryFn: () => anilibriaApi.getTitleList({ sorting: 'RATING_DESC', limit: 30, from_year: year, to_year: year }),
     select: (data) => data?.data || [],
-    staleTime,
-    gcTime,
+    staleTime: listStaleTime,
+    gcTime: listGcTime,
     enabled: !!year,
     ...options
   });
@@ -98,8 +100,8 @@ export const useFranchise = (releaseId, options = {}) => {
   const query = useQuery({
     queryKey: ['franchise', releaseId],
     queryFn: () => releaseId ? anilibriaApi.getFranchises(releaseId) : null,
-    staleTime,
-    gcTime,
+    staleTime: detailStaleTime,
+    gcTime: detailGcTime,
     enabled: !!releaseId,
     ...options
   });
@@ -111,8 +113,8 @@ export const useSimilarByGenre = (genreIds, options = {}) => {
     queryKey: ['similarByGenre', genreIds],
     queryFn: () => anilibriaApi.getSimilarByGenre(genreIds || []),
     select: (data) => data?.data || [],
-    staleTime,
-    gcTime,
+    staleTime: listStaleTime,
+    gcTime: listGcTime,
     enabled: (genreIds || []).length > 0,
     ...options
   });
