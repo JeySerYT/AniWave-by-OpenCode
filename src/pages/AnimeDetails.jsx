@@ -56,8 +56,11 @@ const AnimeDetails = () => {
     if (!franchiseData) return null;
     const franchises = Array.isArray(franchiseData) ? franchiseData : [franchiseData];
     const first = franchises[0];
-    if (!first || !first.releases) return null;
-    return first.releases.filter(r => String(r.id) !== String(id)).slice(0, 10);
+    if (!first || !first.franchise_releases) return null;
+    return first.franchise_releases
+      .map(r => r.release)
+      .filter(r => r && String(r.id) !== String(id))
+      .slice(0, 10);
   }, [franchiseData, id]);
 
   const hasFranchise = franchiseReleases && franchiseReleases.length > 0;
