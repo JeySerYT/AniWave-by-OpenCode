@@ -92,10 +92,9 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
   const [showVolumeHover, setShowVolumeHover] = useState(false);
   const [hoverTime, setHoverTime] = useState(null);
   const [hoverX, setHoverX] = useState(0);
-  const [skipTimer, setSkipTimer] = useState(null);
   const [showSkip, setShowSkip] = useState(false);
+  const [showWatchOpening, setShowWatchOpening] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const skipIntervalRef = useRef(null);
   const lastClickRef = useRef({ time: 0, x: 0 });
   const seekIndicatorRef = useRef(null);
 
@@ -199,32 +198,11 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     const onTimeUpdate = () => {
       setCurrentTime(video.currentTime);
       if (video.buffered.length > 0) setBuffered(video.buffered.end(video.buffered.length - 1));
-      if (hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop - 1) {
-        setShowSkip(true);
-        if (!skipIntervalRef.current) {
-          let count = 5;
-          setSkipTimer(count);
-          skipIntervalRef.current = setInterval(() => {
-            count--;
-            setSkipTimer(count);
-            if (count <= 0) {
-              clearInterval(skipIntervalRef.current);
-              skipIntervalRef.current = null;
-              if (video.currentTime >= opening.start && video.currentTime < opening.stop - 1) {
-                video.currentTime = opening.stop;
-                setShowSkip(false);
-                setSkipTimer(null);
-              }
-            }
-          }, 1000);
-        }
+      if (hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop) {
+        setShowWatchOpening(true);
       } else {
+        setShowWatchOpening(false);
         setShowSkip(false);
-        setSkipTimer(null);
-        if (skipIntervalRef.current) {
-          clearInterval(skipIntervalRef.current);
-          skipIntervalRef.current = null;
-        }
       }
     };
     const onDuration = () => setDuration(video.duration);
@@ -265,10 +243,6 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     const h = () => setIsFullscreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', h);
     return () => document.removeEventListener('fullscreenchange', h);
-  }, []);
-
-  useEffect(() => {
-    return () => { if (skipIntervalRef.current) clearInterval(skipIntervalRef.current); };
   }, []);
 
   const togglePlay = useCallback(() => {
@@ -380,11 +354,6 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     };
   }, []);
 
-  const handleSubtitleTrack = useCallback((lang) => {
-    setSubtitleTrack(lang);
-    setSubtitlesEnabled(true);
-  }, []);
-
   const toggleFullscreen = useCallback(async () => {
     const container = containerRef.current;
     if (!container) return;
@@ -392,14 +361,13 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     else await document.exitFullscreen();
   }, []);
 
-  const skipNow = () => {
+  const skipNow = useCallback(() => {
     const video = videoRef.current;
     if (!video || !hasOpening) return;
     video.currentTime = opening.stop;
     setShowSkip(false);
-    setSkipTimer(null);
-    if (skipIntervalRef.current) { clearInterval(skipIntervalRef.current); skipIntervalRef.current = null; }
-  };
+    setShowWatchOpening(false);
+  }, [hasOpening, opening]);
 
   const skipForward85 = () => {
     const video = videoRef.current;
@@ -516,6 +484,25 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
           </div>
 
           <div className="controls-bottom">
+            {(showWatchOpening || showSkip) && (
+              <div className="skip-controls">
+                {showWatchOpening && (
+                  <button className="watch-opening-button" onClick={() => {
+                    setShowWatchOpening(false);
+                    setShowSkip(true);
+                  }}>
+                    Смотреть опенинг
+                  </button>
+                )}
+                {showSkip && (
+                  <button className="skip-opening-button" onClick={skipNow}>
+                    <SkipForward size={16} />
+                    <span>Пропустить</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             <div
               className={`progress-bar ${isDragging ? 'dragging' : ''}`}
               ref={progressRef}
@@ -532,22 +519,6 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
                 </div>
               )}
             </div>
-
-            {showSkip && (
-              <div className="skip-controls">
-                <button className="skip-btn auto" onClick={skipNow}>
-                  <SkipForward size={16} />
-                  <span>Пропустить {skipTimer !== null ? `(${skipTimer}c)` : ''}</span>
-                </button>
-                <button className="skip-btn no-auto" onClick={() => {
-                  setShowSkip(false);
-                  setSkipTimer(null);
-                  if (skipIntervalRef.current) { clearInterval(skipIntervalRef.current); skipIntervalRef.current = null; }
-                }}>
-                  Смотреть
-                </button>
-              </div>
-            )}
 
             <div className="controls-row">
               <div className="controls-left">

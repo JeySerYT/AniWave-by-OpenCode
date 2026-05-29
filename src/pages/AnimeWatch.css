@@ -332,7 +332,8 @@
   margin-bottom: 0.4rem;
 }
 
-.skip-btn {
+.skip-opening-button,
+.watch-opening-button {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -345,21 +346,21 @@
   border: none;
 }
 
-.skip-btn.auto {
+.skip-opening-button {
   background: rgba(255,255,255,0.12);
   color: #fff;
   backdrop-filter: blur(8px);
 }
 
-.skip-btn.auto:hover { background: rgba(255,255,255,0.2); }
+.skip-opening-button:hover { background: rgba(255,255,255,0.2); }
 
-.skip-btn.no-auto {
+.watch-opening-button {
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.7);
   backdrop-filter: blur(8px);
 }
 
-.skip-btn.no-auto:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.watch-opening-button:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
 .controls-row {
   display: flex;
