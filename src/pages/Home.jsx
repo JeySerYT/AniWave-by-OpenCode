@@ -125,7 +125,11 @@ const Home = () => {
           </div>
         </div>
 
-        {loading && !hasData && <SkeletonGrid count={7} />}
+        {loading && !hasData && (
+          <div className="anime-grid">
+            <SkeletonGrid count={7} />
+          </div>
+        )}
         {hasData && (
           <>
             <div className="anime-grid">
@@ -166,7 +170,9 @@ const Home = () => {
                 <p className="section-subtitle">Вернись к тому, на чём остановился</p>
               </div>
             </div>
-            <SkeletonGrid count={7} />
+            <div className="anime-grid">
+              <SkeletonGrid count={7} />
+            </div>
           </section>
         )}
         {!cwLoading && continueWatching.length > 0 && (

@@ -205,7 +205,9 @@ const SearchPage = () => {
 
       <div className="search-results">
         {loading && anime.length === 0 && (
-          <SkeletonGrid count={8} />
+          <div className="anime-grid">
+            <SkeletonGrid count={8} />
+          </div>
         )}
 
         {error && !loading && (

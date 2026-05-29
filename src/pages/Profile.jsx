@@ -287,7 +287,9 @@ const ProfileContent = () => {
             transition={{ duration: 0.2 }}
           >
             {collLoading ? (
-              <SkeletonGrid count={6} />
+              <div className="collections-grid">
+                <SkeletonGrid count={6} />
+              </div>
             ) : currentList.length === 0 ? (
               <div className="empty-collection">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3">

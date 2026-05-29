@@ -1,9 +1,3 @@
-.skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-}
-
 .skeleton-card {
   background: #1a1a1a;
   border-radius: 12px;
@@ -11,7 +5,7 @@
 }
 
 .skeleton-poster {
-  aspect-ratio: 3/4;
+  aspect-ratio: 2/3;
   background: #222;
 }
 
@@ -31,31 +25,6 @@
   margin: 8px;
 }
 
-.skeleton-banner {
-  display: flex;
-  flex-direction: row;
-  background: #1a1a1a;
-  border-radius: 16px;
-  padding: 20px;
-  gap: 20px;
-}
-
-.skeleton-banner-img {
-  width: 200px;
-  height: 280px;
-  background: #222;
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-.skeleton-banner-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-}
-
 .skeleton-line {
   height: 14px;
   background: #222;
@@ -63,118 +32,26 @@
   margin: 8px 0;
 }
 
+.skeleton-full {
+  position: absolute;
+  inset: 0;
+  background: #141414;
+}
+
 .w-60 { width: 60%; }
+.w-70 { width: 70%; }
 .w-80 { width: 80%; }
+.w-90 { width: 90%; }
 .w-40 { width: 40%; }
+.w-50 { width: 50%; }
+.w-30 { width: 30%; }
 .w-20 { width: 20%; }
-
-@media (max-width: 768px) {
-  .skeleton-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 16px;
-  }
-
-  .skeleton-banner {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .skeleton-banner-img {
-    width: 150px;
-    height: 210px;
-  }
-}
-
-.anime-details-skeleton {
-  width: 100%;
-}
-
-.details-content-skeleton {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.details-main-skeleton {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.details-right-skeleton {
-  flex: 1;
-}
-
-.info-panel-skeleton {
-  background: #1a1a1a;
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-top: 1rem;
-}
-
-.related-skeleton {
-  margin-top: 2rem;
-}
-
-@media (max-width: 768px) {
-  .details-main-skeleton {
-    flex-direction: column;
-    align-items: center;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton-poster,
   .skeleton-title,
   .skeleton-subtitle,
-  .skeleton-banner-img,
-  .skeleton-line,
-  .skeleton-hero {
+  .skeleton-line {
     background: #1a1a1a;
-  }
-}
-
-.skeleton-hero {
-  position: relative;
-  min-height: 70vh;
-  background: #0a0a0a;
-  overflow: hidden;
-}
-
-.skeleton-hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, #0a0a0a 0%, transparent 50%);
-}
-
-.skeleton-hero-content {
-  position: relative;
-  z-index: 1;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 70vh;
-  gap: 2rem;
-}
-
-.skeleton-hero-info {
-  flex: 1;
-}
-
-.skeleton-hero-poster {
-  flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-  .skeleton-hero {
-    min-height: auto;
-  }
-  .skeleton-hero-content {
-    flex-direction: column;
-    min-height: auto;
-    padding-top: 4rem;
   }
 }

@@ -144,13 +144,10 @@
   .home-section {
     margin-bottom: 2rem;
   }
-}
-
-.home-skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 20px;
-}
+  .anime-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 
 .skeleton-card {
   aspect-ratio: 3 / 4;
