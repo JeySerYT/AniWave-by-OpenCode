@@ -25,8 +25,12 @@ from app.routers import auth, profile
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     loop = asyncio.get_event_loop()
-    await loop.run_in_executor(ThreadPoolExecutor(), Base.metadata.create_all, engine)
-    yield
+    executor = ThreadPoolExecutor()
+    try:
+        await loop.run_in_executor(executor, Base.metadata.create_all, engine)
+        yield
+    finally:
+        executor.shutdown(wait=True)
 
 
 app = FastAPI(
