@@ -33,8 +33,6 @@ const Home = () => {
   const { data: recentAnime, isLoading: recentLoading, error: recentError } = useRecentlyReleased();
   const { data: yearAnime, isLoading: yearLoading, error: yearError } = useYearAnime(currentYear);
 
-  const handleRetry = () => refetchBest();
-
   const topAnime = useMemo(() => {
     if (!bestAnime) return null;
     return [...bestAnime].sort((a, b) =>
@@ -125,7 +123,7 @@ const Home = () => {
         </div>
 
         {loading && <SkeletonGrid count={7} />}
-        {error && <ErrorMessage message={error} onRetry={handleRetry} />}
+        {error && <ErrorMessage message={error} onRetry={refetchBest} />}
         {!loading && !error && (
           <>
             <div className="anime-grid">
@@ -151,7 +149,7 @@ const Home = () => {
       {bestLoading ? (
         <SkeletonBanner />
       ) : bestError ? (
-        <ErrorMessage message={bestError} onRetry={handleRetry} />
+        <ErrorMessage message={bestError} onRetry={refetchBest} />
       ) : (
         <Hero anime={topAnime} hlsUrl={hlsUrl} opening={opening} episodes={episodes} />
       )}
