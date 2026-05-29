@@ -179,16 +179,24 @@ export const anilibriaApi = {
   async getSimilarByGenre(genreIds) {
     const results = await Promise.all(
       genreIds.map(gid =>
-        this.getTitleList({ sorting: 'RATING_DESC', limit: 4, genres: String(gid) })
+        this.getTitleList({ sorting: 'RATING_DESC', limit: 10, genres: String(gid) })
       )
     );
     const seen = new Set();
     const combined = [];
     for (const res of results) {
-      for (const item of (res.data || [])) {
+      const pool = [...(res.data || [])];
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      let taken = 0;
+      for (const item of pool) {
+        if (taken >= 3) break;
         if (!seen.has(item.id)) {
           seen.add(item.id);
           combined.push(item);
+          taken++;
         }
       }
     }
