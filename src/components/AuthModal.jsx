@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +12,8 @@ const AuthModal = ({ isOpen, onClose }) => {
   };
   const navigate = useNavigate();
 
+  const [popupBlocked, setPopupBlocked] = useState(false);
+
   const handleOAuth = async (provider) => {
     try {
       const r = await fetch(`${API_URL}/auth/oauth/${provider}`, { credentials: 'include' });
@@ -18,7 +21,7 @@ const AuthModal = ({ isOpen, onClose }) => {
       if (!d.auth_url) return;
       const popup = window.open(d.auth_url, 'oauth_popup', 'width=600,height=700,focus=yes');
       if (!popup) {
-        window.location.href = d.auth_url;
+        setPopupBlocked(true);
         return;
       }
       const handleMessage = (event) => {
@@ -74,6 +77,16 @@ const AuthModal = ({ isOpen, onClose }) => {
               <span>или через соцсети</span>
             </div>
 
+            {popupBlocked && (
+              <div className="authmodal-blocked">
+                <p>Не удалось открыть окно авторизации. Пожалуйста, разрешите всплывающие окна для этого сайта.</p>
+                <button className="authmodal-btn primary" onClick={() => setPopupBlocked(false)}>
+                  OK
+                </button>
+              </div>
+            )}
+
+            {!popupBlocked && (
             <div className="authmodal-oauth">
               <button className="authmodal-oauth-btn google" onClick={() => handleOAuth('google')}>
                 <svg viewBox="0 0 24 24" width="18" height="18">
@@ -91,7 +104,7 @@ const AuthModal = ({ isOpen, onClose }) => {
                 GitHub
               </button>
             </div>
-          </motion.div>
+            )}
         </motion.div>
       )}
     </AnimatePresence>

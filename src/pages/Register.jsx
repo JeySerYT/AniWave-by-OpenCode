@@ -14,6 +14,8 @@ function Register() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showRetryPopup, setShowRetryPopup] = useState(false);
+  const [retryUrl, setRetryUrl] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -46,7 +48,9 @@ function Register() {
       if (data.auth_url) {
         const popup = window.open(data.auth_url, 'oauth_popup', 'width=600,height=700,focus=yes');
         if (!popup) {
-          window.location.href = data.auth_url;
+          setError('Не удалось открыть окно авторизации. Пожалуйста, разрешите всплывающие окна для этого сайта.');
+          setShowRetryPopup(true);
+          setRetryUrl(data.auth_url);
           return;
         }
         const handleMessage = (event) => {
@@ -161,6 +165,24 @@ function Register() {
           <div className="auth-divider">
             <span>или</span>
           </div>
+
+          {showRetryPopup && (
+            <div className="oauth-retry">
+              <p>Попробуйте ещё раз или зарегистрируйтесь через стандартную форму:</p>
+              <button
+                className="auth-btn primary"
+                onClick={() => {
+                  const w = window.open(retryUrl, 'oauth_popup', 'width=600,height=700,focus=yes,noopener=yes');
+                  if (w) {
+                    setShowRetryPopup(false);
+                    setError('');
+                  }
+                }}
+              >
+                Открыть окно авторизации
+              </button>
+            </div>
+          )}
 
           <div className="oauth-buttons">
             <motion.button 
