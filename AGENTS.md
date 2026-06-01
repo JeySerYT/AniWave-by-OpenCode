@@ -305,6 +305,10 @@ export default ComponentName;
 - Always run `npm run build` before committing to verify no errors
 - Frontend and backend changes should be on the same branch
 
+### Redesign Workflow
+
+When redesigning any page or component, ALWAYS use the lazyweb skill first to search for UI references, screenshots, and design inspiration before writing any code.
+
 ### Sub-agents Usage
 
 When using sub-agents for complex tasks:
