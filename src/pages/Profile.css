@@ -403,7 +403,30 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .profile-name {
+    font-size: 1.35rem;
+  }
+
+  .profile-stats {
+    gap: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.05rem;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .edit-profile-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
   .guest-card {
     padding: 2rem 1.5rem;
   }

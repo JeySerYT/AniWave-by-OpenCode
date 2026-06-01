@@ -78,6 +78,9 @@ function Header({ onSearchOpen }) {
         </div>
 
         <div className="header-right">
+          <button className="header-mobile-search" onClick={onSearchOpen} aria-label="Поиск">
+            <Search size={18} />
+          </button>
           <div className="header-profile" ref={profileRef}>
           {user ? (
             <button

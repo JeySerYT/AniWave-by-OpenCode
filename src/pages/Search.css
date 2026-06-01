@@ -318,9 +318,40 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .catalog-layout {
+    padding: 0.75rem;
+  }
+
+  .catalog-header {
+    margin-bottom: 1rem;
+  }
+
+  .catalog-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .catalog-search-input {
+    padding: 0.7rem 1rem 0.7rem 2.6rem;
+    font-size: 0.85rem;
+  }
+
+  .catalog-sort-btn {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.72rem;
+    min-height: 36px;
+  }
+
   .anime-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
+  }
+
+  .load-more-btn {
+    padding: 0.75rem 2rem;
+    min-height: 44px;
+    width: 100%;
+    max-width: 280px;
   }
 }

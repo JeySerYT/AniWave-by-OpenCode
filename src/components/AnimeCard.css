@@ -164,17 +164,56 @@
 }
 
 @media (max-width: 768px) {
+  .anime-card-body {
+    padding: 9px 9px 11px;
+  }
+
   .anime-card-title {
     font-size: 12px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .anime-card-body {
-    padding: 7px 7px 9px;
+    padding: 8px 8px 10px;
   }
 
   .anime-card-title {
     font-size: 11px;
+  }
+
+  .anime-card-badge {
+    padding: 2px 6px;
+    font-size: 9px;
+    border-radius: 4px;
+  }
+
+  .rating-badge {
+    top: 6px;
+    right: 6px;
+  }
+
+  .episodes-badge {
+    bottom: 6px;
+    left: 6px;
+  }
+
+  .anime-card-status {
+    top: 6px;
+    left: 6px;
+    padding: 2px 6px;
+    font-size: 8px;
+  }
+
+  .anime-card-brief {
+    top: 6px;
+    left: 6px;
+    padding: 2px 6px;
+    font-size: 8px;
+  }
+
+  .status-dot-live {
+    width: 4px;
+    height: 4px;
   }
 }

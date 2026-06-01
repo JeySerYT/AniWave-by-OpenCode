@@ -224,4 +224,37 @@
     font-size: 0.82rem;
     padding: 0.5rem 0.9rem;
   }
+
+  .collections-tabs {
+    gap: 0.35rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .collections-title {
+    font-size: 1.2rem;
+  }
+
+  .collections-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .collection-tab {
+    font-size: 0.78rem;
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .collection-card-actions {
+    flex-direction: column;
+  }
+
+  .coll-action-btn {
+    padding: 0.5rem;
+    min-height: 36px;
+    font-size: 0.75rem;
+  }
 }

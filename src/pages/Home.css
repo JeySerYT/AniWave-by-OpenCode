@@ -155,19 +155,36 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .home-content {
     padding: 0.75rem 0.75rem 0;
-    margin-top: -1rem;
+    margin-top: -1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.05rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.75rem;
   }
 
   .anime-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 10px;
+  }
+
+  .section-header {
+    margin-bottom: 0.85rem;
+  }
+
+  .home-section {
+    margin-bottom: 1.75rem;
   }
 
   .nav-btn {
-    padding: 8px 24px;
-    font-size: 13px;
+    padding: 12px 28px;
+    font-size: 0.82rem;
+    min-height: 44px;
   }
 }

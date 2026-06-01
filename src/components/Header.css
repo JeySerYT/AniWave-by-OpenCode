@@ -138,6 +138,28 @@
   font-weight: 500;
 }
 
+.header-mobile-search {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.header-mobile-search:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
 .header-profile {
   position: relative;
   display: flex;
@@ -434,6 +456,10 @@
 
   .header-center {
     display: none;
+  }
+
+  .header-mobile-search {
+    display: flex;
   }
 
   .header-login-btn {
