@@ -12,6 +12,8 @@ import Search from './pages/Search';
 import AnimeDetails from './pages/AnimeDetails';
 import AnimeWatch from './pages/AnimeWatch';
 import Profile from './pages/Profile';
+import Collections from './pages/Collections';
+import Settings from './pages/Settings';
 import Faq from './pages/Faq';
 import Footer from './components/Footer';
 import Terms from './pages/Terms';
@@ -65,6 +67,8 @@ function App() {
                 <Route path="/anime/:id" element={<Layout onSearchOpen={openSearch}><AnimeDetails /></Layout>} />
                 <Route path="/anime/:id/watch" element={<Layout onSearchOpen={openSearch}><AnimeWatch /></Layout>} />
                 <Route path="/profile" element={<Layout onSearchOpen={openSearch}><Profile /></Layout>} />
+                <Route path="/my-list" element={<Layout onSearchOpen={openSearch}><Collections /></Layout>} />
+                <Route path="/settings" element={<Layout onSearchOpen={openSearch}><Settings /></Layout>} />
                 <Route path="/faq" element={<Layout onSearchOpen={openSearch}><Faq /></Layout>} />
                 <Route path="/terms" element={<Layout onSearchOpen={openSearch}><Terms /></Layout>} />
                 <Route path="/privacy" element={<Layout onSearchOpen={openSearch}><Privacy /></Layout>} />

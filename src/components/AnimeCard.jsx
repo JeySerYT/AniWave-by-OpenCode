@@ -13,17 +13,16 @@ const AnimeCard = ({ anime, index = 0, brief }) => {
   const rating = anime?.averageScore ? (anime.averageScore / 10).toFixed(1) : anime?.rating || anime?.score || null;
   const episodes = anime.episodes_total;
   const animeCode = anime.id;
-  const genres = anime.genres?.slice(0, 2).map(g => g.name) || [];
-  const watching = anime.added_in_watching_collection;
+  const status = anime?.status?.string || anime?.publish_status || null;
 
   return (
     <motion.div
       className="anime-card"
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.4, delay: index * 0.04, ease: [0.25, 0.46, 0.45, 0.94] }}
-      whileHover={{ y: -6, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] } }}
+      viewport={{ once: true, margin: '-30px' }}
+      transition={{ duration: 0.35, delay: index * 0.03, ease: [0.25, 0.46, 0.45, 0.94] }}
+      whileHover={{ y: -8, transition: { duration: 0.25 } }}
     >
       <Link to={'/anime/' + animeCode} className="anime-card-link">
         <div className="anime-card-poster">
@@ -43,34 +42,32 @@ const AnimeCard = ({ anime, index = 0, brief }) => {
           <div className="anime-card-overlay" />
 
           {rating && (
-            <div className="anime-card-rating">
-              <span className="rating-star">★</span>
-              <span className="rating-value">{rating}</span>
+            <div className="anime-card-badge rating-badge">
+              <span className="rating-icon">★</span>
+              {rating}
             </div>
           )}
 
           {episodes && (
-            <div className="anime-card-episodes">
+            <div className="anime-card-badge episodes-badge">
               {episodes} эп.
             </div>
           )}
 
-          {brief && (
-            <div className="anime-card-brief">
-              {brief}
+          {status === 'ongoing' && (
+            <div className="anime-card-status ongoing">
+              <span className="status-dot-live" />
+              Онгоинг
             </div>
+          )}
+
+          {brief && (
+            <div className="anime-card-brief">{brief}</div>
           )}
         </div>
 
         <div className="anime-card-body">
           <h3 className="anime-card-title">{title}</h3>
-          {genres.length > 0 && (
-            <div className="anime-card-genres">
-              {genres.map(g => (
-                <span key={g} className="card-genre-tag">{g}</span>
-              ))}
-            </div>
-          )}
         </div>
       </Link>
     </motion.div>
