@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { HelpCircle, Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Star, Play, Info } from 'lucide-react';
 import Hls from 'hls.js';
 import './Hero.css';
 
@@ -82,17 +82,16 @@ const Hero = memo(({ anime, hlsUrl, opening }) => {
   const title = anime.name?.main || anime.name?.english || anime.name?.alternative || 'Unknown';
   const poster = anime.poster?.optimized?.src || anime.poster?.preview || anime.poster?.src;
   const description = anime.description || '';
+  const rating = anime?.averageScore ? (anime.averageScore / 10).toFixed(1) : anime?.rating || anime?.score || null;
+  const year = anime.season?.year || null;
+  const type = anime.type?.full_string || anime.type?.string || null;
 
   const handleWatch = () => {
-    if (anime.id) {
-      navigate('/anime/' + anime.id + '/watch');
-    }
+    if (anime.id) navigate('/anime/' + anime.id + '/watch');
   };
 
   const handleDetails = () => {
-    if (anime.id) {
-      navigate('/anime/' + anime.id);
-    }
+    if (anime.id) navigate('/anime/' + anime.id);
   };
 
   return (
@@ -124,6 +123,17 @@ const Hero = memo(({ anime, hlsUrl, opening }) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
           >
+            <div className="hero-badges">
+              {rating && (
+                <span className="badge badge-rating">
+                  <Star size={12} fill="currentColor" />
+                  <span>{rating}</span>
+                </span>
+              )}
+              {type && <span className="badge badge-type">{type}</span>}
+              {year && <span className="badge badge-year">{year}</span>}
+            </div>
+
             <h1 className="hero-title">{title}</h1>
 
             {anime.name?.english && anime.name?.main && (
@@ -136,19 +146,15 @@ const Hero = memo(({ anime, hlsUrl, opening }) => {
               ))}
             </div>
 
-            <p className="hero-description">
-              {description?.slice(0, 100)}...
-            </p>
+            <p className="hero-description">{description?.slice(0, 80)}...</p>
 
             <div className="hero-actions">
               <button className="hero-btn-primary" onClick={handleWatch}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
+                <Play size={16} fill="currentColor" />
                 <span>Смотреть</span>
               </button>
               <button className="hero-btn-secondary" onClick={handleDetails}>
-                <HelpCircle size={18} />
+                <Info size={16} />
                 <span>Подробнее</span>
               </button>
             </div>
@@ -179,7 +185,7 @@ const Hero = memo(({ anime, hlsUrl, opening }) => {
                   onClick={toggleMute}
                   title={isMuted ? 'Включить звук' : 'Выключить звук'}
                 >
-                  {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                  {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
                 </button>
               )}
             </div>

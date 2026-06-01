@@ -1,10 +1,11 @@
-import { memo } from 'react';
+import { useState, memo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import Header from './components/Header';
+import SearchModal from './components/SearchModal';
 import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Search from './pages/Search';
@@ -33,9 +34,9 @@ const queryClient = new QueryClient({
   },
 });
 
-const Layout = memo(({ children, hideHeader }) => (
+const Layout = memo(({ children, hideHeader, onSearchOpen }) => (
   <div className="layout">
-    {!hideHeader && <Header />}
+    {!hideHeader && <Header onSearchOpen={onSearchOpen} />}
     <motion.main 
       className="main-content"
       initial={{ opacity: 0 }}
@@ -48,6 +49,9 @@ const Layout = memo(({ children, hideHeader }) => (
 ));
 
 function App() {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const openSearch = () => setSearchOpen(true);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -56,21 +60,22 @@ function App() {
             <ScrollToTop />
             <div className="App">
               <Routes>
-                <Route path="/" element={<Layout><Home /></Layout>} />
-                <Route path="/search" element={<Layout><Search /></Layout>} />
-                <Route path="/anime/:id" element={<Layout><AnimeDetails /></Layout>} />
-                <Route path="/anime/:id/watch" element={<Layout><AnimeWatch /></Layout>} />
-                <Route path="/profile" element={<Layout><Profile /></Layout>} />
-                <Route path="/faq" element={<Layout><Faq /></Layout>} />
-                <Route path="/terms" element={<Layout><Terms /></Layout>} />
-                <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
-                <Route path="/dmca" element={<Layout><Dmca /></Layout>} />
-                <Route path="/login" element={<Layout hideHeader><Login /></Layout>} />
-                <Route path="/register" element={<Layout hideHeader><Register /></Layout>} />
+                <Route path="/" element={<Layout onSearchOpen={openSearch}><Home /></Layout>} />
+                <Route path="/search" element={<Layout onSearchOpen={openSearch}><Search /></Layout>} />
+                <Route path="/anime/:id" element={<Layout onSearchOpen={openSearch}><AnimeDetails /></Layout>} />
+                <Route path="/anime/:id/watch" element={<Layout onSearchOpen={openSearch}><AnimeWatch /></Layout>} />
+                <Route path="/profile" element={<Layout onSearchOpen={openSearch}><Profile /></Layout>} />
+                <Route path="/faq" element={<Layout onSearchOpen={openSearch}><Faq /></Layout>} />
+                <Route path="/terms" element={<Layout onSearchOpen={openSearch}><Terms /></Layout>} />
+                <Route path="/privacy" element={<Layout onSearchOpen={openSearch}><Privacy /></Layout>} />
+                <Route path="/dmca" element={<Layout onSearchOpen={openSearch}><Dmca /></Layout>} />
+                <Route path="/login" element={<Layout hideHeader onSearchOpen={openSearch}><Login /></Layout>} />
+                <Route path="/register" element={<Layout hideHeader onSearchOpen={openSearch}><Register /></Layout>} />
                 <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
-                <Route path="*" element={<Layout><NotFound /></Layout>} />
+                <Route path="*" element={<Layout onSearchOpen={openSearch}><NotFound /></Layout>} />
               </Routes>
             </div>
+            <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
           </BrowserRouter>
         </ToastProvider>
       </AuthProvider>

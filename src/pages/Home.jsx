@@ -75,7 +75,7 @@ const Home = () => {
                 poster: w.poster,
                 progress: parseInt(w.episode) || 1,
                 episodes_total: parseInt(w.episodes_total) || 0,
-                genres: (() => { try { return JSON.parse(w.genres || '[]'); } catch { return []; } })()
+                genres: (() => { try { return JSON.parse(w.genres || '[]'); } catch { return []; }; })()
               });
             }
           }
