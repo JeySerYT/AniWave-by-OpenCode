@@ -19,6 +19,54 @@ function getCurrentSeason() {
   return 'autumn';
 }
 
+const Section = ({ sectionKey, title, subtitle, data, loading, error, visibleCount, onLoadMore, totalWatching }) => {
+  const hasData = data?.length > 0;
+
+  return (
+    <section className="home-section">
+      <div className="section-header">
+        <div className="section-title-group">
+          <h2 className="section-title">
+            {title}
+            {sectionKey === 'best' && totalWatching > 0 && (
+              <span className="section-watching">
+                <span className="watching-dot" />
+                {totalWatching.toLocaleString()} смотрят
+              </span>
+            )}
+          </h2>
+          {subtitle && <p className="section-subtitle">{subtitle}</p>}
+        </div>
+      </div>
+
+      {loading && !hasData && (
+        <div className="anime-grid">
+          <SkeletonGrid count={7} />
+        </div>
+      )}
+      {hasData && (
+        <>
+          <div className="anime-grid">
+            {data.slice(0, visibleCount).map((anime, i) => (
+              <AnimeCard key={anime.id} anime={anime} index={i} />
+            ))}
+          </div>
+          {data.length > visibleCount && (
+            <div className="section-nav">
+              <button className="nav-btn" onClick={() => onLoadMore(sectionKey)}>
+                Показать ещё
+              </button>
+            </div>
+          )}
+        </>
+      )}
+      {!loading && !hasData && !error && (
+        <p className="section-empty">Нет данных</p>
+      )}
+    </section>
+  );
+};
+
 const Home = () => {
   const { user } = useAuth();
   const currentYear = new Date().getFullYear();
@@ -104,61 +152,12 @@ const Home = () => {
     return arr;
   }, [yearAnime]);
 
-  const renderSection = (key, title, subtitle, data, loading, error) => {
-    const count = visibleCounts[key] || 7;
-    const hasData = data?.length > 0;
-
-    return (
-      <section className="home-section" key={key}>
-        <div className="section-header">
-          <div className="section-title-group">
-            <h2 className="section-title">
-              {title}
-              {key === 'best' && totalWatching > 0 && (
-                <span className="section-watching">
-                  <span className="watching-dot" />
-                  {totalWatching.toLocaleString()} смотрят
-                </span>
-              )}
-            </h2>
-            {subtitle && <p className="section-subtitle">{subtitle}</p>}
-          </div>
-        </div>
-
-        {loading && !hasData && (
-          <div className="anime-grid">
-            <SkeletonGrid count={7} />
-          </div>
-        )}
-        {hasData && (
-          <>
-            <div className="anime-grid">
-              {data.slice(0, count).map((anime, i) => (
-                <AnimeCard key={anime.id} anime={anime} index={i} />
-              ))}
-            </div>
-            {data.length > count && (
-              <div className="section-nav">
-                <button className="nav-btn" onClick={() => handleLoadMore(key)}>
-                  Показать ещё
-                </button>
-              </div>
-            )}
-          </>
-        )}
-        {!loading && !hasData && !error && (
-          <p className="section-empty">Нет данных</p>
-        )}
-      </section>
-    );
-  };
-
   return (
     <div className="home">
       {bestLoading || bestError ? (
         <SkeletonHero />
       ) : (
-        <Hero anime={topAnime} hlsUrl={hlsUrl} opening={opening} episodes={episodes} />
+        <Hero anime={topAnime} hlsUrl={hlsUrl} opening={opening} />
       )}
 
       <div className="home-content">
@@ -197,10 +196,10 @@ const Home = () => {
           </section>
         )}
 
-        {renderSection('best', 'Лучшие аниме', 'Популярное сейчас', bestAnime, bestLoading, bestError)}
-        {renderSection('seasonal', 'Сезонное', { winter: 'Зимние аниме', spring: 'Весенние аниме', summer: 'Летние аниме', autumn: 'Осенние аниме' }[currentSeason], seasonalAnime, seasonalLoading, seasonalError)}
-        {renderSection('recent', 'Новые эпизоды', 'Последние релизы', recentAnime, recentLoading, recentError)}
-        {renderSection('year', 'Вышло в этом году', `Тайтлы ${currentYear} года`, shuffledYearAnime, yearLoading, yearError)}
+        <Section sectionKey="best" title="Лучшие аниме" subtitle="Популярное сейчас" data={bestAnime} loading={bestLoading} error={bestError} visibleCount={visibleCounts.best || 7} onLoadMore={handleLoadMore} totalWatching={totalWatching} />
+        <Section sectionKey="seasonal" title="Сезонное" subtitle={{ winter: 'Зимние аниме', spring: 'Весенние аниме', summer: 'Летние аниме', autumn: 'Осенние аниме' }[currentSeason]} data={seasonalAnime} loading={seasonalLoading} error={seasonalError} visibleCount={visibleCounts.seasonal || 7} onLoadMore={handleLoadMore} />
+        <Section sectionKey="recent" title="Новые эпизоды" subtitle="Последние релизы" data={recentAnime} loading={recentLoading} error={recentError} visibleCount={visibleCounts.recent || 7} onLoadMore={handleLoadMore} />
+        <Section sectionKey="year" title="Вышло в этом году" subtitle={`Тайтлы ${currentYear} года`} data={shuffledYearAnime} loading={yearLoading} error={yearError} visibleCount={visibleCounts.year || 7} onLoadMore={handleLoadMore} />
       </div>
       <Footer />
     </div>

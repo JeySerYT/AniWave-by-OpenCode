@@ -56,9 +56,9 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ToastProvider>
-          <BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <AuthProvider>
             <ScrollToTop />
             <div className="App">
               <Routes>
@@ -80,9 +80,9 @@ function App() {
               </Routes>
             </div>
             <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-          </BrowserRouter>
-        </ToastProvider>
-      </AuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

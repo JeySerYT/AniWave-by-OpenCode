@@ -1,35 +1,36 @@
 import { useState, useCallback, useRef } from 'react';
 import { anilibriaApi } from '../api/anilibria';
 
-const genreNamesToIds = {};
-let genreMapLoaded = false;
-
-const ensureGenreMap = async () => {
-  if (genreMapLoaded) return;
-  try {
-    const genres = await anilibriaApi.getGenres();
-    if (Array.isArray(genres)) {
-      genres.forEach(g => { genreNamesToIds[g.name] = g.id; });
-      genreMapLoaded = true;
-    }
-  } catch (e) {
-    console.error('Failed to load genre map', e);
-  }
-};
-
 const sortMap = {
   rating: 'RATING_DESC',
-  popularity: 'RATING_DESC',
   updated_at: 'FRESH_AT_DESC',
 };
 
 export const useSearch = () => {
+  const genreMapRef = useRef({});
+  const genreMapLoadedRef = useRef(false);
+
+  const ensureGenreMap = async () => {
+    if (genreMapLoadedRef.current) return;
+    try {
+      const genres = await anilibriaApi.getGenres();
+      if (Array.isArray(genres)) {
+        const map = {};
+        genres.forEach(g => { map[g.name] = g.id; });
+        genreMapRef.current = map;
+        genreMapLoadedRef.current = true;
+      }
+    } catch (e) {
+      console.error('Failed to load genre map', e);
+    }
+  };
+
   const [anime, setAnime] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState({
-    search: '', genre: '', year: '', status: '', sort: 'popularity',
+    search: '', genre: '', year: '', status: '', sort: 'rating',
   });
   const pageRef = useRef(1);
 
@@ -38,8 +39,8 @@ export const useSearch = () => {
 
     if (f.search) params.search = f.search;
 
-    if (f.genre && genreNamesToIds[f.genre]) {
-      params.genres = String(genreNamesToIds[f.genre]);
+    if (f.genre && genreMapRef.current[f.genre]) {
+      params.genres = String(genreMapRef.current[f.genre]);
     }
 
     if (f.year) {
@@ -88,7 +89,7 @@ export const useSearch = () => {
   }, []);
 
   const resetFilters = useCallback(() => {
-    setFilters({ search: '', genre: '', year: '', status: '', sort: 'popularity' });
+    setFilters({ search: '', genre: '', year: '', status: '', sort: 'rating' });
   }, []);
 
   return {

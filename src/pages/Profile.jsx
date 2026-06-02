@@ -8,6 +8,45 @@ import { SkeletonGrid } from '../components/Skeleton';
 import Footer from '../components/Footer';
 import './Profile.css';
 
+const MAX_IMAGE_SIZE = 1024;
+
+const compressImage = (file, maxSize = MAX_IMAGE_SIZE, quality = 0.8) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+        if (width > height && width > maxSize) {
+          height = (height / width) * maxSize;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width = (width / height) * maxSize;
+          height = maxSize;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const fr = new FileReader();
+            fr.onload = () => resolve(fr.result);
+            fr.readAsDataURL(blob);
+          } else {
+            resolve(e.target.result);
+          }
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = () => resolve(e.target.result);
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 const ProfileContent = () => {
   const { user, loading: authLoading, refresh, logout } = useAuth();
   const navigate = useNavigate();
@@ -24,15 +63,20 @@ const ProfileContent = () => {
     setShowEdit(true);
   };
 
-  const handleFileSelect = (e, field) => {
+  const handleFileSelect = async (e, field) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) { alert('Файл слишком большой (макс. 10MB)'); return; }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setEditForm(prev => ({ ...prev, [field]: event.target.result }));
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file, field === 'avatar' ? 512 : 1024, 0.8);
+      setEditForm(prev => ({ ...prev, [field]: compressed }));
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setEditForm(prev => ({ ...prev, [field]: event.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleDragOver = (e) => {
@@ -40,18 +84,23 @@ const ProfileContent = () => {
     e.stopPropagation();
   };
 
-  const handleDrop = (e, field) => {
+  const handleDrop = async (e, field) => {
     e.preventDefault();
     setBannerDragging(false);
     setAvatarDragging(false);
     const file = e.dataTransfer?.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) { alert('Файл слишком большой (макс. 10MB)'); return; }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setEditForm(prev => ({ ...prev, [field]: event.target.result }));
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file, field === 'avatar' ? 512 : 1024, 0.8);
+      setEditForm(prev => ({ ...prev, [field]: compressed }));
+    } catch {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setEditForm(prev => ({ ...prev, [field]: event.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const saveProfile = async () => {

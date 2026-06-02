@@ -169,7 +169,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
       setError('Ваш браузер не поддерживает HLS');
       setIsLoading(false);
     }
-  }, []);
+  }, [videoRef, hlsRef]);
 
   useEffect(() => {
     if (!hlsUrl) { setIsLoading(false); return; }

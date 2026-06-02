@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../api/config';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -78,7 +80,7 @@ export function AuthProvider({ children }) {
     const redirectUrl = sessionStorage.getItem('redirect_after_login');
     if (redirectUrl) {
       sessionStorage.removeItem('redirect_after_login');
-      window.location.href = redirectUrl;
+      navigate(redirectUrl);
     }
 
     return result;
@@ -110,7 +112,7 @@ export function AuthProvider({ children }) {
     const redirectUrl = sessionStorage.getItem('redirect_after_login');
     if (redirectUrl) {
       sessionStorage.removeItem('redirect_after_login');
-      window.location.href = redirectUrl;
+      navigate(redirectUrl);
     }
 
     return result;
@@ -128,7 +130,7 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('auth_token');
     sessionStorage.removeItem('user');
     setUser(null);
-    window.location.href = '/profile';
+    navigate('/');
   };
 
   const updateProfile = async (data) => {
