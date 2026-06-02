@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, RotateCcw } from 'lucide-react';
 import AnimeCard from '../components/AnimeCard';
@@ -14,15 +15,24 @@ const SORTS = [
 ];
 
 const SearchPage = () => {
-  const { anime, loading, error, filters, total, updateFilters, resetFilters, doSearch } = useSearch();
-  const [input, setInput] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialFilters = {
+    search: searchParams.get('q') || '',
+    genre: searchParams.get('genre') || '',
+    year: searchParams.get('year') || '',
+    status: searchParams.get('status') || '',
+    sort: searchParams.get('sort') || 'rating',
+  };
+
+  const { anime, loading, error, filters, total, updateFilters, resetFilters, doSearch } = useSearch(initialFilters);
+  const [input, setInput] = useState(initialFilters.search);
   const [genres, setGenres] = useState([]);
   const [years, setYears] = useState([]);
-  const [localGenre, setLocalGenre] = useState('');
-  const [localYear, setLocalYear] = useState('');
-  const [localStatus, setLocalStatus] = useState('');
+  const [localGenre, setLocalGenre] = useState(initialFilters.genre);
+  const [localYear, setLocalYear] = useState(initialFilters.year);
+  const [localStatus, setLocalStatus] = useState(initialFilters.status);
   const debounceRef = useRef(null);
-  const initDone = useRef(false);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -40,11 +50,18 @@ const SearchPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!initDone.current && !loading) {
-      initDone.current = true;
-      doSearch(filters, true);
-    }
+    doSearch(initialFilters, true);
   }, []);
+
+  const syncUrl = (f) => {
+    const params = new URLSearchParams();
+    if (f.search) params.set('q', f.search);
+    if (f.genre) params.set('genre', f.genre);
+    if (f.year) params.set('year', f.year);
+    if (f.status) params.set('status', f.status);
+    if (f.sort && f.sort !== 'rating') params.set('sort', f.sort);
+    setSearchParams(params, { replace: true });
+  };
 
   const runSearch = (f, reset) => {
     doSearch(f, reset);
@@ -57,6 +74,7 @@ const SearchPage = () => {
       const next = { ...filters, search: val };
       updateFilters({ search: val });
       runSearch(next, true);
+      syncUrl(next);
     }, 400);
   };
 
@@ -64,12 +82,14 @@ const SearchPage = () => {
     const next = { ...filters, sort };
     updateFilters({ sort });
     runSearch(next, true);
+    syncUrl(next);
   };
 
   const applyFilters = () => {
     const next = { ...filters, genre: localGenre, year: localYear, status: localStatus };
     updateFilters({ genre: localGenre, year: localYear, status: localStatus });
     runSearch(next, true);
+    syncUrl(next);
   };
 
   const handleReset = () => {
@@ -78,6 +98,7 @@ const SearchPage = () => {
     const next = { search: '', genre: '', year: '', status: '', sort: 'popularity' };
     resetFilters();
     runSearch(next, true);
+    setSearchParams({}, { replace: true });
   };
 
   const handleLoadMore = () => {

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Volume2, VolumeX, Star, Play, Info } from 'lucide-react';
 import Hls from 'hls.js';
+import { useAuth } from '../context/AuthContext';
+import AuthModal from './AuthModal';
 import './Hero.css';
 
 const BASE_URL = 'https://anilibria.top';
@@ -11,7 +13,9 @@ const Hero = memo(({ anime, hlsUrl, opening }) => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const hlsRef = useRef(null);
+  const { user } = useAuth();
 
   const hasOpening = opening?.start > 0 && opening?.stop > opening?.start;
 
@@ -87,7 +91,13 @@ const Hero = memo(({ anime, hlsUrl, opening }) => {
   const type = anime.type?.full_string || anime.type?.string || null;
 
   const handleWatch = () => {
-    if (anime.id) navigate('/anime/' + anime.id + '/watch');
+    if (!anime.id) return;
+    if (!user) {
+      sessionStorage.setItem('redirect_after_login', '/anime/' + anime.id + '/watch');
+      setShowAuthModal(true);
+    } else {
+      navigate('/anime/' + anime.id + '/watch');
+    }
   };
 
   const handleDetails = () => {
@@ -197,6 +207,8 @@ const Hero = memo(({ anime, hlsUrl, opening }) => {
           <div className="deco-glow" />
         </div>
       </div>
+
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </section>
   );
 });

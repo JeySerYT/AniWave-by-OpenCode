@@ -81,6 +81,8 @@ export function AuthProvider({ children }) {
     if (redirectUrl) {
       sessionStorage.removeItem('redirect_after_login');
       navigate(redirectUrl);
+    } else {
+      navigate('/profile');
     }
 
     return result;
@@ -113,6 +115,8 @@ export function AuthProvider({ children }) {
     if (redirectUrl) {
       sessionStorage.removeItem('redirect_after_login');
       navigate(redirectUrl);
+    } else {
+      navigate('/profile');
     }
 
     return result;

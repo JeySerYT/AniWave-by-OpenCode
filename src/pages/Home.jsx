@@ -105,7 +105,11 @@ const Home = () => {
   const hlsUrl = openingEp?.hls_720 || openingEp?.hls_480 || null;
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setContinueWatching([]);
+      setCwLoading(false);
+      return;
+    }
     setCwLoading(true);
     fetch(`${API_URL}/watch-progress`, { credentials: 'include' })
       .then(r => r.ok ? r.json() : [])

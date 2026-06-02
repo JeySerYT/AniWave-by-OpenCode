@@ -764,6 +764,11 @@ const AnimeWatch = () => {
   const playerContainerRef = useRef(null);
   const sidebarRef = useRef(null);
   const observerRef = useRef(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -826,6 +831,7 @@ const AnimeWatch = () => {
   useEffect(() => {
     if (!currentEpisode) return;
     const interval = setInterval(() => {
+      if (!mountedRef.current) { clearInterval(interval); return; }
       const { id, title, poster, episodesTotal, genres } = saveRef.current;
       saveProgressServer(user, id, title, poster, currentEpisode.ordinal, episodesTotal, genres);
     }, 30000);

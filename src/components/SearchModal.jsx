@@ -15,7 +15,7 @@ const QUICK_FILTERS = [
 
 function SearchModal({ open, onClose }) {
   const navigate = useNavigate();
-  const { anime, loading, filters, total, updateFilters, doSearch } = useSearch();
+  const { anime, loading, filters, total, updateFilters, resetFilters, doSearch } = useSearch();
   const [input, setInput] = useState('');
   const [activeSort, setActiveSort] = useState('popularity');
   const [genres, setGenres] = useState([]);
@@ -44,6 +44,7 @@ function SearchModal({ open, onClose }) {
       setLocalGenre('');
       setLocalYear('');
       setLocalStatus('');
+      resetFilters();
     }
     return () => { document.body.style.overflow = ''; };
   }, [open]);

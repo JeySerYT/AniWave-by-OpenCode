@@ -14,6 +14,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [showRetryPopup, setShowRetryPopup] = useState(false);
   const [retryUrl, setRetryUrl] = useState('');
+  const [oauthLoading, setOauthLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -23,7 +24,6 @@ function Login() {
     setLoading(true);
     try {
       await login({ email, password });
-      navigate('/profile');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -32,6 +32,8 @@ function Login() {
   };
 
   const handleOAuthLogin = async (provider) => {
+    if (oauthLoading) return;
+    setOauthLoading(true);
     try {
       const response = await fetch(`${API_URL}/auth/oauth/${provider}`, {
         credentials: 'include'
@@ -43,12 +45,15 @@ function Login() {
           setError('Не удалось открыть окно авторизации. Пожалуйста, разрешите всплывающие окна для этого сайта.');
           setShowRetryPopup(true);
           setRetryUrl(data.auth_url);
+          setOauthLoading(false);
           return;
         }
         const handleMessage = (event) => {
           if (event.data === 'oauth-login') {
             window.removeEventListener('message', handleMessage);
-            window.location.href = '/profile';
+            const returnUrl = sessionStorage.getItem('redirect_after_login');
+            sessionStorage.removeItem('redirect_after_login');
+            window.location.href = returnUrl || '/profile';
           }
         };
         window.addEventListener('message', handleMessage);
@@ -56,11 +61,15 @@ function Login() {
           if (popup.closed) {
             clearInterval(pollTimer);
             window.removeEventListener('message', handleMessage);
+            setOauthLoading(false);
           }
         }, 1000);
+      } else {
+        setOauthLoading(false);
       }
     } catch (err) {
       console.error('OAuth error:', err);
+      setOauthLoading(false);
     }
   };
 
@@ -153,6 +162,7 @@ function Login() {
                 type="button"
                 className="oauth-btn google"
                 onClick={() => handleOAuthLogin('google')}
+                disabled={oauthLoading}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >
@@ -168,6 +178,7 @@ function Login() {
                 type="button"
                 className="oauth-btn github"
                 onClick={() => handleOAuthLogin('github')}
+                disabled={oauthLoading}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >

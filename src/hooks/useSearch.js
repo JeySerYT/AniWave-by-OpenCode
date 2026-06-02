@@ -6,7 +6,7 @@ const sortMap = {
   updated_at: 'FRESH_AT_DESC',
 };
 
-export const useSearch = () => {
+export const useSearch = (initialFilters) => {
   const genreMapRef = useRef({});
   const genreMapLoadedRef = useRef(false);
 
@@ -29,9 +29,9 @@ export const useSearch = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
-  const [filters, setFilters] = useState({
-    search: '', genre: '', year: '', status: '', sort: 'rating',
-  });
+  const [filters, setFilters] = useState(
+    initialFilters || { search: '', genre: '', year: '', status: '', sort: 'rating' },
+  );
   const pageRef = useRef(1);
 
   const buildApiParams = useCallback((f, page) => {
