@@ -40,6 +40,7 @@ pnpm-debug.log*
 # Testing
 coverage/
 tests/
+optimization/
 
 # Cache
 .cache/
@@ -48,3 +49,4 @@ tests/
 # Misc
 *.tgz
 *.tar.gz
+Optimization.md
