@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
 import { SkeletonGrid, SkeletonHero } from '../components/Skeleton';
@@ -19,7 +19,7 @@ function getCurrentSeason() {
   return 'autumn';
 }
 
-const Section = ({ sectionKey, title, subtitle, data, loading, error, visibleCount, onLoadMore, totalWatching }) => {
+const Section = memo(({ sectionKey, title, subtitle, data, loading, error, visibleCount, onLoadMore, totalWatching }) => {
   const hasData = data?.length > 0;
 
   return (
@@ -40,13 +40,13 @@ const Section = ({ sectionKey, title, subtitle, data, loading, error, visibleCou
       </div>
 
       {loading && !hasData && (
-        <div className="anime-grid">
+        <div className="home-anime-grid">
           <SkeletonGrid count={7} />
         </div>
       )}
       {hasData && (
         <>
-          <div className="anime-grid">
+          <div className="home-anime-grid">
             {data.slice(0, visibleCount).map((anime, i) => (
               <AnimeCard key={anime.id} anime={anime} index={i} />
             ))}
@@ -65,7 +65,7 @@ const Section = ({ sectionKey, title, subtitle, data, loading, error, visibleCou
       )}
     </section>
   );
-};
+});
 
 const Home = () => {
   const { user } = useAuth();
@@ -169,7 +169,7 @@ const Home = () => {
                 <p className="section-subtitle">Вернись к тому, на чём остановился</p>
               </div>
             </div>
-            <div className="anime-grid">
+            <div className="home-anime-grid">
               <SkeletonGrid count={7} />
             </div>
           </section>
@@ -182,7 +182,7 @@ const Home = () => {
                 <p className="section-subtitle">Вернись к тому, на чём остановился</p>
               </div>
             </div>
-            <div className="anime-grid">
+            <div className="home-anime-grid">
               {continueWatching.slice(0, 7).map((item, i) => (
                 <AnimeCard key={item.id} anime={{
                   id: item.id,

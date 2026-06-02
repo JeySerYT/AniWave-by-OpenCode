@@ -46,6 +46,7 @@
   align-items: center;
   animation: logoGlow 3s ease-in-out infinite;
   flex-shrink: 0;
+  will-change: filter;
 }
 
 .logo:hover {
@@ -476,5 +477,11 @@
 
   .profile-dropdown {
     right: -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo {
+    animation: none;
   }
 }

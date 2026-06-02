@@ -180,7 +180,28 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    let lastUpdate = 0;
+    let rafId = null;
     const onTimeUpdate = () => {
+      const now = Date.now();
+      if (now - lastUpdate < 250) {
+        if (!rafId) {
+          rafId = requestAnimationFrame(() => {
+            rafId = null;
+            setCurrentTime(video.currentTime);
+            if (video.buffered.length > 0) setBuffered(video.buffered.end(video.buffered.length - 1));
+            if (hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop) {
+              setShowWatchOpening(true);
+            } else {
+              setShowWatchOpening(false);
+              setShowSkip(false);
+            }
+          });
+        }
+        return;
+      }
+      lastUpdate = now;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
       setCurrentTime(video.currentTime);
       if (video.buffered.length > 0) setBuffered(video.buffered.end(video.buffered.length - 1));
       if (hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop) {
@@ -212,6 +233,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     video.addEventListener('seeked', onSeeked);
     video.addEventListener('stalled', onStalled);
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('durationchange', onDuration);
       video.removeEventListener('play', onPlay);

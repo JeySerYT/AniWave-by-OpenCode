@@ -6,7 +6,7 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  will-change: transform;
+
 }
 
 .anime-card:hover {
@@ -15,6 +15,7 @@
     0 0 0 1px rgba(255, 64, 129, 0.15),
     0 0 20px rgba(255, 64, 129, 0.08),
     0 8px 25px rgba(0, 0, 0, 0.3);
+  will-change: transform;
 }
 
 .anime-card-link {
@@ -138,11 +139,11 @@
 }
 
 .anime-card-body {
-  padding: 10px 10px 12px;
+  padding: clamp(8px, 1vw, 10px) clamp(8px, 1vw, 10px) clamp(10px, 1.2vw, 12px);
 }
 
 .anime-card-title {
-  font-size: 13px;
+  font-size: clamp(11px, 1.2vw, 13px);
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.35;
@@ -153,67 +154,4 @@
   margin: 0;
 }
 
-@media (max-width: 1400px) {
-  .anime-card-body {
-    padding: 9px 9px 11px;
-  }
 
-  .anime-card-title {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 768px) {
-  .anime-card-body {
-    padding: 9px 9px 11px;
-  }
-
-  .anime-card-title {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 600px) {
-  .anime-card-body {
-    padding: 8px 8px 10px;
-  }
-
-  .anime-card-title {
-    font-size: 11px;
-  }
-
-  .anime-card-badge {
-    padding: 2px 6px;
-    font-size: 9px;
-    border-radius: 4px;
-  }
-
-  .rating-badge {
-    top: 6px;
-    right: 6px;
-  }
-
-  .episodes-badge {
-    bottom: 6px;
-    left: 6px;
-  }
-
-  .anime-card-status {
-    top: 6px;
-    left: 6px;
-    padding: 2px 6px;
-    font-size: 8px;
-  }
-
-  .anime-card-brief {
-    top: 6px;
-    left: 6px;
-    padding: 2px 6px;
-    font-size: 8px;
-  }
-
-  .status-dot-live {
-    width: 4px;
-    height: 4px;
-  }
-}

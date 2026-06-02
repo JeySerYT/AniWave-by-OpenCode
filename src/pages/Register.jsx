@@ -97,6 +97,7 @@ function Register() {
                 <div className="input-wrap">
                   <input
                     type="email"
+                    inputMode="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder=" "
@@ -111,6 +112,7 @@ function Register() {
                 <div className="input-wrap">
                   <input
                     type="text"
+                    inputMode="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder=" "
@@ -127,6 +129,7 @@ function Register() {
                 <div className="input-wrap">
                   <input
                     type="password"
+                    inputMode="text"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder=" "

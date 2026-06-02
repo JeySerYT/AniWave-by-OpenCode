@@ -51,6 +51,7 @@ function Header({ onSearchOpen }) {
               src={Logo}
               alt="AniWave"
               className="logo-img"
+              loading="lazy"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.3 }}
             />
@@ -89,7 +90,7 @@ function Header({ onSearchOpen }) {
               aria-label="Профиль"
             >
               {user.avatar ? (
-                <img src={user.avatar} alt="" className="profile-avatar-img" />
+                <img src={user.avatar} alt="" className="profile-avatar-img" loading="lazy" />
               ) : (
                 <div className="profile-avatar-fallback">
                   {user.username?.[0]?.toUpperCase() || '?'}
@@ -107,6 +108,7 @@ function Header({ onSearchOpen }) {
             {profileMenuOpen && user && (
               <motion.div
                 className="profile-dropdown"
+                layoutId="header-profile-dropdown"
                 initial={{ opacity: 0, y: -8, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.96 }}
@@ -115,7 +117,7 @@ function Header({ onSearchOpen }) {
                 <div className="dropdown-header">
                   <div className="dropdown-avatar">
                     {user.avatar ? (
-                      <img src={user.avatar} alt="" />
+                      <img src={user.avatar} alt="" loading="lazy" />
                     ) : (
                       <div className="dropdown-avatar-fallback">
                         {user.username?.[0]?.toUpperCase() || '?'}
@@ -164,6 +166,7 @@ function Header({ onSearchOpen }) {
         {mobileMenuOpen && (
           <motion.div
             className="mobile-menu"
+            layoutId="header-mobile-menu"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}

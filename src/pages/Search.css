@@ -199,7 +199,7 @@
   margin: 0 0 1rem;
 }
 
-.anime-grid {
+.search-anime-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 16px;
@@ -312,7 +312,7 @@
     margin-bottom: 0;
   }
 
-  .anime-grid {
+  .search-anime-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 12px;
   }
@@ -343,7 +343,7 @@
     min-height: 36px;
   }
 
-  .anime-grid {
+  .search-anime-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }

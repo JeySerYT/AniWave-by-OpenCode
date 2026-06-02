@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,22 +7,22 @@ import { ToastProvider } from './components/Toast';
 import Header from './components/Header';
 import SearchModal from './components/SearchModal';
 import ScrollToTop from './components/ScrollToTop';
-import Home from './pages/Home';
-import Search from './pages/Search';
-import AnimeDetails from './pages/AnimeDetails';
-import AnimeWatch from './pages/AnimeWatch';
-import Profile from './pages/Profile';
-import Collections from './pages/Collections';
-import Settings from './pages/Settings';
-import Faq from './pages/Faq';
 import Footer from './components/Footer';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
-import Dmca from './pages/Dmca';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import OAuthCallback from './pages/OAuthCallback';
-import NotFound from './pages/NotFound';
+const Home = lazy(() => import('./pages/Home'));
+const Search = lazy(() => import('./pages/Search'));
+const AnimeDetails = lazy(() => import('./pages/AnimeDetails'));
+const AnimeWatch = lazy(() => import('./pages/AnimeWatch'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Collections = lazy(() => import('./pages/Collections'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Faq = lazy(() => import('./pages/Faq'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Dmca = lazy(() => import('./pages/Dmca'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const OAuthCallback = lazy(() => import('./pages/OAuthCallback'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 import './styles/variables.css';
 import './styles/globals.css';
 import './App.css';
@@ -61,6 +61,7 @@ function App() {
           <AuthProvider>
             <ScrollToTop />
             <div className="App">
+              <Suspense fallback={<div className="page-loading" style={{minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', color:'#888'}}>Загрузка...</div>}>
               <Routes>
                 <Route path="/" element={<Layout onSearchOpen={openSearch}><Home /></Layout>} />
                 <Route path="/search" element={<Layout onSearchOpen={openSearch}><Search /></Layout>} />
@@ -78,6 +79,7 @@ function App() {
                 <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
                 <Route path="*" element={<Layout onSearchOpen={openSearch}><NotFound /></Layout>} />
               </Routes>
+              </Suspense>
             </div>
             <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
           </AuthProvider>

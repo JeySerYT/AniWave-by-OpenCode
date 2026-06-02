@@ -161,6 +161,7 @@ const SearchPage = () => {
               <input
                 className="catalog-search-input"
                 type="text"
+                inputMode="search"
                 value={input}
                 onChange={e => handleInputChange(e.target.value)}
                 placeholder="Название аниме..."
@@ -187,7 +188,7 @@ const SearchPage = () => {
 
           <div className="catalog-results">
             {loading && anime.length === 0 && (
-              <div className="anime-grid">
+              <div className="search-anime-grid">
                 <SkeletonGrid count={8} />
               </div>
             )}
@@ -212,7 +213,7 @@ const SearchPage = () => {
                 <motion.p className="results-count" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   Найдено {total}+ результатов
                 </motion.p>
-                <div className="anime-grid">
+                <div className="search-anime-grid">
                   {anime.map((item, index) => (
                     <AnimeCard key={item.id} anime={item} index={index} />
                   ))}

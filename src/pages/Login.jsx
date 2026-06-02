@@ -89,6 +89,7 @@ function Login() {
                 <div className="input-wrap">
                   <input
                     type="email"
+                    inputMode="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder=" "
@@ -103,6 +104,7 @@ function Login() {
                 <div className="input-wrap">
                   <input
                     type="password"
+                    inputMode="text"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder=" "

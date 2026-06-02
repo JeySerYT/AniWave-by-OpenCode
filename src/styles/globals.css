@@ -24,11 +24,13 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+  touch-action: manipulation;
 }
 
 button {
   font-family: inherit;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 ul, ol {

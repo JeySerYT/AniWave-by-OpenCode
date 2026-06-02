@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import bunnyImg from '../assets/404.png';
+import bunnyImg from '../assets/404.webp';
 import './NotFound.css';
 
 const NotFound = () => (

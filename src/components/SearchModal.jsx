@@ -99,6 +99,7 @@ function SearchModal({ open, onClose }) {
       {open && (
         <motion.div
           className="search-modal-overlay"
+          layoutId="search-modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -108,6 +109,7 @@ function SearchModal({ open, onClose }) {
         >
           <motion.div
             className="search-modal"
+            layoutId="search-modal"
             initial={{ opacity: 0, scale: 0.96, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 20 }}
@@ -163,6 +165,7 @@ function SearchModal({ open, onClose }) {
                 {showFilters && (
                   <motion.div
                     className="search-modal-filters"
+                    layoutId="search-modal-filters"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}

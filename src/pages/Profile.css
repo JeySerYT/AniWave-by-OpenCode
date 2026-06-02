@@ -13,7 +13,7 @@
 }
 
 .profile-header {
-  height: 280px;
+  height: clamp(180px, 25vw, 280px);
   background-size: cover;
   background-position: center;
   border-radius: 16px;
@@ -154,6 +154,7 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 
@@ -170,6 +171,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;

@@ -45,12 +45,14 @@ const AuthModal = ({ isOpen, onClose }) => {
       {isOpen && (
         <motion.div
           className="authmodal-overlay"
+          layoutId="auth-modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div
             className="authmodal-card"
+            layoutId="auth-modal-card"
             initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
