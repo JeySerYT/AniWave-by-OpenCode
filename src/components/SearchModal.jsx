@@ -29,6 +29,7 @@ function SearchModal({ open, onClose }) {
   const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
     return () => { mounted.current = false; };
   }, []);
 

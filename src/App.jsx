@@ -1,5 +1,5 @@
 import { useState, memo, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
@@ -9,7 +9,7 @@ import SearchModal from './components/SearchModal';
 import ScrollToTop from './components/ScrollToTop';
 import Footer from './components/Footer';
 const Home = lazy(() => import('./pages/Home'));
-const Search = lazy(() => import('./pages/Search'));
+const Catalog = lazy(() => import('./pages/Catalog'));
 const AnimeDetails = lazy(() => import('./pages/AnimeDetails'));
 const AnimeWatch = lazy(() => import('./pages/AnimeWatch'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -64,7 +64,8 @@ function App() {
               <Suspense fallback={<div className="page-loading" style={{minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', color:'#888'}}>Загрузка...</div>}>
               <Routes>
                 <Route path="/" element={<Layout onSearchOpen={openSearch}><Home /></Layout>} />
-                <Route path="/search" element={<Layout onSearchOpen={openSearch}><Search /></Layout>} />
+                <Route path="/catalog" element={<Layout onSearchOpen={openSearch}><Catalog /></Layout>} />
+                <Route path="/search" element={<Navigate to="/catalog" replace />} />
                 <Route path="/anime/:id" element={<Layout onSearchOpen={openSearch}><AnimeDetails /></Layout>} />
                 <Route path="/anime/:id/watch" element={<Layout onSearchOpen={openSearch}><AnimeWatch /></Layout>} />
                 <Route path="/profile" element={<Layout onSearchOpen={openSearch}><Profile /></Layout>} />

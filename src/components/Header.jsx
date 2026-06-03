@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, User, Settings, LogOut, LogIn, UserPlus, Home, List } from 'lucide-react';
+import { Search, User, Settings, LogOut, LogIn, UserPlus, Home, List, Library } from 'lucide-react';
 import Logo from '../assets/logo.svg';
 import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
 const navItems = [
   { path: '/', label: 'Главная', icon: Home },
-  { path: '/search', label: 'Каталог', icon: Search },
+  { path: '/catalog', label: 'Каталог', icon: Library },
   { path: '/my-list', label: 'Мои коллекции', icon: List },
 ];
 

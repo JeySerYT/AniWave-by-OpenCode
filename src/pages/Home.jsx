@@ -58,7 +58,7 @@ const ScrollCarousel = memo(({ children }) => {
   );
 });
 
-const Section = memo(({ sectionKey, title, subtitle, data, loading, error }) => {
+const Section = memo(({ sectionKey, title, subtitle, data, loading, error, linkTo }) => {
   const hasData = data?.length > 0;
   const Icon = SECTION_ICONS[sectionKey] || TrendingUp;
   const color = SECTION_COLORS[sectionKey] || 'var(--accent-pink)';
@@ -75,7 +75,7 @@ const Section = memo(({ sectionKey, title, subtitle, data, loading, error }) => 
           </div>
           {subtitle && <p className="section-subtitle">{subtitle}</p>}
         </div>
-        <Link to="/search" className="section-see-all">
+        <Link to={linkTo || '/catalog'} className="section-see-all">
           Все
           <ChevronRight size={14} />
         </Link>
@@ -241,6 +241,7 @@ const Home = () => {
           data={bestAnime}
           loading={bestLoading}
           error={bestError}
+          linkTo="/catalog?category=trending"
         />
         <Section
           sectionKey="seasonal"
@@ -254,6 +255,7 @@ const Home = () => {
           data={seasonalAnime}
           loading={seasonalLoading}
           error={seasonalError}
+          linkTo="/catalog?category=seasonal"
         />
         <Section
           sectionKey="recent"
@@ -262,6 +264,7 @@ const Home = () => {
           data={recentAnime}
           loading={recentLoading}
           error={recentError}
+          linkTo="/catalog?category=recent"
         />
         <Section
           sectionKey="year"
@@ -270,6 +273,7 @@ const Home = () => {
           data={shuffledYearAnime}
           loading={yearLoading}
           error={yearError}
+          linkTo={`/catalog?category=year&year=${currentYear}`}
         />
       </div>
     </div>
