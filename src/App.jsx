@@ -8,6 +8,7 @@ import Header from './components/Header';
 import SearchModal from './components/SearchModal';
 import ScrollToTop from './components/ScrollToTop';
 import Footer from './components/Footer';
+import SakuraPetals from './components/SakuraPetals';
 const Home = lazy(() => import('./pages/Home'));
 const Catalog = lazy(() => import('./pages/Catalog'));
 const AnimeDetails = lazy(() => import('./pages/AnimeDetails'));
@@ -47,6 +48,7 @@ const Layout = memo(({ children, hideHeader, onSearchOpen }) => (
     >
       {children}
     </motion.main>
+    <SakuraPetals />
   </div>
 ));
 

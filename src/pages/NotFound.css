@@ -4,7 +4,7 @@
   justify-content: center;
   gap: 4rem;
   min-height: 70vh;
-  padding: 3rem 2rem;
+  padding: var(--header-height) 2rem 3rem;
   max-width: 900px;
   margin: 0 auto;
 }
