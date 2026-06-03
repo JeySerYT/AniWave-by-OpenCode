@@ -12,7 +12,6 @@ const SkeletonGrid = ({ count = 6 }) => {
     >
       <div className="skeleton-poster" />
       <div className="skeleton-title" />
-      <div className="skeleton-subtitle" />
     </motion.div>
   ));
 };
@@ -33,13 +32,13 @@ const SkeletonHero = () => (
           <div className="skeleton-line w-90" style={{ height: 16, marginBottom: 4 }} />
           <div className="skeleton-line w-60" style={{ height: 16, marginBottom: 24 }} />
           <div className="hero-actions">
-            <div className="skeleton-line" style={{ width: 140, height: 44, borderRadius: 12, margin: 0 }} />
-            <div className="skeleton-line" style={{ width: 120, height: 44, borderRadius: 12, margin: 0 }} />
+            <div className="skeleton-line" style={{ width: 140, height: 44, borderRadius: 'var(--radius-md)', margin: 0 }} />
+            <div className="skeleton-line" style={{ width: 120, height: 44, borderRadius: 'var(--radius-md)', margin: 0 }} />
           </div>
         </div>
         <div className="hero-poster-wrap" style={{ opacity: 0.6 }}>
           <div className="hero-poster">
-            <div className="skeleton-poster" style={{ width: 200, height: 280, borderRadius: 16 }} />
+            <div className="skeleton-poster" style={{ width: 200, height: 280, borderRadius: 24 }} />
           </div>
         </div>
       </div>
@@ -116,7 +115,6 @@ const SkeletonAnimeDetails = () => (
             >
               <div className="skeleton-poster" />
               <div className="skeleton-title" />
-              <div className="skeleton-subtitle" />
             </motion.div>
           ))}
         </div>

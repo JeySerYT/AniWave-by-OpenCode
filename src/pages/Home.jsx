@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, TrendingUp, Sparkles, Clock, Calendar, Play } from 'lucide-react';
 import Hero from '../components/Hero';
 import AnimeCard from '../components/AnimeCard';
 import { SkeletonGrid, SkeletonHero } from '../components/Skeleton';
 import { useToast } from '../components/Toast';
-import Footer from '../components/Footer';
 import { useQuery } from '@tanstack/react-query';
 import { useTrendingAnime, useSeasonalAnime, useRecentlyReleased, useYearAnime } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
@@ -19,46 +20,78 @@ function getCurrentSeason() {
   return 'autumn';
 }
 
-const Section = memo(({ sectionKey, title, subtitle, data, loading, error, visibleCount, onLoadMore, totalWatching }) => {
+const SECTION_ICONS = {
+  best: TrendingUp,
+  seasonal: Sparkles,
+  recent: Clock,
+  year: Calendar,
+};
+
+const SECTION_COLORS = {
+  best: 'var(--accent-pink)',
+  seasonal: 'var(--accent-purple)',
+  recent: 'var(--accent-blue)',
+  year: 'var(--accent-red)',
+};
+
+const ScrollCarousel = memo(({ children }) => {
+  const scrollRef = useRef(null);
+
+  const scroll = useCallback((dir) => {
+    if (!scrollRef.current) return;
+    const amount = scrollRef.current.clientWidth * 0.6;
+    scrollRef.current.scrollBy({ left: dir * amount, behavior: 'smooth' });
+  }, []);
+
+  return (
+    <div className="carousel-wrap">
+      <button className="carousel-edge carousel-edge-left" onClick={() => scroll(-1)} aria-label="Назад">
+        <ChevronLeft size={32} />
+      </button>
+      <div className="carousel-track" ref={scrollRef}>
+        {children}
+      </div>
+      <button className="carousel-edge carousel-edge-right" onClick={() => scroll(1)} aria-label="Вперёд">
+        <ChevronRight size={32} />
+      </button>
+    </div>
+  );
+});
+
+const Section = memo(({ sectionKey, title, subtitle, data, loading, error }) => {
   const hasData = data?.length > 0;
+  const Icon = SECTION_ICONS[sectionKey] || TrendingUp;
+  const color = SECTION_COLORS[sectionKey] || 'var(--accent-pink)';
 
   return (
     <section className="home-section">
       <div className="section-header">
         <div className="section-title-group">
-          <h2 className="section-title">
-            {title}
-            {sectionKey === 'best' && totalWatching > 0 && (
-              <span className="section-watching">
-                <span className="watching-dot" />
-                {totalWatching.toLocaleString()} смотрят
-              </span>
-            )}
-          </h2>
+          <div className="section-title-row">
+            <div className="section-icon-wrap" style={{ background: color + '15', color }}>
+              <Icon size={16} />
+            </div>
+            <h2 className="section-title">{title}</h2>
+          </div>
           {subtitle && <p className="section-subtitle">{subtitle}</p>}
         </div>
+        <Link to="/search" className="section-see-all">
+          Все
+          <ChevronRight size={14} />
+        </Link>
       </div>
 
       {loading && !hasData && (
-        <div className="home-anime-grid">
+        <div className="carousel-wrap">
           <SkeletonGrid count={7} />
         </div>
       )}
       {hasData && (
-        <>
-          <div className="home-anime-grid">
-            {data.slice(0, visibleCount).map((anime, i) => (
-              <AnimeCard key={anime.id} anime={anime} index={i} />
-            ))}
-          </div>
-          {data.length > visibleCount && (
-            <div className="section-nav">
-              <button className="nav-btn" onClick={() => onLoadMore(sectionKey)}>
-                Показать ещё
-              </button>
-            </div>
-          )}
-        </>
+        <ScrollCarousel>
+          {data.map((anime, i) => (
+            <AnimeCard key={anime.id} anime={anime} index={i} />
+          ))}
+        </ScrollCarousel>
       )}
       {!loading && !hasData && !error && (
         <p className="section-empty">Нет данных</p>
@@ -73,11 +106,10 @@ const Home = () => {
   const currentSeason = getCurrentSeason();
 
   const { addToast } = useToast();
-  const [visibleCounts, setVisibleCounts] = useState({ best: 7, seasonal: 7, recent: 7 });
   const [continueWatching, setContinueWatching] = useState([]);
   const [cwLoading, setCwLoading] = useState(false);
 
-  const { data: bestAnime, isLoading: bestLoading, error: bestError, refetch: refetchBest } = useTrendingAnime();
+  const { data: bestAnime, isLoading: bestLoading, error: bestError } = useTrendingAnime();
   const { data: seasonalAnime, isLoading: seasonalLoading, error: seasonalError } = useSeasonalAnime(currentYear, currentSeason);
   const { data: recentAnime, isLoading: recentLoading, error: recentError } = useRecentlyReleased();
   const { data: yearAnime, isLoading: yearLoading, error: yearError } = useYearAnime(currentYear);
@@ -93,6 +125,7 @@ const Home = () => {
       (b.added_in_watching_collection || 0) - (a.added_in_watching_collection || 0)
     )[0];
   }, [bestAnime]);
+
   const { data: topAnimeFull } = useQuery({
     queryKey: ['release', topAnime?.id],
     queryFn: () => anilibriaApi.getReleaseById(topAnime?.id),
@@ -137,15 +170,6 @@ const Home = () => {
       .catch(() => { setCwLoading(false); });
   }, [user]);
 
-  const handleLoadMore = (section) => {
-    setVisibleCounts(prev => ({ ...prev, [section]: (prev[section] || 7) + 7 }));
-  };
-
-  const totalWatching = useMemo(() => {
-    if (!bestAnime) return 0;
-    return bestAnime.slice(0, 7).reduce((sum, a) => sum + (a.added_in_watching_collection || 0), 0);
-  }, [bestAnime]);
-
   const shuffledYearAnime = useMemo(() => {
     if (!yearAnime) return [];
     const arr = [...yearAnime];
@@ -169,11 +193,16 @@ const Home = () => {
           <section className="home-section">
             <div className="section-header">
               <div className="section-title-group">
-                <h2 className="section-title">Продолжить просмотр</h2>
+                <div className="section-title-row">
+                  <div className="section-icon-wrap" style={{ background: 'rgba(255,64,129,0.1)', color: 'var(--accent-pink)' }}>
+                    <Play size={16} />
+                  </div>
+                  <h2 className="section-title">Продолжить просмотр</h2>
+                </div>
                 <p className="section-subtitle">Вернись к тому, на чём остановился</p>
               </div>
             </div>
-            <div className="home-anime-grid">
+            <div className="carousel-wrap">
               <SkeletonGrid count={7} />
             </div>
           </section>
@@ -182,12 +211,17 @@ const Home = () => {
           <section className="home-section">
             <div className="section-header">
               <div className="section-title-group">
-                <h2 className="section-title">Продолжить просмотр</h2>
+                <div className="section-title-row">
+                  <div className="section-icon-wrap" style={{ background: 'rgba(255,64,129,0.1)', color: 'var(--accent-pink)' }}>
+                    <Play size={16} />
+                  </div>
+                  <h2 className="section-title">Продолжить просмотр</h2>
+                </div>
                 <p className="section-subtitle">Вернись к тому, на чём остановился</p>
               </div>
             </div>
-            <div className="home-anime-grid">
-              {continueWatching.slice(0, 7).map((item, i) => (
+            <ScrollCarousel>
+              {continueWatching.slice(0, 20).map((item, i) => (
                 <AnimeCard key={item.id} anime={{
                   id: item.id,
                   name: { main: item.title },
@@ -196,16 +230,48 @@ const Home = () => {
                   genres: (item.genres || []).map(g => typeof g === 'string' ? { name: g } : g)
                 }} index={i} brief={`${item.progress || 1} эп.`} />
               ))}
-            </div>
+            </ScrollCarousel>
           </section>
         )}
 
-        <Section sectionKey="best" title="Лучшие аниме" subtitle="Популярное сейчас" data={bestAnime} loading={bestLoading} error={bestError} visibleCount={visibleCounts.best || 7} onLoadMore={handleLoadMore} totalWatching={totalWatching} />
-        <Section sectionKey="seasonal" title="Сезонное" subtitle={{ winter: 'Зимние аниме', spring: 'Весенние аниме', summer: 'Летние аниме', autumn: 'Осенние аниме' }[currentSeason]} data={seasonalAnime} loading={seasonalLoading} error={seasonalError} visibleCount={visibleCounts.seasonal || 7} onLoadMore={handleLoadMore} />
-        <Section sectionKey="recent" title="Новые эпизоды" subtitle="Последние релизы" data={recentAnime} loading={recentLoading} error={recentError} visibleCount={visibleCounts.recent || 7} onLoadMore={handleLoadMore} />
-        <Section sectionKey="year" title="Вышло в этом году" subtitle={`Тайтлы ${currentYear} года`} data={shuffledYearAnime} loading={yearLoading} error={yearError} visibleCount={visibleCounts.year || 7} onLoadMore={handleLoadMore} />
+        <Section
+          sectionKey="best"
+          title="Лучшие аниме"
+          subtitle="Популярное сейчас"
+          data={bestAnime}
+          loading={bestLoading}
+          error={bestError}
+        />
+        <Section
+          sectionKey="seasonal"
+          title="Сезонное"
+          subtitle={{
+            winter: 'Зимние аниме',
+            spring: 'Весенние аниме',
+            summer: 'Летние аниме',
+            autumn: 'Осенние аниме',
+          }[currentSeason]}
+          data={seasonalAnime}
+          loading={seasonalLoading}
+          error={seasonalError}
+        />
+        <Section
+          sectionKey="recent"
+          title="Новые эпизоды"
+          subtitle="Последние релизы"
+          data={recentAnime}
+          loading={recentLoading}
+          error={recentError}
+        />
+        <Section
+          sectionKey="year"
+          title={`Тайтлы ${currentYear} года`}
+          subtitle={`Что вышло в ${currentYear} году`}
+          data={shuffledYearAnime}
+          loading={yearLoading}
+          error={yearError}
+        />
       </div>
-      <Footer />
     </div>
   );
 };
