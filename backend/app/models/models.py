@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, UniqueConstraint, Text
 from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
@@ -13,8 +13,8 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=True)
-    avatar = Column(String(500), default="")
-    banner = Column(String(500), default="")
+    avatar = Column(Text, default="")
+    banner = Column(Text, default="")
     bio = Column(String(500), default="")
     provider = Column(String(20), default="email")
     provider_id = Column(String(255), default="")

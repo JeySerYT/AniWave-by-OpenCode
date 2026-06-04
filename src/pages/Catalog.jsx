@@ -73,11 +73,6 @@ const CatalogPage = () => {
     return () => { mounted.current = false; };
   }, []);
 
-  useEffect(() => {
-    setPage(1);
-    setAnime([]);
-  }, [config]);
-
   const fetchPage = useCallback(async (p) => {
     if (!config) return;
     setLoading(true);
@@ -96,6 +91,8 @@ const CatalogPage = () => {
   }, [config]);
 
   useEffect(() => {
+    setPage(1);
+    setAnime([]);
     fetchPage(1);
   }, [config, fetchPage]);
 

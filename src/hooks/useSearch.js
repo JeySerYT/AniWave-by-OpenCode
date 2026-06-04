@@ -3,6 +3,7 @@ import { anilibriaApi } from '../api/anilibria';
 
 const sortMap = {
   rating: 'RATING_DESC',
+  popularity: 'RATING_DESC',
   updated_at: 'FRESH_AT_DESC',
 };
 
@@ -30,7 +31,7 @@ export const useSearch = (initialFilters) => {
   const [error, setError] = useState(null);
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState(
-    initialFilters || { search: '', genre: '', year: '', status: '', sort: 'rating' },
+    initialFilters || { search: '', genre: '', year: '', status: '', sort: 'popularity' },
   );
   const pageRef = useRef(1);
 
@@ -89,7 +90,7 @@ export const useSearch = (initialFilters) => {
   }, []);
 
   const resetFilters = useCallback(() => {
-    setFilters({ search: '', genre: '', year: '', status: '', sort: 'rating' });
+    setFilters({ search: '', genre: '', year: '', status: '', sort: 'popularity' });
   }, []);
 
   return {

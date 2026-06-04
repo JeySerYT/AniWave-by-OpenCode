@@ -18,18 +18,6 @@ export const useTrendingAnime = (options = {}) => {
   return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
 };
 
-export const usePopularAnime = (options = {}) => {
-  const query = useQuery({
-    queryKey: ['popular'],
-    queryFn: () => anilibriaApi.getTitleList({ sorting: 'RATING_DESC', limit: 20 }),
-    select: (data) => data?.data || [],
-    staleTime: listStaleTime,
-    gcTime: listGcTime,
-    ...options
-  });
-  return { data: query.data, isLoading: query.isLoading, error: query.error, refetch: query.refetch };
-};
-
 export const useSeasonalAnime = (year = null, season = null, options = {}) => {
   const query = useQuery({
     queryKey: ['seasonal', year, season],

@@ -103,20 +103,36 @@ const ProfileContent = () => {
     }
   };
 
+  const dataURLtoBlob = (dataURL) => {
+    if (!dataURL || !dataURL.startsWith('data:')) return null;
+    const [header, base64] = dataURL.split(',', 2);
+    const mime = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
+    const bin = atob(base64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  };
+
   const saveProfile = async () => {
     setSaving(true);
     try {
-      const body = {};
-      if (editForm.username) body.username = editForm.username;
-      if (editForm.avatar) body.avatar = editForm.avatar;
-      if (editForm.banner) body.banner = editForm.banner;
-      if (editForm.bio) body.bio = editForm.bio;
+      const formData = new FormData();
+      if (editForm.username) formData.append('username', editForm.username);
+      if (editForm.bio) formData.append('bio', editForm.bio);
+
+      const avatarBlob = dataURLtoBlob(editForm.avatar);
+      if (avatarBlob) formData.append('avatar', avatarBlob, 'avatar.jpg');
+
+      const bannerBlob = dataURLtoBlob(editForm.banner);
+      if (bannerBlob) formData.append('banner', bannerBlob, 'banner.jpg');
+
+      if (editForm.avatar && !editForm.avatar.startsWith('data:')) formData.append('avatar_url', editForm.avatar);
+      if (editForm.banner && !editForm.banner.startsWith('data:')) formData.append('banner_url', editForm.banner);
 
       const res = await fetch(`${API_URL}/profile`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(body),
+        body: formData,
       });
       if (res.ok) {
         await refresh();

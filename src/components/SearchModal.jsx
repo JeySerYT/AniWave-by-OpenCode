@@ -235,7 +235,7 @@ function SearchModal({ open, onClose }) {
                     {total > 12 && (
                       <button
                         className="search-modal-view-all"
-                        onClick={() => { onClose(); navigate('/search'); }}
+                        onClick={() => { onClose(); navigate('/catalog?q=' + encodeURIComponent(input)); }}
                       >
                         Показать все результаты
                       </button>

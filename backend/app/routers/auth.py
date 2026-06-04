@@ -1,6 +1,6 @@
 import os
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie, Query, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -21,6 +21,7 @@ from app.utils.auth import (
     generate_oauth_state,
     OAUTH_STATE_COOKIE_NAME,
 )
+from app.limiter import limiter
 
 
 class LoginRequest(BaseModel):
@@ -29,6 +30,19 @@ class LoginRequest(BaseModel):
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+def verify_origin(request: Request) -> None:
+    origin = request.headers.get("origin")
+    referer = request.headers.get("referer")
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    if origin and origin.rstrip("/") == frontend_url.rstrip("/"):
+        return
+    if referer and referer.startswith(frontend_url.rstrip("/") + "/"):
+        return
+    if not origin and not referer:
+        return
+    raise HTTPException(status_code=403, detail="Cross-site request rejected")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
@@ -198,15 +212,17 @@ def google_callback(
         token_json = token_response.json()
         
         if token_response.status_code != 200:
+            logger.error(f"Google token exchange failed: {token_json}")
             raise HTTPException(
                 status_code=400, 
-                detail=f"Ошибка обмена токена Google: {token_json}"
+                detail="Ошибка обмена токена Google"
             )
         
         if "id_token" not in token_json:
+            logger.error(f"Google ID token missing: {token_json}")
             raise HTTPException(
                 status_code=400, 
-                detail=f"Не удалось получить ID токен Google. Ответ: {token_json}"
+                detail="Не удалось получить ID токен Google"
             )
         
         id_info = id_token.verify_oauth2_token(
@@ -264,8 +280,11 @@ def google_callback(
         response.status_code = status.HTTP_302_FOUND
         return response
         
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Ошибка Google OAuth: {str(e)}")
+        logger.error(f"Google OAuth error: {e}")
+        raise HTTPException(status_code=400, detail="Ошибка Google OAuth")
 
 
 @router.get("/oauth/github/callback")
@@ -364,11 +383,13 @@ def github_callback(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Ошибка GitHub OAuth: {str(e)}")
+        logger.error(f"GitHub OAuth error: {e}")
+        raise HTTPException(status_code=400, detail="Ошибка GitHub OAuth")
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-def register(response: Response, user_data: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("3 per minute")
+def register(request: Request, response: Response, user_data: UserCreate, db: Session = Depends(get_db)):
     if not user_data.terms_accepted or not user_data.privacy_accepted:
         raise HTTPException(
             status_code=400,
@@ -420,7 +441,8 @@ def register(response: Response, user_data: UserCreate, db: Session = Depends(ge
 
 
 @router.post("/login", response_model=Token)
-def login(response: Response, form_data: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("5 per minute")
+def login(request: Request, response: Response, form_data: LoginRequest, db: Session = Depends(get_db)):
     user = UserService.authenticate(db, form_data.email, form_data.password)
     if not user:
         raise HTTPException(
@@ -455,7 +477,8 @@ def login(response: Response, form_data: LoginRequest, db: Session = Depends(get
 
 
 @router.post("/logout")
-def logout(response: Response, current_user: UserResponse = Depends(get_current_user)):
+def logout(request: Request, response: Response, current_user: UserResponse = Depends(get_current_user)):
+    verify_origin(request)
     response.delete_cookie(key="access_token", domain=None)
     response.delete_cookie(key="refresh_token", domain=None)
     return {"message": "Выход выполнен успешно"}

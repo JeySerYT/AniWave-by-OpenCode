@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,40 +10,46 @@ const AuthModal = ({ isOpen, onClose }) => {
     onClose();
   };
   const navigate = useNavigate();
+  const oauthBlocked = useRef(false);
 
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
   const handleOAuth = async (provider) => {
-    if (oauthLoading) return;
+    if (oauthBlocked.current) return;
+    oauthBlocked.current = true;
     setOauthLoading(true);
     try {
       const r = await fetch(`${API_URL}/auth/oauth/${provider}`, { credentials: 'include' });
       const d = await r.json();
-      if (!d.auth_url) { setOauthLoading(false); return; }
+      if (!d.auth_url) { setOauthLoading(false); oauthBlocked.current = false; return; }
       const popup = window.open(d.auth_url, 'oauth_popup', 'width=600,height=700,focus=yes');
       if (!popup) {
         setPopupBlocked(true);
         setOauthLoading(false);
+        oauthBlocked.current = false;
         return;
       }
       const handleMessage = (event) => {
         if (event.data === 'oauth-login') {
           window.removeEventListener('message', handleMessage);
+          clearInterval(pollTimer);
           const returnUrl = sessionStorage.getItem('redirect_after_login');
           sessionStorage.removeItem('redirect_after_login');
-          window.location.href = returnUrl || '/profile';
+          navigate(returnUrl || '/profile');
+          onClose();
         }
       };
-      window.addEventListener('message', handleMessage);
       const pollTimer = setInterval(() => {
         if (popup.closed) {
           clearInterval(pollTimer);
           window.removeEventListener('message', handleMessage);
           setOauthLoading(false);
+          oauthBlocked.current = false;
         }
       }, 1000);
-    } catch (e) { setOauthLoading(false); }
+      window.addEventListener('message', handleMessage);
+    } catch (e) { setOauthLoading(false); oauthBlocked.current = false; }
   };
 
   return (

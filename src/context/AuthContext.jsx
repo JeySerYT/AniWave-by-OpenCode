@@ -23,32 +23,7 @@ export function AuthProvider({ children }) {
         setUser(userData);
       }
     } catch (err) {
-      const token = sessionStorage.getItem('auth_token');
-      if (token) {
-        fetchUser(token);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUser = async (token) => {
-    try {
-      const res = await fetch(`${API_URL}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const userData = await res.json();
-        setUser(userData);
-        sessionStorage.setItem('auth_token', token);
-        sessionStorage.setItem('user', JSON.stringify(userData));
-      } else {
-        sessionStorage.removeItem('auth_token');
-        sessionStorage.removeItem('user');
-      }
-    } catch (err) {
-      sessionStorage.removeItem('auth_token');
-      sessionStorage.removeItem('user');
+      console.error('Failed to fetch user:', err);
     } finally {
       setLoading(false);
     }
@@ -131,8 +106,6 @@ export function AuthProvider({ children }) {
     } catch (err) {
       console.error('Logout error:', err);
     }
-    sessionStorage.removeItem('auth_token');
-    sessionStorage.removeItem('user');
     setUser(null);
     navigate('/');
   };

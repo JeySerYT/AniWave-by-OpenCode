@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, User, Lock } from 'lucide-react';
@@ -39,8 +39,11 @@ function Register() {
     }
   };
 
+  const oauthBlockedRef = useRef(false);
+
   const handleOAuthLogin = async (provider) => {
-    if (oauthLoading) return;
+    if (oauthBlockedRef.current) return;
+    oauthBlockedRef.current = true;
     setOauthLoading(true);
     try {
       const response = await fetch(`${API_URL}/auth/oauth/${provider}`, {
@@ -54,30 +57,35 @@ function Register() {
           setShowRetryPopup(true);
           setRetryUrl(data.auth_url);
           setOauthLoading(false);
+          oauthBlockedRef.current = false;
           return;
         }
         const handleMessage = (event) => {
           if (event.data === 'oauth-login') {
             window.removeEventListener('message', handleMessage);
+            clearInterval(pollTimer);
             const returnUrl = sessionStorage.getItem('redirect_after_login');
             sessionStorage.removeItem('redirect_after_login');
-            window.location.href = returnUrl || '/profile';
+            navigate(returnUrl || '/profile');
           }
         };
-        window.addEventListener('message', handleMessage);
         const pollTimer = setInterval(() => {
           if (popup.closed) {
             clearInterval(pollTimer);
             window.removeEventListener('message', handleMessage);
             setOauthLoading(false);
+            oauthBlockedRef.current = false;
           }
         }, 1000);
+        window.addEventListener('message', handleMessage);
       } else {
         setOauthLoading(false);
+        oauthBlockedRef.current = false;
       }
     } catch (err) {
       console.error('OAuth error:', err);
       setOauthLoading(false);
+      oauthBlockedRef.current = false;
     }
   };
 
