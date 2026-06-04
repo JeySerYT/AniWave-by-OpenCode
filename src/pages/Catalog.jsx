@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import AnimeCard from '../components/AnimeCard';
@@ -29,6 +30,7 @@ const CatalogPage = () => {
   const category = searchParams.get('category') || 'recent';
   const yearParam = searchParams.get('year') || '';
   const currentYear = new Date().getFullYear();
+  const [page, setPage] = useState(1);
 
   const config = useMemo(() => {
     if (category === 'trending') {
@@ -61,47 +63,26 @@ const CatalogPage = () => {
     return null;
   }, [category, yearParam, currentYear]);
 
-  const [anime, setAnime] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const mounted = useRef(true);
+  const { data, isLoading, error, isFetching, refetch } = useQuery({
+    queryKey: ['catalog', category, yearParam, page],
+    queryFn: () => anilibriaApi.getTitleList(config.buildParams(page)),
+    enabled: !!config,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    retry: false,
+  });
 
-  useEffect(() => {
-    mounted.current = true;
-    return () => { mounted.current = false; };
-  }, []);
-
-  const fetchPage = useCallback(async (p) => {
-    if (!config) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const params = config.buildParams(p);
-      const response = await anilibriaApi.getTitleList(params);
-      if (!mounted.current) return;
-      setAnime(response?.data || []);
-      setTotal(response?.meta?.pagination?.total || 0);
-    } catch (err) {
-      if (mounted.current) setError(err.message);
-    } finally {
-      if (mounted.current) setLoading(false);
-    }
-  }, [config]);
+  const anime = data?.data || [];
+  const total = data?.meta?.pagination?.total || 0;
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
   useEffect(() => {
     setPage(1);
-    setAnime([]);
-    fetchPage(1);
-  }, [config, fetchPage]);
-
-  const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
+  }, [category, yearParam]);
 
   const handlePageChange = (p) => {
     if (p < 1 || p > totalPages || p === page) return;
     setPage(p);
-    fetchPage(p);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -150,27 +131,31 @@ const CatalogPage = () => {
         {total > 0 && <p className="catalog-count">{total} тайтлов</p>}
 
         <div className="catalog-results">
-          {loading && anime.length === 0 && (
+          {isLoading && (
             <div className="catalog-grid">
-              <SkeletonGrid count={8} />
+              <SkeletonGrid count={ITEMS_PER_PAGE} />
             </div>
           )}
 
-          {error && !loading && (
+          {error && !isLoading && (
             <div className="catalog-error">
-              <p>Ошибка: {error}</p>
-              <button onClick={() => fetchPage(page)}>Повторить</button>
+              <p>Ошибка: {error?.message || error}</p>
+              <button onClick={() => refetch()}>Повторить</button>
             </div>
           )}
 
-          {!loading && !error && anime.length === 0 && (
-            <motion.div className="catalog-empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          {!isLoading && !error && !anime.length && (
+            <motion.div
+              className="catalog-empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
               <h2>Ничего не найдено</h2>
               <p>В этой категории пока нет тайтлов</p>
             </motion.div>
           )}
 
-          {anime.length > 0 && (
+          {!isLoading && anime.length > 0 && (
             <>
               <div className="catalog-grid">
                 {anime.map((item, index) => (
@@ -181,8 +166,8 @@ const CatalogPage = () => {
               {totalPages > 1 && (
                 <div className="catalog-pagination">
                   <button
-                    className="pagination-btn"
-                    disabled={page <= 1}
+                    className={`pagination-btn ${isFetching ? 'loading' : ''}`}
+                    disabled={page <= 1 || isFetching}
                     onClick={() => handlePageChange(page - 1)}
                   >
                     <ChevronLeft size={18} />
@@ -194,7 +179,7 @@ const CatalogPage = () => {
                     ) : (
                       <button
                         key={p}
-                        className={`pagination-btn pagination-num ${page === p ? 'active' : ''}`}
+                        className={`pagination-btn pagination-num ${page === p ? 'active' : ''} ${isFetching ? 'loading' : ''}`}
                         onClick={() => handlePageChange(p)}
                       >
                         {p}
@@ -203,8 +188,8 @@ const CatalogPage = () => {
                   )}
 
                   <button
-                    className="pagination-btn"
-                    disabled={page >= totalPages}
+                    className={`pagination-btn ${isFetching ? 'loading' : ''}`}
+                    disabled={page >= totalPages || isFetching}
                     onClick={() => handlePageChange(page + 1)}
                   >
                     <ChevronRight size={18} />

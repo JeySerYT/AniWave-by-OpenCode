@@ -265,7 +265,7 @@ const SettingsPage = () => {
         <div className="settings-avatar-section">
           <div className="settings-avatar">
             {form.avatar ? (
-              <img src={form.avatar} alt="Avatar" />
+              <img src={form.avatar} alt="Avatar" loading="lazy" width="80" height="80" />
             ) : (
               <div className="settings-avatar-initials">
                 {user.username?.[0]?.toUpperCase() || '?'}
@@ -322,7 +322,7 @@ const SettingsPage = () => {
           </label>
         </div>
         {form.banner && (
-          <img src={form.banner} alt="Banner preview" className="settings-banner-preview" />
+          <img src={form.banner} alt="Banner preview" loading="lazy" width="400" height="100" className="settings-banner-preview" />
         )}
       </div>
 

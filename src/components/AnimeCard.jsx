@@ -37,6 +37,8 @@ const AnimeCard = ({ anime, index = 0, brief }) => {
               src={poster.startsWith('/') ? BASE_URL + poster : poster}
               alt={title}
               loading="lazy"
+              width="185"
+              height="278"
               onError={(e) => {
                 e.target.src = 'data:image/svg+xml,' + encodeURIComponent(
                   '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="100%" height="100%" fill="#1a1a1a"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#555" font-size="12">Нет постера</text></svg>'

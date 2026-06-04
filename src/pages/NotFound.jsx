@@ -17,7 +17,7 @@ const NotFound = () => (
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <img src={bunnyImg} alt="" className="bunny-img" />
+        <img src={bunnyImg} alt="" className="bunny-img" loading="lazy" width="400" height="520" />
         <div className="bunny-shadow" />
       </motion.div>
     </div>

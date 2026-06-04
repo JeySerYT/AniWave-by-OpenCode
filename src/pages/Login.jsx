@@ -15,7 +15,7 @@ function Login() {
   const [showRetryPopup, setShowRetryPopup] = useState(false);
   const [retryUrl, setRetryUrl] = useState('');
   const [oauthLoading, setOauthLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, refresh } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -52,10 +52,11 @@ function Login() {
           oauthBlockedRef.current = false;
           return;
         }
-        const handleMessage = (event) => {
+        const handleMessage = async (event) => {
           if (event.data === 'oauth-login') {
             window.removeEventListener('message', handleMessage);
             clearInterval(pollTimer);
+            await refresh();
             const returnUrl = sessionStorage.getItem('redirect_after_login');
             sessionStorage.removeItem('redirect_after_login');
             navigate(returnUrl || '/profile');
@@ -93,7 +94,7 @@ function Login() {
           <div className="auth-card-inner">
             <div className="auth-header">
               <Link to="/" className="auth-logo">
-                <img src={Logo} alt="AniWave" />
+                <img src={Logo} alt="AniWave" loading="lazy" width="180" height="48" />
               </Link>
               <h1>С возвращением!</h1>
               <p>Войдите в свой аккаунт</p>

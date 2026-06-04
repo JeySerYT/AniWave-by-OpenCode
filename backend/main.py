@@ -3,6 +3,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
@@ -44,6 +45,21 @@ app.state.limiter = limiter
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8081")
+
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+@app.middleware("http")
+async def add_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    if request.method == "GET" and not request.url.path.startswith((
+        "/api/auth", "/api/profile", "/api/favorites", "/api/watch-progress"
+    )):
+        response.headers["Cache-Control"] = "public, max-age=60"
+    else:
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
 
 app.add_middleware(
     CORSMiddleware,

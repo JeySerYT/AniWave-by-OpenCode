@@ -52,6 +52,8 @@ function Header({ onSearchOpen }) {
               alt="AniWave"
               className="logo-img"
               loading="lazy"
+              width="120"
+              height="32"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.3 }}
             />
@@ -90,7 +92,7 @@ function Header({ onSearchOpen }) {
               aria-label="Профиль"
             >
               {user.avatar ? (
-                <img src={user.avatar} alt="" className="profile-avatar-img" loading="lazy" />
+                <img src={user.avatar} alt="" className="profile-avatar-img" loading="lazy" width="32" height="32" />
               ) : (
                 <div className="profile-avatar-fallback">
                   {user.username?.[0]?.toUpperCase() || '?'}
@@ -117,7 +119,7 @@ function Header({ onSearchOpen }) {
                 <div className="dropdown-header">
                   <div className="dropdown-avatar">
                     {user.avatar ? (
-                      <img src={user.avatar} alt="" loading="lazy" />
+                      <img src={user.avatar} alt="" loading="lazy" width="40" height="40" />
                     ) : (
                       <div className="dropdown-avatar-fallback">
                         {user.username?.[0]?.toUpperCase() || '?'}

@@ -191,7 +191,7 @@ const ProfileContent = () => {
         <div className="profile-avatar-wrapper">
           <div className="profile-avatar">
             {user.avatar ? (
-              <img src={user.avatar} alt={user.username} loading="lazy" />
+              <img src={user.avatar} alt={user.username} loading="lazy" width="80" height="80" />
             ) : (
               <div className="avatar-initials">{user.username?.[0]?.toUpperCase() || '?'}</div>
             )}
@@ -253,9 +253,9 @@ const ProfileContent = () => {
                     onDrop={(e) => handleDrop(e, 'avatar')}
                   >
                     {editForm.avatar ? (
-                      <img src={editForm.avatar} alt="" className="drop-preview-avatar" loading="lazy" />
+                      <img src={editForm.avatar} alt="" className="drop-preview-avatar" loading="lazy" width="80" height="80" />
                     ) : user?.avatar ? (
-                      <img src={user.avatar} alt="" className="drop-preview-avatar" loading="lazy" />
+                      <img src={user.avatar} alt="" className="drop-preview-avatar" loading="lazy" width="80" height="80" />
                     ) : (
                       <div className="drop-placeholder">
                         <Upload size={20} />
@@ -277,9 +277,9 @@ const ProfileContent = () => {
                     onDrop={(e) => handleDrop(e, 'banner')}
                   >
                     {editForm.banner ? (
-                      <img src={editForm.banner} alt="" loading="lazy" style={{ maxHeight: '80px', borderRadius: '8px' }} />
+                      <img src={editForm.banner} alt="" loading="lazy" width="600" height="100" style={{ maxHeight: '80px', borderRadius: '8px' }} />
                     ) : user?.banner ? (
-                      <img src={user.banner} alt="" loading="lazy" style={{ maxHeight: '80px', borderRadius: '8px' }} />
+                      <img src={user.banner} alt="" loading="lazy" width="600" height="100" style={{ maxHeight: '80px', borderRadius: '8px' }} />
                     ) : (
                       <div className="drop-placeholder">
                         <Upload size={24} />

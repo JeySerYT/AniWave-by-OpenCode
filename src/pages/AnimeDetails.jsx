@@ -182,7 +182,7 @@ const AnimeDetails = () => {
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
-              {poster && <img src={poster.startsWith('/') ? BASE_URL + poster : poster} alt={title} />}
+              {poster && <img src={poster.startsWith('/') ? BASE_URL + poster : poster} alt={title} loading="lazy" width="300" height="450" />}
               {anime.averageScore && (
                 <div className="poster-rating">
                   <span className="star">★</span>

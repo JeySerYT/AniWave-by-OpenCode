@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Hls from 'hls.js';
@@ -48,7 +48,7 @@ const LoadingOverlay = () => (
   <div className="player-loading-overlay" />
 );
 
-const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
+const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const progressRef = useRef(null);
@@ -265,7 +265,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     setIsMuted(video.muted);
   }, []);
 
-  const handleVolumeChange = (e) => {
+  const handleVolumeChange = useCallback((e) => {
     const val = parseFloat(e.target.value);
     const video = videoRef.current;
     if (!video) return;
@@ -273,7 +273,7 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     setVolume(val);
     setIsMuted(val === 0);
     localStorage.setItem('player_volume', String(val));
-  };
+  }, []);
 
   const seekTo = useCallback((clientX) => {
     const video = videoRef.current;
@@ -286,12 +286,12 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     setHoverX(clientX - rect.left);
   }, [duration]);
 
-  const handleSeek = (e) => seekTo(e.clientX);
+  const handleSeek = useCallback((e) => seekTo(e.clientX), [seekTo]);
 
-  const handleSeekStart = (e) => {
+  const handleSeekStart = useCallback((e) => {
     setIsDragging(true);
     seekTo(e.clientX);
-  };
+  }, [seekTo]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -302,14 +302,14 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
   }, [isDragging, seekTo]);
 
-  const handleProgressHover = (e) => {
+  const handleProgressHover = useCallback((e) => {
     const progress = progressRef.current;
     if (!progress || duration <= 0) return;
     const rect = progress.getBoundingClientRect();
     const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     setHoverTime(pos * duration);
     setHoverX(e.clientX - rect.left);
-  };
+  }, [duration]);
 
   const handleSubtitleSelect = useCallback((index) => {
     const hls = hlsRef.current;
@@ -376,17 +376,17 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
     setShowWatchOpening(false);
   }, [hasOpening, opening]);
 
-  const skipForward85 = () => {
+  const skipForward85 = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
     video.currentTime = Math.min(video.currentTime + 85, duration);
-  };
+  }, [duration]);
 
-  const handleMouseMove = () => {
+  const handleMouseMove = useCallback(() => {
     setShowControls(true);
     clearTimeout(controlsTimeout.current);
     if (isPlaying) controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
-  };
+  }, [isPlaying]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -725,9 +725,9 @@ const VideoPlayer = ({ episodes, currentEpisode, onEpisodeChange, title }) => {
       )}
     </div>
   );
-};
+});
 
-const EpisodeItem = ({ episode, isActive, onClick, episodeNum }) => (
+const EpisodeItem = memo(({ episode, isActive, onClick, episodeNum }) => (
   <motion.button
     className={`episode-item ${isActive ? 'active' : ''}`}
     onClick={onClick}
@@ -751,7 +751,7 @@ const EpisodeItem = ({ episode, isActive, onClick, episodeNum }) => (
       {episode.name && <span className="episode-title">{episode.name}</span>}
     </div>
   </motion.button>
-);
+));
 
 const AnimeWatch = () => {
   const { id } = useParams();

@@ -157,3 +157,46 @@
   opacity: 0.4;
   font-size: 0.85rem;
 }
+
+.pagination-btn.loading {
+  opacity: 0.5;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.25; }
+}
+
+.catalog-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  background: rgba(255, 64, 129, 0.1);
+  border: 1px solid rgba(255, 64, 129, 0.25);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.catalog-error-banner span {
+  opacity: 0.8;
+}
+
+.catalog-error-banner button {
+  background: var(--accent-pink);
+  border: none;
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.catalog-error-banner button:hover {
+  opacity: 0.85;
+}

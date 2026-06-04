@@ -1,8 +1,13 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import compression from 'vite-plugin-compression'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    compression({ algorithm: 'brotliCompress', ext: '.br' }),
+    compression({ algorithm: 'gzip', ext: '.gz' }),
+  ],
   build: {
     chunkSizeWarningLimit: 300,
     rollupOptions: {
@@ -11,7 +16,6 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-query': ['@tanstack/react-query'],
           'vendor-animation': ['framer-motion'],
-          'vendor-player': ['hls.js'],
           'vendor-icons': ['lucide-react'],
         }
       }

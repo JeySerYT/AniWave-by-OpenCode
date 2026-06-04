@@ -37,21 +37,22 @@ const SECTION_COLORS = {
 const ScrollCarousel = memo(({ children }) => {
   const scrollRef = useRef(null);
 
-  const scroll = useCallback((dir) => {
+  const handleEdgeClick = useCallback((e) => {
     if (!scrollRef.current) return;
+    const dir = parseInt(e.currentTarget.dataset.dir, 10);
     const amount = scrollRef.current.clientWidth * 0.6;
     scrollRef.current.scrollBy({ left: dir * amount, behavior: 'smooth' });
   }, []);
 
   return (
     <div className="carousel-wrap">
-      <button className="carousel-edge carousel-edge-left" onClick={() => scroll(-1)} aria-label="Назад">
+      <button className="carousel-edge carousel-edge-left" data-dir="-1" onClick={handleEdgeClick} aria-label="Назад">
         <ChevronLeft size={32} />
       </button>
       <div className="carousel-track" ref={scrollRef}>
         {children}
       </div>
-      <button className="carousel-edge carousel-edge-right" onClick={() => scroll(1)} aria-label="Вперёд">
+      <button className="carousel-edge carousel-edge-right" data-dir="1" onClick={handleEdgeClick} aria-label="Вперёд">
         <ChevronRight size={32} />
       </button>
     </div>

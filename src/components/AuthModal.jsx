@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../api/config';
+import { useAuth } from '../context/AuthContext';
 import './AuthModal.css';
 
 const AuthModal = ({ isOpen, onClose }) => {
@@ -10,6 +11,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     onClose();
   };
   const navigate = useNavigate();
+  const { refresh } = useAuth();
   const oauthBlocked = useRef(false);
 
   const [popupBlocked, setPopupBlocked] = useState(false);
@@ -30,10 +32,11 @@ const AuthModal = ({ isOpen, onClose }) => {
         oauthBlocked.current = false;
         return;
       }
-      const handleMessage = (event) => {
+      const handleMessage = async (event) => {
         if (event.data === 'oauth-login') {
           window.removeEventListener('message', handleMessage);
           clearInterval(pollTimer);
+          await refresh();
           const returnUrl = sessionStorage.getItem('redirect_after_login');
           sessionStorage.removeItem('redirect_after_login');
           navigate(returnUrl || '/profile');
@@ -71,7 +74,7 @@ const AuthModal = ({ isOpen, onClose }) => {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={e => e.stopPropagation()}
           >
-            <button className="authmodal-close" onClick={handleClose}>
+            <button className="authmodal-close" onClick={handleClose} aria-label="Закрыть">
               <X size={18} />
             </button>
 

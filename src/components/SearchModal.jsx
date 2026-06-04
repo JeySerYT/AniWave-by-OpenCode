@@ -101,6 +101,9 @@ function SearchModal({ open, onClose }) {
       {open && (
         <motion.div
           className="search-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Поиск аниме"
           layoutId="search-modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -125,18 +128,19 @@ function SearchModal({ open, onClose }) {
                   ref={inputRef}
                   className="search-modal-input"
                   type="text"
+                  inputMode="search"
                   value={input}
                   onChange={(e) => handleInputChange(e.target.value)}
                   placeholder="Поиск аниме..."
                   autoComplete="off"
                 />
                 {input && (
-                  <button className="search-modal-clear" onClick={() => handleInputChange('')}>
+                  <button className="search-modal-clear" onClick={() => handleInputChange('')} aria-label="Очистить поиск">
                     <X size={16} />
                   </button>
                 )}
               </div>
-              <button className="search-modal-close" onClick={onClose}>
+              <button className="search-modal-close" onClick={onClose} aria-label="Закрыть поиск">
                 <X size={20} />
               </button>
             </div>

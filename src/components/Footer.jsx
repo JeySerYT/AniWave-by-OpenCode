@@ -14,7 +14,7 @@ function Footer() {
       <div className="footer-divider" />
       <div className="footer-content">
         <div className="footer-brand">
-          <img src={Logo} alt="AniWave" className="footer-logo" loading="lazy" />
+          <img src={Logo} alt="AniWave" className="footer-logo" loading="lazy" width="100" height="28" />
           <p className="footer-copyright">© {new Date().getFullYear()} AniWave</p>
           <p className="footer-copyright">Все права защищены.</p>
         </div>

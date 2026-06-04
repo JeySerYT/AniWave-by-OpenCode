@@ -2,6 +2,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.limiter import limiter
 from app.schemas.schemas import ProfileUpdate, UserResponse, FavoriteBase, FavoriteUpdate, FavoriteResponse, WatchProgressBase, WatchProgressResponse
 from app.services.user_service import UserService
 from app.services.favorite_service import FavoriteService
@@ -18,6 +19,7 @@ def get_profile(current_user: User = Depends(get_current_user)):
 
 
 @router.put("/profile", response_model=UserResponse)
+@limiter.limit("10 per minute")
 def update_profile(
     request: Request,
     profile_data: ProfileUpdate,
@@ -55,6 +57,7 @@ def get_favorites(
 
 
 @router.post("/favorites", response_model=FavoriteResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("30 per minute")
 def add_favorite(
     request: Request,
     favorite_data: FavoriteBase,
@@ -83,6 +86,7 @@ def add_favorite(
 
 
 @router.patch("/favorites/{anime_id}", response_model=FavoriteResponse)
+@limiter.limit("30 per minute")
 def update_favorite(
     request: Request,
     anime_id: str,
@@ -98,6 +102,7 @@ def update_favorite(
 
 
 @router.delete("/favorites/{anime_id}")
+@limiter.limit("30 per minute")
 def remove_favorite(
     request: Request,
     anime_id: str,
@@ -123,6 +128,7 @@ def get_watch_progress(
 
 
 @router.post("/watch-progress", response_model=WatchProgressResponse)
+@limiter.limit("30 per minute")
 def save_watch_progress(
     request: Request,
     progress_data: WatchProgressBase,
@@ -143,6 +149,7 @@ def save_watch_progress(
 
 
 @router.delete("/watch-progress/{anime_id}")
+@limiter.limit("30 per minute")
 def remove_watch_progress(
     request: Request,
     anime_id: str,
