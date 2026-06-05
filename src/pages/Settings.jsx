@@ -20,6 +20,7 @@ import {
   Heart
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import { API_URL } from '../api/config';
 import Footer from '../components/Footer';
 import './Settings.css';
@@ -72,6 +73,7 @@ const TABS = [
 
 const SettingsPage = () => {
   const { user, loading: authLoading, refresh, logout, updateProfile } = useAuth();
+  const { particlesType, setParticlesType } = useSettings();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [initialized, setInitialized] = useState(false);
@@ -547,6 +549,12 @@ const SettingsPage = () => {
     </div>
   );
 
+  const PARTICLES_OPTIONS = [
+    { value: 'sakura', label: 'Лепестки сакуры' },
+    { value: 'snow', label: 'Снежинки' },
+    { value: 'off', label: 'Выключить' },
+  ];
+
   const renderAppearanceTab = () => (
     <div className="settings-section">
       <h2 className="settings-section-title">Внешний вид</h2>
@@ -573,6 +581,26 @@ const SettingsPage = () => {
             <div className="settings-swatch" style={{ background: '#6366f1' }} title="Indigo" />
             <div className="settings-swatch" style={{ background: '#22c55e' }} title="Green" />
             <div className="settings-swatch" style={{ background: '#f59e0b' }} title="Amber" />
+          </div>
+        </div>
+
+        <div className="settings-appearance-row">
+          <div className="settings-appearance-info">
+            <span className="settings-appearance-label">Фоновые частицы</span>
+            <span className="settings-appearance-desc">
+              {particlesType === 'snow' ? 'Снежинки' : particlesType === 'sakura' ? 'Лепестки сакуры' : 'Выключены'}
+            </span>
+          </div>
+          <div className="settings-particle-select">
+            {PARTICLES_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`settings-particle-btn ${particlesType === opt.value ? 'active' : ''}`}
+                onClick={() => setParticlesType(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>

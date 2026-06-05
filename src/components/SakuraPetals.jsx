@@ -1,6 +1,37 @@
 import { memo, useEffect, useRef } from 'react';
 import './SakuraPetals.css';
 
+const COLORS = [
+  ['hsla(340,90%,80%,0.95)', 'hsla(345,85%,70%,0.9)', 'hsla(350,80%,55%,0.8)'],
+  ['hsla(335,95%,75%,0.95)', 'hsla(340,90%,65%,0.9)', 'hsla(345,85%,50%,0.8)'],
+  ['hsla(340,85%,82%,0.95)', 'hsla(345,80%,72%,0.9)', 'hsla(350,75%,58%,0.8)'],
+  ['hsla(345,90%,78%,0.95)', 'hsla(350,85%,68%,0.9)', 'hsla(355,80%,52%,0.8)'],
+];
+
+const CENTER_COLORS = [
+  'hsla(345,90%,65%,0.95)',
+  'hsla(350,85%,60%,0.95)',
+  'hsla(340,95%,70%,0.95)',
+];
+
+const drawPetalShape = (ctx, s, gradient) => {
+  const w_ = s * 0.7;
+  const h_ = s;
+
+  ctx.beginPath();
+  ctx.moveTo(0, h_);
+  ctx.bezierCurveTo(w_ * 0.7, h_ * 0.2, w_ * 1.0, -h_ * 0.1, w_ * 0.6, -h_ * 0.4);
+  ctx.bezierCurveTo(w_ * 0.45, -h_ * 0.55, w_ * 0.3, -h_ * 0.75, w_ * 0.18, -h_ * 0.88);
+  ctx.quadraticCurveTo(w_ * 0.05, -h_ * 0.8, 0, -h_ * 0.7);
+  ctx.quadraticCurveTo(-w_ * 0.05, -h_ * 0.8, -w_ * 0.18, -h_ * 0.88);
+  ctx.bezierCurveTo(-w_ * 0.3, -h_ * 0.75, -w_ * 0.45, -h_ * 0.55, -w_ * 0.6, -h_ * 0.4);
+  ctx.bezierCurveTo(-w_ * 1.0, -h_ * 0.1, -w_ * 0.7, h_ * 0.2, 0, h_);
+  ctx.closePath();
+
+  ctx.fillStyle = gradient;
+  ctx.fill();
+};
+
 const SakuraPetals = memo(() => {
   const canvasRef = useRef(null);
 
@@ -10,109 +41,133 @@ const SakuraPetals = memo(() => {
 
     const ctx = canvas.getContext('2d');
     let animId;
-    let petals = [];
+    let flowers = [];
     let w, h;
+    let time = 0;
+    let wind = 0;
+    let targetWind = 0;
 
     const resize = () => {
       w = canvas.width = window.innerWidth;
       h = canvas.height = window.innerHeight;
     };
 
-    const drawPetal = (p) => {
-      const s = p.size;
+    const drawPetalAt = (angle, s, gradient) => {
       ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rotation);
-      ctx.globalAlpha = p.opacity;
+      ctx.rotate(angle);
+      ctx.translate(0, -s * 0.85);
+      drawPetalShape(ctx, s, gradient);
+      ctx.restore();
+    };
 
-      const base = ctx.createRadialGradient(0, -s * 0.2, 0, 0, -s * 0.2, s * 1.6);
-      base.addColorStop(0, p.color[0]);
-      base.addColorStop(0.6, p.color[1]);
-      base.addColorStop(1, p.color[2]);
+    const drawFlower = (f) => {
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.rotation);
+      ctx.globalAlpha = f.opacity;
 
-      // Draw cherry blossom petal with notch at tip
+      const s = f.size;
+      if (!f._gradients) {
+        const gs = [];
+        for (let i = 0; i < 5; i++) {
+          const g = ctx.createRadialGradient(0, -s * 0.15, 0, 0, -s * 0.15, s * 1.3);
+          g.addColorStop(0, f._colors[0]);
+          g.addColorStop(0.5, f._colors[1]);
+          g.addColorStop(1, f._colors[2]);
+          gs.push(g);
+        }
+        f._gradients = gs;
+      }
+
+      const angleStep = (Math.PI * 2) / 5;
+      for (let i = 0; i < 5; i++) {
+        drawPetalAt(angleStep * i, s, f._gradients[i]);
+      }
+
+      ctx.globalAlpha = f.opacity * 0.9;
+      ctx.fillStyle = f._centerColor;
       ctx.beginPath();
-      const w_ = s * 0.85;  // half-width
-      const h_ = s;         // height
-
-      // Start at bottom center
-      ctx.moveTo(0, h_);
-
-      // Right side of petal
-      ctx.bezierCurveTo(w_ * 1.1, h_ * 0.4, w_ * 0.9, -h_ * 0.3, w_ * 0.15, -h_ * 0.9);
-
-      // Notch at the tip (left side of notch)
-      ctx.bezierCurveTo(w_ * 0.05, -h_ * 1.0, 0, -h_ * 0.95, 0, -h_ * 0.8);
-
-      // Notch at the tip (right side of notch going down)
-      ctx.bezierCurveTo(0, -h_ * 0.95, -w_ * 0.05, -h_ * 1.0, -w_ * 0.15, -h_ * 0.9);
-
-      // Left side of petal
-      ctx.bezierCurveTo(-w_ * 0.9, -h_ * 0.3, -w_ * 1.1, h_ * 0.4, 0, h_);
-      ctx.closePath();
-
-      ctx.fillStyle = base;
+      ctx.arc(0, 0, s * 0.1, 0, Math.PI * 2);
       ctx.fill();
 
-      // Subtle veins
-      ctx.globalAlpha = p.opacity * 0.15;
-      ctx.strokeStyle = '#fff';
-
-      for (let i = 0; i < 3; i++) {
-        const offset = (i - 1) * w_ * 0.3;
+      ctx.globalAlpha = f.opacity * 0.3;
+      ctx.strokeStyle = 'rgba(255,220,230,0.5)';
+      ctx.lineWidth = 0.4;
+      for (let i = 0; i < 7; i++) {
+        const a = (i / 7) * Math.PI * 2 + f.phase;
         ctx.beginPath();
-        ctx.moveTo(offset, h_ * 0.2);
-        ctx.quadraticCurveTo(offset + (i === 1 ? 0 : (i < 1 ? -1 : 1)) * w_ * 0.15, -h_ * 0.1, offset * 0.3, -h_ * 0.6);
-        ctx.lineWidth = 0.4 + Math.random() * 0.2;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * s * 0.18, Math.sin(a) * s * 0.18);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * s * 0.18, Math.sin(a) * s * 0.18);
+        ctx.lineTo(Math.cos(a) * s * 0.24, Math.sin(a) * s * 0.24);
         ctx.stroke();
       }
 
       ctx.restore();
     };
 
-    const createPetal = (reset) => ({
-      x: reset ? Math.random() * w : w * 0.5,
-      y: reset ? -20 - Math.random() * 60 : h + 20,
-      size: 3 + Math.random() * 5,
-      speedY: 0.6 + Math.random() * 0.8,
-      speedX: 0.2 + Math.random() * 0.4,
-      swayAmp: 15 + Math.random() * 25,
-      swayFreq: 0.008 + Math.random() * 0.015,
-      phase: Math.random() * Math.PI * 2,
-      rotation: Math.random() * Math.PI * 2,
-      rotSpeed: 0.01 + Math.random() * 0.03,
-      opacity: 0.25 + Math.random() * 0.35,
-      color: [
-        `hsla(${340 + Math.random() * 20}, ${60 + Math.random() * 30}%, ${80 + Math.random() * 10}%, 0.9)`,
-        `hsla(${345 + Math.random() * 15}, ${50 + Math.random() * 30}%, ${72 + Math.random() * 12}%, 0.85)`,
-        `hsla(${350 + Math.random() * 10}, ${40 + Math.random() * 20}%, ${65 + Math.random() * 10}%, 0.7)`,
-      ],
-    });
+    const createFlower = () => {
+      const size = 2 + Math.random() * 3;
+      const dir = Math.random() > 0.5 ? 1 : -1;
+      return {
+        x: Math.random() * w,
+        y: -(20 + Math.random() * h * 0.5),
+        size,
+        speedY: 0.7 + Math.random() * 0.7,
+        speedX: dir * (0.08 + Math.random() * 0.3),
+        swayAmp: 8 + Math.random() * 20,
+        swayFreq: 0.005 + Math.random() * 0.01,
+        phase: Math.random() * Math.PI * 2,
+        rotation: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.025,
+        opacity: 0.35 + Math.random() * 0.4,
+        updraftTimer: 150 + Math.random() * 400,
+        updraftStrength: 0,
+        _gradients: undefined,
+        _colors: COLORS[Math.floor(Math.random() * COLORS.length)],
+        _centerColor: CENTER_COLORS[Math.floor(Math.random() * CENTER_COLORS.length)],
+      };
+    };
 
     const init = () => {
       resize();
-      petals = Array.from({ length: 30 }, (_, i) => {
-        const p = createPetal(true);
-        p.y = Math.random() * h;
-        return p;
+      const count = Math.min(30, Math.floor((w * h) / 40000));
+      flowers = Array.from({ length: count }, () => {
+        const f = createFlower();
+        f.y = Math.random() * h;
+        return f;
       });
     };
 
     const animate = () => {
+      time++;
       ctx.clearRect(0, 0, w, h);
 
-      for (const p of petals) {
-        p.y += p.speedY;
-        p.x += p.speedX + Math.sin(p.y * p.swayFreq + p.phase) * 0.3;
-        p.rotation += p.rotSpeed;
+      targetWind = Math.sin(time * 0.0008) * 0.3 + Math.sin(time * 0.0025) * 0.2;
+      wind += (targetWind - wind) * 0.02;
 
-        if (p.y > h + 40) {
-          Object.assign(p, createPetal(true));
+      for (const f of flowers) {
+        f.updraftTimer--;
+        if (f.updraftTimer <= 0) {
+          f.updraftStrength = 0.2 + Math.random() * 0.4;
+          f.updraftTimer = 150 + Math.random() * 400;
+        }
+        f.updraftStrength *= 0.98;
+
+        f.y += f.speedY - f.updraftStrength * 0.2;
+        f.x += f.speedX + wind * 0.4 + Math.sin(f.y * f.swayFreq + f.phase + time * 0.002) * 0.15;
+        f.rotation += f.rotSpeed;
+
+        if (f.y > h + 40 || f.x < -50 || f.x > w + 50) {
+          Object.assign(f, createFlower());
         }
       }
 
-      petals.sort((a, b) => a.size - b.size);
-      for (const p of petals) drawPetal(p);
+      flowers.sort((a, b) => a.size - b.size);
+      for (const f of flowers) drawFlower(f);
 
       animId = requestAnimationFrame(animate);
     };

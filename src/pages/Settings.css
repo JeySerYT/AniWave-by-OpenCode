@@ -704,6 +704,35 @@
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
+/* ---------- Particle Select ---------- */
+.settings-particle-select {
+  display: flex;
+  gap: 4px;
+}
+
+.settings-particle-btn {
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.settings-particle-btn:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.settings-particle-btn.active {
+  background: var(--accent-pink);
+  border-color: var(--accent-pink);
+  color: #fff;
+}
+
 /* ---------- Note ---------- */
 .settings-note {
   padding: 1rem 1.25rem;

@@ -1,14 +1,16 @@
 import { useState, memo, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
+import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { ToastProvider } from './components/Toast';
 import Header from './components/Header';
 import SearchModal from './components/SearchModal';
 import ScrollToTop from './components/ScrollToTop';
 import Footer from './components/Footer';
 import SakuraPetals from './components/SakuraPetals';
+import SnowFlakes from './components/SnowFlakes';
 const Home = lazy(() => import('./pages/Home'));
 const Catalog = lazy(() => import('./pages/Catalog'));
 const AnimeDetails = lazy(() => import('./pages/AnimeDetails'));
@@ -37,6 +39,38 @@ const queryClient = new QueryClient({
   },
 });
 
+const Particles = () => {
+  const { particlesType } = useSettings();
+  return (
+    <AnimatePresence mode="wait">
+      {particlesType === 'snow' && (
+        <motion.div
+          key="snow"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'none' }}
+        >
+          <SnowFlakes />
+        </motion.div>
+      )}
+      {particlesType === 'sakura' && (
+        <motion.div
+          key="sakura"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, pointerEvents: 'none' }}
+        >
+          <SakuraPetals />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const Layout = memo(({ children, hideHeader, onSearchOpen }) => (
   <div className="layout">
     {!hideHeader && <Header onSearchOpen={onSearchOpen} />}
@@ -48,7 +82,7 @@ const Layout = memo(({ children, hideHeader, onSearchOpen }) => (
     >
       {children}
     </motion.main>
-    <SakuraPetals />
+    <Particles />
   </div>
 ));
 
@@ -60,6 +94,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <BrowserRouter>
+          <SettingsProvider>
           <AuthProvider>
             <ScrollToTop />
             <div className="App">
@@ -86,6 +121,7 @@ function App() {
             </div>
             <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
           </AuthProvider>
+          </SettingsProvider>
         </BrowserRouter>
       </ToastProvider>
     </QueryClientProvider>
