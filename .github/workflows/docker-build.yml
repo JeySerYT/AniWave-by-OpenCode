@@ -8,7 +8,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  REPO_LOWER: ${{ lower(github.repository) }}
   FRONTEND_IMAGE: ghcr.io/${{ lower(github.repository) }}/frontend
   BACKEND_IMAGE: ghcr.io/${{ lower(github.repository) }}/backend
 

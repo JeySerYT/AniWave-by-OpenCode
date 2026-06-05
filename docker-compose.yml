@@ -53,6 +53,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://backend:8081}
     depends_on:
       - backend
     restart: unless-stopped
