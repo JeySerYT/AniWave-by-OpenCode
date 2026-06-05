@@ -795,7 +795,7 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, au
         </div>
       )}
 
-      {showSkip && (
+      {showSkip && !showSettings && (
         <div className="skip-controls">
           {!watchDismissedRef.current && (
             <button className="watch-opening-button" onClick={handleWatchSegment}>
