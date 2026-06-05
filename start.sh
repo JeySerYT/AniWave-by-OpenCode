@@ -2,6 +2,7 @@
 BACKEND_URL=${BACKEND_URL:-http://127.0.0.1:8081}
 export BACKEND_URL
 
+mkdir -p /etc/nginx/conf.d
 envsubst '${BACKEND_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
 
 cat > /etc/nginx/nginx.conf << 'EOF'
