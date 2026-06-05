@@ -81,10 +81,12 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, au
   const [showSkip, setShowSkip] = useState(false);
   const [skipType, setSkipType] = useState(null);
   const [skipCountdown, setSkipCountdown] = useState(5);
-  const countdownRef = useRef(null);
+  const [showWatchButton, setShowWatchButton] = useState(true);
+  const autoskipRef = useRef(null);
+  const countdownDisplayRef = useRef(null);
   const isPlayingRef = useRef(false);
-  const skipDismissedRef = useRef(false);
-  const watchDismissedRef = useRef(false);
+  const hlsRetryRef = useRef(0);
+  const inSegmentRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
   const lastClickRef = useRef({ time: 0, x: 0 });
   const seekIndicatorRef = useRef(null);
@@ -168,6 +170,7 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, au
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLoading(false);
+        hlsRetryRef.current = 0;
         setActiveSubtitleTrack(-1);
         setSubtitleTracks([]);
         const v = videoRef.current;
@@ -178,12 +181,26 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, au
         setSubtitleTracks(tracks);
       });
       hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal) { setError('Ошибка загрузки видео'); setIsLoading(false); }
+        if (data.fatal) {
+          if (hlsRetryRef.current < 3) {
+            hlsRetryRef.current++;
+            hls.startLoad();
+            return;
+          }
+          if (hlsRetryRef.current < 6) {
+            hlsRetryRef.current++;
+            initHls(url);
+            return;
+          }
+          setError('Ошибка загрузки видео');
+          setIsLoading(false);
+        }
       });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
       video.addEventListener('loadedmetadata', () => {
         setIsLoading(false);
+        hlsRetryRef.current = 0;
         const v = videoRef.current;
         if (v && !v.paused) v.play().catch(() => {});
       }, { once: true });
@@ -212,15 +229,44 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, au
             rafId = null;
             setCurrentTime(video.currentTime);
             if (video.buffered.length > 0) setBuffered(video.buffered.end(video.buffered.length - 1));
-            if (hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop) {
-              if (!skipDismissedRef.current) { setShowSkip(true); setSkipType('opening'); }
-            } else if (hasEnding && video.currentTime >= endingStart && video.currentTime < endingEnd) {
-              if (!skipDismissedRef.current) { setShowSkip(true); setSkipType('ending'); }
+            const inOpening = hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop;
+            const inEnding = hasEnding && video.currentTime >= endingStart && video.currentTime < endingEnd;
+            const inSegment = inOpening || inEnding;
+            if (inSegment) {
+              if (!inSegmentRef.current) {
+                inSegmentRef.current = true;
+                setShowSkip(true);
+                setShowWatchButton(true);
+                setSkipType(inOpening ? 'opening' : 'ending');
+                setSkipCountdown(5);
+                clearTimeout(autoskipRef.current);
+                autoskipRef.current = setTimeout(() => {
+                  if (!inSegmentRef.current) return;
+                  const v = videoRef.current;
+                  if (!v) return;
+                  if (hasOpening && skipType === 'opening') { v.currentTime = opening.stop; }
+                  else if (hasEnding && skipType === 'ending') { v.currentTime = endingEnd; }
+                  setShowSkip(false);
+                  setSkipType(null);
+                  setShowWatchButton(true);
+                  inSegmentRef.current = false;
+                }, 5000);
+                let c = 5;
+                countdownDisplayRef.current = setInterval(() => {
+                  c--;
+                  if (c <= 0) { clearInterval(countdownDisplayRef.current); return; }
+                  setSkipCountdown(c);
+                }, 1000);
+              }
             } else {
-              setShowSkip(false);
-              setSkipType(null);
-              skipDismissedRef.current = false;
-              watchDismissedRef.current = false;
+              if (inSegmentRef.current) {
+                inSegmentRef.current = false;
+                setShowSkip(false);
+                setSkipType(null);
+                setShowWatchButton(true);
+                clearTimeout(autoskipRef.current);
+                clearInterval(countdownDisplayRef.current);
+              }
             }
           });
         }
@@ -230,15 +276,44 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, au
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
       setCurrentTime(video.currentTime);
       if (video.buffered.length > 0) setBuffered(video.buffered.end(video.buffered.length - 1));
-      if (hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop) {
-        if (!skipDismissedRef.current) { setShowSkip(true); setSkipType('opening'); }
-      } else if (hasEnding && video.currentTime >= endingStart && video.currentTime < endingEnd) {
-        if (!skipDismissedRef.current) { setShowSkip(true); setSkipType('ending'); }
+      const inOpening = hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop;
+      const inEnding = hasEnding && video.currentTime >= endingStart && video.currentTime < endingEnd;
+      const inSegment = inOpening || inEnding;
+      if (inSegment) {
+        if (!inSegmentRef.current) {
+          inSegmentRef.current = true;
+          setShowSkip(true);
+          setShowWatchButton(true);
+          setSkipType(inOpening ? 'opening' : 'ending');
+          setSkipCountdown(5);
+          clearTimeout(autoskipRef.current);
+          autoskipRef.current = setTimeout(() => {
+            if (!inSegmentRef.current) return;
+            const v = videoRef.current;
+            if (!v) return;
+            if (hasOpening && skipType === 'opening') { v.currentTime = opening.stop; }
+            else if (hasEnding && skipType === 'ending') { v.currentTime = endingEnd; }
+            setShowSkip(false);
+            setSkipType(null);
+            setShowWatchButton(true);
+            inSegmentRef.current = false;
+          }, 5000);
+          let c = 5;
+          countdownDisplayRef.current = setInterval(() => {
+            c--;
+            if (c <= 0) { clearInterval(countdownDisplayRef.current); return; }
+            setSkipCountdown(c);
+          }, 1000);
+        }
       } else {
-        setShowSkip(false);
-        setSkipType(null);
-        skipDismissedRef.current = false;
-        watchDismissedRef.current = false;
+        if (inSegmentRef.current) {
+          inSegmentRef.current = false;
+          setShowSkip(false);
+          setSkipType(null);
+          setShowWatchButton(true);
+          clearTimeout(autoskipRef.current);
+          clearInterval(countdownDisplayRef.current);
+        }
       }
     };
     const onDuration = () => setDuration(video.duration);
@@ -420,41 +495,18 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, au
     }
     setShowSkip(false);
     setSkipType(null);
-    setShowControls(true);
-    clearTimeout(controlsTimeout.current);
-    controlsTimeout.current = setTimeout(() => setShowControls(false), isPlayingRef.current ? 3000 : 5000);
+    setShowWatchButton(true);
+    clearTimeout(autoskipRef.current);
+    clearInterval(countdownDisplayRef.current);
+    inSegmentRef.current = false;
   }, [skipType, hasOpening, opening, hasEnding, endingEnd]);
 
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
-  useEffect(() => {
-    if (showSkip && !skipDismissedRef.current) {
-      setSkipCountdown(5);
-      countdownRef.current = setInterval(() => {
-        if (!isPlayingRef.current) return;
-        setSkipCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(countdownRef.current);
-            skipNow();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      clearInterval(countdownRef.current);
-    }
-    return () => clearInterval(countdownRef.current);
-  }, [showSkip, skipNow]);
-
   const handleWatchSegment = useCallback(() => {
-    clearInterval(countdownRef.current);
-    skipDismissedRef.current = true;
-    watchDismissedRef.current = true;
-    setSkipCountdown(5);
-    setShowControls(true);
-    clearTimeout(controlsTimeout.current);
-    controlsTimeout.current = setTimeout(() => setShowControls(false), isPlayingRef.current ? 3000 : 5000);
+    clearTimeout(autoskipRef.current);
+    clearInterval(countdownDisplayRef.current);
+    setShowWatchButton(false);
   }, []);
 
   const skipForward85 = useCallback(() => {
@@ -797,14 +849,14 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, au
 
       {showSkip && !showSettings && (
         <div className="skip-controls">
-          {!watchDismissedRef.current && (
+          {showWatchButton && (
             <button className="watch-opening-button" onClick={handleWatchSegment}>
               {skipType === 'ending' ? 'Смотреть эндинг' : 'Смотреть опенинг'}
             </button>
           )}
           <button className="skip-opening-button" onClick={skipNow}>
             <SkipForward size={16} />
-            <span>Пропустить{!skipDismissedRef.current && skipCountdown > 0 ? ` (${skipCountdown})` : ''}</span>
+            <span>Пропустить{showWatchButton && skipCountdown > 0 ? ` (${skipCountdown})` : ''}</span>
           </button>
         </div>
       )}
