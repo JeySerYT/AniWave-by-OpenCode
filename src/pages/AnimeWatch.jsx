@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAnimeById } from '../hooks/useAnime';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 import AuthModal from '../components/AuthModal';
 import ErrorMessage from '../components/ErrorMessage';
 import { API_URL } from '../api/config';
@@ -48,7 +49,7 @@ const LoadingOverlay = () => (
   <div className="player-loading-overlay" />
 );
 
-const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) => {
+const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title, autoRotate }) => {
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const progressRef = useRef(null);
@@ -78,7 +79,12 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
   const [hoverTime, setHoverTime] = useState(null);
   const [hoverX, setHoverX] = useState(0);
   const [showSkip, setShowSkip] = useState(false);
-  const [showWatchOpening, setShowWatchOpening] = useState(false);
+  const [skipType, setSkipType] = useState(null);
+  const [skipCountdown, setSkipCountdown] = useState(5);
+  const countdownRef = useRef(null);
+  const isPlayingRef = useRef(false);
+  const skipDismissedRef = useRef(false);
+  const watchDismissedRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
   const lastClickRef = useRef({ time: 0, x: 0 });
   const seekIndicatorRef = useRef(null);
@@ -130,6 +136,22 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
 
   const opening = currentEpisode?.opening;
   const hasOpening = opening?.start > 0 && opening?.stop > opening?.start;
+  const epEnding = currentEpisode?.ending ?? currentEpisode?.endings ?? currentEpisode?.credits;
+  const hasApiEnding = epEnding?.start > 0 && (epEnding?.stop ?? epEnding?.end) > epEnding?.start;
+  const endingData = useMemo(() => {
+    if (hasApiEnding) {
+      return { start: epEnding.start, end: epEnding.stop ?? epEnding.end, fromApi: true };
+    }
+    if (duration > 20 * 60) {
+      const autoEnd = duration;
+      const autoStart = duration - 90;
+      return { start: autoStart, end: autoEnd, fromApi: false };
+    }
+    return null;
+  }, [epEnding?.start, epEnding?.stop, epEnding?.end, hasApiEnding, duration]);
+  const hasEnding = !!endingData;
+  const endingStart = endingData?.start ?? 0;
+  const endingEnd = endingData?.end ?? 0;
 
   const initHls = useCallback((url) => {
     const video = videoRef.current;
@@ -191,10 +213,14 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
             setCurrentTime(video.currentTime);
             if (video.buffered.length > 0) setBuffered(video.buffered.end(video.buffered.length - 1));
             if (hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop) {
-              setShowWatchOpening(true);
+              if (!skipDismissedRef.current) { setShowSkip(true); setSkipType('opening'); }
+            } else if (hasEnding && video.currentTime >= endingStart && video.currentTime < endingEnd) {
+              if (!skipDismissedRef.current) { setShowSkip(true); setSkipType('ending'); }
             } else {
-              setShowWatchOpening(false);
               setShowSkip(false);
+              setSkipType(null);
+              skipDismissedRef.current = false;
+              watchDismissedRef.current = false;
             }
           });
         }
@@ -205,10 +231,14 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
       setCurrentTime(video.currentTime);
       if (video.buffered.length > 0) setBuffered(video.buffered.end(video.buffered.length - 1));
       if (hasOpening && video.currentTime >= opening.start && video.currentTime < opening.stop) {
-        setShowWatchOpening(true);
+        if (!skipDismissedRef.current) { setShowSkip(true); setSkipType('opening'); }
+      } else if (hasEnding && video.currentTime >= endingStart && video.currentTime < endingEnd) {
+        if (!skipDismissedRef.current) { setShowSkip(true); setSkipType('ending'); }
       } else {
-        setShowWatchOpening(false);
         setShowSkip(false);
+        setSkipType(null);
+        skipDismissedRef.current = false;
+        watchDismissedRef.current = false;
       }
     };
     const onDuration = () => setDuration(video.duration);
@@ -247,7 +277,13 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
   }, [currentEpisode, hasOpening, opening, episodes, onEpisodeChange]);
 
   useEffect(() => {
-    const h = () => setIsFullscreen(!!document.fullscreenElement);
+    const h = () => {
+      const fs = !!document.fullscreenElement;
+      setIsFullscreen(fs);
+      if (!fs && screen.orientation?.unlock) {
+        try { screen.orientation.unlock(); } catch {}
+      }
+    };
     document.addEventListener('fullscreenchange', h);
     return () => document.removeEventListener('fullscreenchange', h);
   }, []);
@@ -364,17 +400,62 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
   const toggleFullscreen = useCallback(async () => {
     const container = containerRef.current;
     if (!container) return;
-    if (!document.fullscreenElement) await container.requestFullscreen();
-    else await document.exitFullscreen();
-  }, []);
+    if (!document.fullscreenElement) {
+      await container.requestFullscreen();
+      if (autoRotate && screen.orientation?.lock) {
+        try { await screen.orientation.lock('landscape'); } catch {}
+      }
+    } else {
+      await document.exitFullscreen();
+    }
+  }, [autoRotate]);
 
   const skipNow = useCallback(() => {
     const video = videoRef.current;
-    if (!video || !hasOpening) return;
-    video.currentTime = opening.stop;
+    if (!video) return;
+    if (skipType === 'opening' && hasOpening) {
+      video.currentTime = opening.stop;
+    } else if (skipType === 'ending' && hasEnding) {
+      video.currentTime = endingEnd;
+    }
     setShowSkip(false);
-    setShowWatchOpening(false);
-  }, [hasOpening, opening]);
+    setSkipType(null);
+    setShowControls(true);
+    clearTimeout(controlsTimeout.current);
+    controlsTimeout.current = setTimeout(() => setShowControls(false), isPlayingRef.current ? 3000 : 5000);
+  }, [skipType, hasOpening, opening, hasEnding, endingEnd]);
+
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+
+  useEffect(() => {
+    if (showSkip && !skipDismissedRef.current) {
+      setSkipCountdown(5);
+      countdownRef.current = setInterval(() => {
+        if (!isPlayingRef.current) return;
+        setSkipCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownRef.current);
+            skipNow();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(countdownRef.current);
+    }
+    return () => clearInterval(countdownRef.current);
+  }, [showSkip, skipNow]);
+
+  const handleWatchSegment = useCallback(() => {
+    clearInterval(countdownRef.current);
+    skipDismissedRef.current = true;
+    watchDismissedRef.current = true;
+    setSkipCountdown(5);
+    setShowControls(true);
+    clearTimeout(controlsTimeout.current);
+    controlsTimeout.current = setTimeout(() => setShowControls(false), isPlayingRef.current ? 3000 : 5000);
+  }, []);
 
   const skipForward85 = useCallback(() => {
     const video = videoRef.current;
@@ -385,7 +466,16 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
   const handleMouseMove = useCallback(() => {
     setShowControls(true);
     clearTimeout(controlsTimeout.current);
-    if (isPlaying) controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
+    const delay = isPlayingRef.current ? 3000 : 5000;
+    controlsTimeout.current = setTimeout(() => setShowControls(false), delay);
+  }, []);
+
+  useEffect(() => {
+    if (isPlaying) return;
+    setShowControls(true);
+    clearTimeout(controlsTimeout.current);
+    controlsTimeout.current = setTimeout(() => setShowControls(false), 5000);
+    return () => clearTimeout(controlsTimeout.current);
   }, [isPlaying]);
 
   useEffect(() => {
@@ -431,7 +521,7 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
       className={`video-player-wrapper ${isFullscreen ? 'fullscreen' : ''} ${!showControls && isFullscreen ? 'hide-cursor' : ''}`}
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => isPlaying && setShowControls(false)}
+      onMouseLeave={() => { setShowControls(false); clearTimeout(controlsTimeout.current); }}
       onClick={handlePlayerClick}
       tabIndex={0}
     >
@@ -464,7 +554,7 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
       {isLoading && hlsUrl && <LoadingOverlay />}
 
       {currentEpisode && (
-        <div className={`player-controls-overlay ${showControls || !isPlaying ? 'visible' : ''}`}>
+        <div className={`player-controls-overlay ${showControls ? 'visible' : ''}`}>
           <div className="controls-gradient" />
 
           <div className="controls-top">
@@ -491,25 +581,6 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
           </div>
 
           <div className="controls-bottom">
-            {(showWatchOpening || showSkip) && (
-              <div className="skip-controls">
-                {showWatchOpening && (
-                  <button className="watch-opening-button" onClick={() => {
-                    setShowWatchOpening(false);
-                    setShowSkip(true);
-                  }}>
-                    Смотреть опенинг
-                  </button>
-                )}
-                {showSkip && (
-                  <button className="skip-opening-button" onClick={skipNow}>
-                    <SkipForward size={16} />
-                    <span>Пропустить</span>
-                  </button>
-                )}
-              </div>
-            )}
-
             <div
               className={`progress-bar ${isDragging ? 'dragging' : ''}`}
               ref={progressRef}
@@ -723,6 +794,20 @@ const VideoPlayer = memo(({ episodes, currentEpisode, onEpisodeChange, title }) 
           </div>
         </div>
       )}
+
+      {showSkip && (
+        <div className="skip-controls">
+          {!watchDismissedRef.current && (
+            <button className="watch-opening-button" onClick={handleWatchSegment}>
+              {skipType === 'ending' ? 'Смотреть эндинг' : 'Смотреть опенинг'}
+            </button>
+          )}
+          <button className="skip-opening-button" onClick={skipNow}>
+            <SkipForward size={16} />
+            <span>Пропустить{!skipDismissedRef.current && skipCountdown > 0 ? ` (${skipCountdown})` : ''}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 });
@@ -757,6 +842,7 @@ const AnimeWatch = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { autoRotate } = useSettings();
   const { data: anime, isLoading, error, refetch } = useAnimeById(id);
   const [currentEpisodeIdx, setCurrentEpisodeIdx] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -875,6 +961,7 @@ const AnimeWatch = () => {
             currentEpisode={currentEpisode}
             onEpisodeChange={handleEpisodeChange}
             title={title}
+            autoRotate={autoRotate}
           />
         </div>
 

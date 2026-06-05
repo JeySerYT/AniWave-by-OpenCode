@@ -75,11 +75,11 @@ const Section = memo(({ sectionKey, title, subtitle, data, loading, error, linkT
             <h2 className="section-title">{title}</h2>
           </div>
           {subtitle && <p className="section-subtitle">{subtitle}</p>}
+          <Link to={linkTo || '/catalog'} className="section-see-all">
+            Все
+            <ChevronRight size={14} />
+          </Link>
         </div>
-        <Link to={linkTo || '/catalog'} className="section-see-all">
-          Все
-          <ChevronRight size={14} />
-        </Link>
       </div>
 
       {loading && !hasData && (

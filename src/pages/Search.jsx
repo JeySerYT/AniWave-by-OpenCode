@@ -109,7 +109,7 @@ const SearchPage = () => {
   const hasMore = anime.length < total && anime.length > 0;
 
   return (
-    <div className="catalog-page">
+    <div className="search-page">
       <div className="catalog-layout">
         <aside className="catalog-sidebar">
           <p className="sidebar-title">Фильтры</p>

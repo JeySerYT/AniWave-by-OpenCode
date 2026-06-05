@@ -21,8 +21,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
-import { API_URL } from '../api/config';
-import Footer from '../components/Footer';
 import './Settings.css';
 
 const MAX_IMAGE_SIZE = 1024;
@@ -73,7 +71,7 @@ const TABS = [
 
 const SettingsPage = () => {
   const { user, loading: authLoading, refresh, logout, updateProfile } = useAuth();
-  const { particlesType, setParticlesType } = useSettings();
+  const { particlesType, setParticlesType, autoRotate, setAutoRotate } = useSettings();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [initialized, setInitialized] = useState(false);
@@ -247,7 +245,6 @@ const SettingsPage = () => {
             </div>
           </motion.div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -586,6 +583,19 @@ const SettingsPage = () => {
 
         <div className="settings-appearance-row">
           <div className="settings-appearance-info">
+            <span className="settings-appearance-label">Автоповорот в полноэкранном</span>
+            <span className="settings-appearance-desc">На телефоне при fullscreen переворачивать экран в ландшафт</span>
+          </div>
+          <div
+            className={`settings-toggle ${autoRotate ? 'checked' : ''}`}
+            onClick={() => setAutoRotate(!autoRotate)}
+          >
+            <div className="settings-toggle-knob" />
+          </div>
+        </div>
+
+        <div className="settings-appearance-row">
+          <div className="settings-appearance-info">
             <span className="settings-appearance-label">Фоновые частицы</span>
             <span className="settings-appearance-desc">
               {particlesType === 'snow' ? 'Снежинки' : particlesType === 'sakura' ? 'Лепестки сакуры' : 'Выключены'}
@@ -731,7 +741,6 @@ const SettingsPage = () => {
           </AnimatePresence>
         </main>
       </div>
-      <Footer />
     </div>
   );
 };

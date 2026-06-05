@@ -28,6 +28,15 @@ const SEASON_NAMES = {
 const CatalogPage = () => {
   const [searchParams] = useSearchParams();
   const category = searchParams.get('category') || 'recent';
+  const [maxVisible, setMaxVisible] = useState(7);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 480px)');
+    setMaxVisible(mq.matches ? 4 : 7);
+    const handler = (e) => setMaxVisible(e.matches ? 3 : 7);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
   const yearParam = searchParams.get('year') || '';
   const currentYear = new Date().getFullYear();
   const [page, setPage] = useState(1);
@@ -88,7 +97,6 @@ const CatalogPage = () => {
 
   const getPageNumbers = () => {
     const pages = [];
-    const maxVisible = 7;
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {

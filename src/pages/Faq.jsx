@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import Footer from '../components/Footer';
 import './Faq.css';
 
 const faqData = [
@@ -61,8 +60,6 @@ const Faq = () => {
           </motion.section>
         ))}
       </motion.div>
-
-      <Footer />
     </div>
   );
 };

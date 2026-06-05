@@ -23,13 +23,11 @@
 .section-header {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
 .section-title-group {
+  position: relative;
   flex: 1;
   min-width: 0;
 }
@@ -38,6 +36,25 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  padding-right: 64px;
+}
+
+.section-see-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  flex-shrink: 0;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-sm);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .section-icon-wrap {
@@ -60,7 +77,8 @@
 }
 
 .section-subtitle {
-  margin: 0.2rem 0 0 2.65rem;
+  margin: 0.2rem 0 0;
+  padding-left: calc(32px + 0.65rem);
   font-size: 0.82rem;
   color: var(--text-muted);
   font-weight: 400;
@@ -78,6 +96,10 @@
   flex-shrink: 0;
   padding: 0.35rem 0.6rem;
   border-radius: var(--radius-sm);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .section-see-all:hover {
@@ -196,7 +218,6 @@
 
   .section-subtitle {
     font-size: 0.78rem;
-    margin-left: 0;
   }
 
   .section-header {
@@ -228,6 +249,7 @@
 
   .section-subtitle {
     font-size: 0.75rem;
+    padding-left: calc(28px + 0.65rem);
   }
 
   .section-header {

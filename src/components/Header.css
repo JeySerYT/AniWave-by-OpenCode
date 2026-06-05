@@ -457,7 +457,11 @@
   }
 
   .hamburger {
-    display: flex;
+    display: none;
+  }
+
+  .mobile-menu {
+    display: none !important;
   }
 
   .profile-dropdown {

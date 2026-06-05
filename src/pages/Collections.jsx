@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Folder } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCollections } from '../hooks/useFavorites';
 import AnimeCard from '../components/AnimeCard';
@@ -66,13 +67,16 @@ const CollectionsPage = () => {
   return (
     <div className="collections-page">
       <div className="collections-container">
-        <motion.h1
-          className="collections-title"
+        <motion.div
+          className="collections-title-row"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          Мои коллекции
-        </motion.h1>
+          <div className="collections-title-icon">
+            <Folder size={22} />
+          </div>
+          <h1 className="collections-title">Мои коллекции</h1>
+        </motion.div>
 
         <div className="collections-tabs">
           {TABS.map(tab => (

@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import Footer from '../components/Footer';
 import './Terms.css';
 
 const Terms = () => {
@@ -92,8 +91,6 @@ const Terms = () => {
           </p>
         </section>
       </motion.div>
-
-      <Footer />
     </div>
   );
 };

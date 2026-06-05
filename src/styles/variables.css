@@ -59,3 +59,9 @@
 
   --scrollbar-width: 6px;
 }
+
+@media (max-width: 768px) {
+  :root {
+    --header-height: 60px;
+  }
+}

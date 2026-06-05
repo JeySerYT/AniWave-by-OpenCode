@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import Hls from 'hls.js';
 import { SkeletonAnimeDetails } from '../components/Skeleton';
 import ErrorMessage from '../components/ErrorMessage';
-import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
 import AuthModal from '../components/AuthModal';
 import { useAnimeById, useFranchise, useSimilarByGenre } from '../hooks/useAnime';
@@ -141,7 +140,6 @@ const AnimeDetails = () => {
   if (loading) return (
     <div className="anime-details">
       <SkeletonAnimeDetails />
-      <Footer />
     </div>
   );
   if (error) return <ErrorMessage message={error} onRetry={() => refetch()} />;
@@ -394,7 +392,6 @@ const AnimeDetails = () => {
           <GenreSimilar anime={anime} id={id} />
         )}
       </div>
-      <Footer />
     </div>
   );
 };

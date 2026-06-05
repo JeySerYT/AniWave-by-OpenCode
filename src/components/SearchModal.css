@@ -314,7 +314,7 @@
 
 @media (max-width: 600px) {
   .search-modal-overlay {
-    padding-top: 0;
+    padding-top: var(--header-height);
     align-items: flex-start;
   }
 

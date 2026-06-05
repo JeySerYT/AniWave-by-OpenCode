@@ -1,7 +1,8 @@
-.catalog-page {
+.search-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding-top: var(--header-height);
 }
 
 .catalog-layout {

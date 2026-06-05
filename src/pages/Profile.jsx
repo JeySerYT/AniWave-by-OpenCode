@@ -5,7 +5,6 @@ import { Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../api/config';
 import { SkeletonGrid } from '../components/Skeleton';
-import Footer from '../components/Footer';
 import './Profile.css';
 
 const MAX_IMAGE_SIZE = 1024;
@@ -151,7 +150,6 @@ const ProfileContent = () => {
         <div className="profile-content">
           <SkeletonGrid count={6} />
         </div>
-        <Footer />
       </div>
     );
   }
@@ -178,7 +176,6 @@ const ProfileContent = () => {
             </div>
           </motion.div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -305,7 +302,6 @@ const ProfileContent = () => {
           )}
         </AnimatePresence>
       </div>
-      <Footer />
     </div>
   );
 };

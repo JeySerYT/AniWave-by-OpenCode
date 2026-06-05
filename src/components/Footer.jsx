@@ -11,7 +11,6 @@ function Footer() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, delay: 0.2 }}
     >
-      <div className="footer-divider" />
       <div className="footer-content">
         <div className="footer-brand">
           <img src={Logo} alt="AniWave" className="footer-logo" loading="lazy" width="100" height="28" />

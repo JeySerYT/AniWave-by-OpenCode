@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import Footer from '../components/Footer';
 import './Dmca.css';
 
 const Dmca = () => {
@@ -59,8 +58,6 @@ const Dmca = () => {
           </p>
         </section>
       </motion.div>
-
-      <Footer />
     </div>
   );
 };

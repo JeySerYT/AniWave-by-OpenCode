@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import Footer from '../components/Footer';
 import './Privacy.css';
 
 const Privacy = () => {
@@ -71,8 +70,6 @@ const Privacy = () => {
           </p>
         </section>
       </motion.div>
-
-      <Footer />
     </div>
   );
 };
