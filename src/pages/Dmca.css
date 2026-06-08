@@ -1,0 +1,82 @@
+.dmca-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--header-height);
+}
+
+.dmca-content {
+  flex: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+  width: 100%;
+}
+
+.dmca-content h1 {
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.dmca-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.dmca-content section {
+  margin-bottom: 2rem;
+}
+
+.dmca-content section h2 {
+  font-size: 1.15rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.dmca-content section p {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-size: 0.92rem;
+}
+
+.dmca-content section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.dmca-content section ul li {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 0.35rem 0 0.35rem 1.2rem;
+  position: relative;
+}
+
+.dmca-content section ul li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--accent-pink);
+}
+
+.dmca-content a {
+  color: var(--accent-pink);
+  text-decoration: none;
+}
+
+.dmca-content a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .dmca-content {
+    padding: 2rem 1rem;
+  }
+
+  .dmca-content h1 {
+    font-size: 1.6rem;
+  }
+}
